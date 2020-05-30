@@ -53,6 +53,7 @@ document.getElementById('exec').addEventListener('click', () => {
 
 ```
 {
+  addr: "大阪市中央区xxx"
   lat: 35.1234.
   lng: 135.1234
 }

@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('err').textContent = ''
     if (document.getElementById('address').value) {
       getLatLng(document.getElementById('address').value, (latlng) => {
+        console.log(latlng)
         map.flyTo({center: latlng, zoom: 16, essential: true})
       }, (e) => {
         document.getElementById('err').textContent = e.message
