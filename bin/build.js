@@ -29,10 +29,27 @@ files.forEach((item) => {
 
   data.forEach((line) => {
     const dir = path.join(apiDir, line['都道府県コード'], line['市区町村コード'])
-    fs.mkdirSync(dir, {recursive: true})
-    fs.writeFileSync(path.join(dir, `${line['大字町丁目コード']}.json`), JSON.stringify({
-      lat: line['緯度'],
-      lng: line['経度'],
-    }))
+    try {
+      const stats = fs.statSync(dir)
+      if (stats.isDirectory()) {
+        fs.writeFileSync(path.join(dir, `${line['大字町丁目コード']}.json`), JSON.stringify({
+          lat: line['緯度'],
+          lng: line['経度'],
+        }))
+      } else {
+        throw new Error()
+      }
+    } catch(e) {
+      fs.mkdirSync(dir, {recursive: true})
+      // This is an default endpoint for the city.
+      fs.writeFileSync(path.join(dir, `${line['市区町村コード']}.json`), JSON.stringify({
+        lat: line['緯度'],
+        lng: line['経度'],
+      }))
+      fs.writeFileSync(path.join(dir, `${line['大字町丁目コード']}.json`), JSON.stringify({
+        lat: line['緯度'],
+        lng: line['経度'],
+      }))
+    }
   })
 })

@@ -9,6 +9,7 @@ window.getLatLng = (str, callback, errorCallback = () => {}) => {
 
     const base = "https://geolonia.github.io/simple-geocoder/api"
     const api = `${base}/${prefCode}/${cityCode}/${code}.json`
+    console.log(api)
 
     fetch(api).then((res) => {
       return res.json()

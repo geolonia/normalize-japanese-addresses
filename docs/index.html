@@ -82,8 +82,7 @@
       document.getElementById('exec').addEventListener('click', () => {
         if (document.getElementById('address').value) {
           getLatLng(document.getElementById('address').value, (latlng) => {
-            console.log(latlng)
-            map.setCenter(latlng)
+            map.flyTo({center: latlng, zoom: 16, essential: true})
           }, (e) => {
             document.getElementById('err').textContent = e.message
           })
