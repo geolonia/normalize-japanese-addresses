@@ -1,4 +1,4 @@
-const util = require('./util');
+import util from './util'
 
 // tree の構造変更
 const tree = (function(src) {
@@ -113,7 +113,7 @@ const lower = (function() {
   return map;
 })();
 
-module.exports = function(address) {
+export default function(address) {
 
   let normalized = util.simplify(address).trim();
   normalized = normalized.replace(/\s/g, "");

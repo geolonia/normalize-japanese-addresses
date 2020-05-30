@@ -1,5 +1,16 @@
-const enrichment = require('./imi-enrichment-address/main')
+import enrichment from './imi-enrichment-address/main'
 
-const res = enrichment('和歌山県東牟婁郡串本町鬮野川')
+window.getLatLng = (str, callback) => {
+  const code = enrichment(str)
+  const prefCode = code.substr(0, 2)
+  const cityCode = code.substr(0, 5)
 
-console.log(res)
+  const base = "https://geolonia.github.io/simple-geocoder/api"
+  const api = `${base}/${prefCode}/${cityCode}/${code}.json`
+
+  fetch(api).then((res) => {
+    return res.json()
+  }).then((json) => {
+    callback(json)
+  })
+}

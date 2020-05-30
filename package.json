@@ -4,11 +4,12 @@
   "description": "",
   "main": "./bin/build.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack-dev-server --mode development --config ./docs/webpack.config.js",
+    "build": "webpack -p --config ./webpack.config.js",
+    "test": "eslint \"src/**/*.js\""
   },
   "author": "",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.4",
@@ -32,5 +33,8 @@
     "webpack": "^4.42.0",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
   }
 }

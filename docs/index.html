@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Geocoding</title>
+  <style>
+    html, body, #map
+    {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    .form
+    {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="form">
+    <input type="text" id="address" value="東京都千代田区霞が関1-3-1" style="width: 400px;" />
+    <button id="exec">検索</button>
+  </div>
+
+  <div
+    id="map"
+    data-lat="35.681236"
+    data-lng="139.767125"
+    data-zoom="12"
+    data-marker="off"
+    data-style="geolonia/gsi"
+  ></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const map = new geolonia.Map('#map')
+
+      document.getElementById('exec').addEventListener('click', () => {
+      if (document.getElementById('address').value) {
+        getLatLng(document.getElementById('address').value, (latlng) => {
+          map.setCenter(latlng)
+        })
+      }
+    })
+    })
+  </script>
+
+  <script type="text/javascript" src="https://api.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
+  <script src="./api.js"></script>
+</body>
+</html>

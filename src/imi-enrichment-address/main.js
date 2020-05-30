@@ -1,15 +1,15 @@
-const find = require("./lib/find");
+import find from "./lib/find"
 
-module.exports = function(src) {
+const enrichment = (str) => {
 
-  const target = typeof src === 'string' ? {
+  const target = {
     "@context": "https://imi.go.jp/ns/core/context.jsonld",
     "@type": "場所型",
     "住所": {
       "@type": "住所型",
-      "表記": src
+      "表記": str
     }
-  } : JSON.parse(JSON.stringify(src));
+  }
 
   const address = target["住所"] || target;
   const response = find(address["表記"]);
@@ -31,3 +31,5 @@ module.exports = function(src) {
 
   return code
 };
+
+export default enrichment
