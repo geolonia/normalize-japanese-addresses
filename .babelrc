@@ -1,0 +1,15 @@
+{
+  "plugins": ["@babel/plugin-transform-classes"],
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "ie": "11"
+        },
+        "useBuiltIns": "usage",
+        "corejs": 3
+      }
+    ]
+  ]
+}
