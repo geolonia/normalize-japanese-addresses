@@ -29,27 +29,24 @@ files.forEach((item) => {
 
   data.forEach((line) => {
     const dir = path.join(apiDir, line['都道府県コード'], line['市区町村コード'])
+    const json = JSON.stringify({
+      addr: `${line['都道府県名']}${line['市区町村名']}${line['大字町丁目名']}`,
+      lat: line['緯度'],
+      lng: line['経度'],
+    })
+
     try {
       const stats = fs.statSync(dir)
       if (stats.isDirectory()) {
-        fs.writeFileSync(path.join(dir, `${line['大字町丁目コード']}.json`), JSON.stringify({
-          lat: line['緯度'],
-          lng: line['経度'],
-        }))
+        fs.writeFileSync(path.join(dir, `${line['大字町丁目コード']}.json`), json)
       } else {
         throw new Error()
       }
     } catch(e) {
       fs.mkdirSync(dir, {recursive: true})
-      // This is an default endpoint for the city.
-      fs.writeFileSync(path.join(dir, `${line['市区町村コード']}.json`), JSON.stringify({
-        lat: line['緯度'],
-        lng: line['経度'],
-      }))
-      fs.writeFileSync(path.join(dir, `${line['大字町丁目コード']}.json`), JSON.stringify({
-        lat: line['緯度'],
-        lng: line['経度'],
-      }))
+      // This is the default endpoint for the city.
+      fs.writeFileSync(path.join(dir, `${line['市区町村コード']}.json`), json)
+      fs.writeFileSync(path.join(dir, `${line['大字町丁目コード']}.json`), json)
     }
   })
 })
