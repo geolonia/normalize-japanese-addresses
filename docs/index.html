@@ -3,66 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
   <title>Simple Geocoding</title>
-  <style>
-    html, body, #map
-    {
-      width: 100%;
-      height: 100%;
-      padding: 0;
-      margin: 0;
-    }
-
-    #form
-    {
-      position: absolute;
-      bottom: 48px;
-      left: 8px;
-      z-index: 9999;
-      background-color: rgba(255, 255, 255);
-      padding: 8px;
-
-    }
-
-    #target
-    {
-      width: 100px;
-      height: 100px;
-      margin: 0;
-      padding: 0;
-      position: absolute;
-      z-index: 9999;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      margin: auto;
-      pointer-events: none;
-    }
-
-    #err
-    {
-      color: #ff0000;
-      height: 1.5em;
-    }
-
-    .forkme
-    {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 99;
-    }
-  </style>
 </head>
 <body>
   <a class="forkme" href="https://github.com/geolonia/simple-geocoder"><img width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_left_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1"></a>
 
   <div id="form">
     <h2>以下のフィールドに住所を入力してください。</h2>
-    <input type="text" id="address" value="東京都千代田区霞が関1-3-1" style="width: 400px;" />
+    <input type="text" id="address" value="東京都千代田区霞が関1-3-1" style="width: 280px;" />
     <button id="exec">検索</button>
     <div id="err"></div>
+    <p>緯度: <input type="text" id="lat"><br />
+      経度: <input type="text"  id="lng"></p>
   </div>
 
   <div
@@ -80,6 +33,11 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const map = new geolonia.Map('#map')
+      map.on('moveend', () => {
+        const {lng, lat} = map.getCenter()
+        document.getElementById('lat').value = lat
+        document.getElementById('lng').value = lng
+      })
 
       document.getElementById('exec').addEventListener('click', () => {
         document.getElementById('err').textContent = ''
