@@ -1,9 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const map = new geolonia.Map('#map')
+
   map.on('moveend', () => {
     const {lng, lat} = map.getCenter()
     document.getElementById('lat').value = lat
     document.getElementById('lng').value = lng
+  })
+
+  document.getElementById('address').addEventListener('focus', (e) => {
+    e.target.select()
   })
 
   const search = () => {
