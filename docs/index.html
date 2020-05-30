@@ -39,7 +39,7 @@
         document.getElementById('lng').value = lng
       })
 
-      document.getElementById('exec').addEventListener('click', () => {
+      const search = () => {
         document.getElementById('err').textContent = ''
         if (document.getElementById('address').value) {
           getLatLng(document.getElementById('address').value, (latlng) => {
@@ -48,7 +48,9 @@
             document.getElementById('err').textContent = e.message
           })
         }
-      })
+      }
+
+      document.getElementById('exec').addEventListener('click', search)
     })
   </script>
 
