@@ -1,0 +1,16 @@
+{
+  "name": "simple-geocoding",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./bin/build.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^4.10.1",
+    "encoding-japanese": "^1.0.30",
+    "unzipper": "^0.10.11"
+  }
+}
