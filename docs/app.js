@@ -3,11 +3,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   map.on('moveend', () => {
     const {lng, lat} = map.getCenter()
-    document.getElementById('lat').value = lat
-    document.getElementById('lng').value = lng
+    document.getElementById('lat').value = Math.round(lat * 1000000) / 1000000
+    document.getElementById('lng').value = Math.round(lng * 1000000) / 1000000
   })
 
   document.getElementById('address').addEventListener('focus', (e) => {
+    e.target.select()
+  })
+
+  document.getElementById('lat').addEventListener('focus', (e) => {
+    e.target.select()
+  })
+
+  document.getElementById('lng').addEventListener('focus', (e) => {
     e.target.select()
   })
 
