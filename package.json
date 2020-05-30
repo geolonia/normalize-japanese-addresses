@@ -6,6 +6,7 @@
   "scripts": {
     "start": "webpack-dev-server --mode development --config ./docs/webpack.config.js",
     "build": "webpack -p --config ./webpack.config.js",
+    "build:api": "node ./bin/build.js",
     "test": "eslint \"src/**/*.js\""
   },
   "author": "",

@@ -4,7 +4,7 @@
 
 経産省の [IMI コンポーネントツール](https://info.gbiz.go.jp/tools/imi_tools/)のジオコーディングの仕組みからインスピレーションをうけて開発しました。
 
-https://geolonia.github.io/simple-geocoder/
+デモ: https://geolonia.github.io/simple-geocoder/
 
 ## 特徴
 
@@ -63,3 +63,8 @@ document.getElementById('exec').addEventListener('click', () => {
 
 * このジオコーディングは、「大字町丁目」までを対象としているため、それほど精度が高いものではありません。また、住所のみに対応しておりランドマーク等からの緯度経度の取得には対応していません。
 + Geolonia では、ElasticSearch を利用したジオコーディング API を別途提供する予定ですので、もうすこし高い精度のジオコーディングサービスが必要な場合はもうしばらくお待ち下さい。
+
+## メンテナンス方法
+
+* `./data` ディレクトリに[国土交通省の位置参照情報](https://nlftp.mlit.go.jp/isj/)の「大字・町丁目レベル位置参照情報」からダウンロードしたすべての `.zip` ファイルを置いてください。
+* `npm run build:api` を実行してください。
