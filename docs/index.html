@@ -16,9 +16,12 @@
     #form
     {
       position: absolute;
-      top: 8px;
+      bottom: 48px;
       left: 8px;
       z-index: 9999;
+      background-color: rgba(255, 255, 255);
+      padding: 8px;
+
     }
 
     #target
@@ -35,12 +38,30 @@
       right: 0;
       margin: auto;
     }
+
+    #err
+    {
+      color: #ff0000;
+      height: 1.5em;
+    }
+
+    .forkme
+    {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 99;
+    }
   </style>
 </head>
 <body>
+  <a class="forkme" href="https://github.com/geolonia/simple-geocoder"><img width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_left_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1"></a>
+
   <div id="form">
+    <h2>以下のフィールドに住所を入力してください。</h2>
     <input type="text" id="address" value="東京都千代田区霞が関1-3-1" style="width: 400px;" />
     <button id="exec">検索</button>
+    <div id="err"></div>
   </div>
 
   <div
@@ -61,7 +82,10 @@
       document.getElementById('exec').addEventListener('click', () => {
         if (document.getElementById('address').value) {
           getLatLng(document.getElementById('address').value, (latlng) => {
+            console.log(latlng)
             map.setCenter(latlng)
+          }, (e) => {
+            document.getElementById('err').textContent = e.message
           })
         }
       })

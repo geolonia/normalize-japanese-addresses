@@ -15,11 +15,11 @@ const enrichment = (str) => {
   const response = find(address["表記"]);
 
   if (!response) {
-    return new Error("該当する地名が見つかりません")
+    throw new Error("該当する地名が見つかりません")
   }
 
   if (response.multipleChoice) {
-    return new Error("該当する地名が複数あります")
+    throw new Error("該当する地名が複数あります")
   }
 
   let code = response.code;
