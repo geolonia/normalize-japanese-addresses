@@ -13,13 +13,10 @@ const enrichment = (str) => {
 
   const address = target["住所"] || target;
   const response = find(address["表記"]);
+  console.log(response)
 
-  if (!response) {
-    throw new Error("該当する地名が見つかりません")
-  }
-
-  if (response.multipleChoice) {
-    throw new Error("該当する地名が複数あります")
+  if (!response || response.multipleChoice) {
+    throw new Error("見つかりませんでした。住所を修正して、もう一度お試しください。")
   }
 
   let code = response.code;
