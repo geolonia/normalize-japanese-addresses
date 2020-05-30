@@ -43,10 +43,11 @@ document.getElementById('exec').addEventListener('click', () => {
 })
 ```
 
-### `getLatLng(address, callback)`
+### `getLatLng(address, callback, errorCallback)`
 
 * `address` - 緯度経度を取得したい住所の文字列
 * `callback` - 緯度経度を取得したあとで実行したいコールバック関数。コールバック関数の第一引き数には緯度経度のオブジェクトが渡されます。
+* `errorCallback` - エラー時のコールバック関数。エラーオブジェクトが引き数として渡されます。
 
 コールバック関数に引き数として渡される緯度経度のオブジェクトは以下のようになっています。
 
