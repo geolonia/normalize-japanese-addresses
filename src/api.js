@@ -14,6 +14,9 @@ window.getLatLng = (str, callback, errorCallback = () => {}) => {
       return res.json()
     }).then((json) => {
       callback(json)
+    }).catch(() => {
+      const e = new Error('すいません。もうすこし修行を積みます。。。')
+      errorCallback(e)
     })
   } catch(e) {
     errorCallback(e)
