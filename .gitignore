@@ -29,5 +29,4 @@ src/config.json
 
 .env
 
-data/*
-!data/.gitkeeep
+/data
