@@ -6,7 +6,8 @@
   "scripts": {
     "start": "webpack-dev-server --mode development --config ./docs/webpack.config.js",
     "build": "webpack -p --config ./webpack.config.js",
-    "build:api": "node ./bin/build.js",
+    "build:api": "npm run build:clean && node ./bin/build.js",
+    "build:clean": "rm -fr ./data && mkdir ./data && rm -fr ./docs/api && mkdir ./docs/api",
     "test": "eslint \"src/**/*.js\""
   },
   "author": "",
