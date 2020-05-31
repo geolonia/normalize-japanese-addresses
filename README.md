@@ -56,11 +56,11 @@ document.getElementById('exec').addEventListener('click', () => {
 
 コールバック関数に引き数として渡される緯度経度のオブジェクトは以下のようになっています。
 
-```json
+```javascript
 {
-  addr: "大阪市中央区xxx"
-  lat: 35.1234.
-  lng: 135.1234
+  addr: "大阪市中央区xxx",
+  lat: 35.1234,
+  lng: 135.1234,
 }
 ```
 
