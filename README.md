@@ -1,10 +1,10 @@
-# Simple Geocoder
+# Community Geocoder
 
 オープンソースのジオコーディング API です。
 
 経産省の [IMI コンポーネントツール](https://info.gbiz.go.jp/tools/imi_tools/)のジオコーディングの仕組みからインスピレーションをうけて開発しました。
 
-デモ: https://geolonia.github.io/simple-geocoder/
+デモ: https://geolonia.github.io/community-geocoder/
 
 ## 特徴
 
@@ -32,7 +32,7 @@
 以下の JavaScript API をウェブページから読み込んでください。
 
 ```
-<script src="https://geolonia.github.io/simple-geocoder/api.js"></script>
+<script src="https://geolonia.github.io/community-geocoder/api.js"></script>
 ```
 
 API 関数 `getLatLng()` を任意のクリックイベント等でコールしてください。
@@ -73,8 +73,8 @@ document.getElementById('exec').addEventListener('click', () => {
 まず、以下のコマンドで環境を用意してください。
 
 ```
-$ git clone git@github.com:geolonia/simple-geocoder.git
-$ cd simple-geocoder
+$ git clone git@github.com:geolonia/community-geocoder.git
+$ cd community-geocoder
 $ npm install
 ```
 
