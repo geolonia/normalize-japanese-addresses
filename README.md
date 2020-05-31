@@ -11,6 +11,7 @@
 * 国土交通省の位置参照情報の「大字・町丁目レベル位置参照情報」を利用したジオコーディングサービスです。
   * JavaScript API と緯度経度の API を提供しています。
 * API は GitHub ページで静的ファイルとしてホストしています。
+* オープンソースなので誰でもフォークすることができ、利用規約の変更などを気にすることなく、安心して利用することができます。
 * ソースコードのライセンスは MIT ライセンスです。取得した位置情報のご利用はご自由にどうぞ。
 
 経産省の [IMI コンポーネントツール](https://info.gbiz.go.jp/tools/imi_tools/) でも同じレベルの精度のジオコーディングが可能ですが、IMI コンポーネントツールは、自力で Node.js サーバーをホストする必要があります。
@@ -31,13 +32,13 @@
 
 以下の JavaScript API をウェブページから読み込んでください。
 
-```
+```html
 <script src="https://cdn.geolonia.com/community-geocoder.js"></script>
 ```
 
 API 関数 `getLatLng()` を任意のクリックイベント等でコールしてください。
 
-```
+```javascript
 document.getElementById('exec').addEventListener('click', () => {
   if (document.getElementById('address').value) {
     getLatLng(document.getElementById('address').value, (latlng) => {
@@ -55,7 +56,7 @@ document.getElementById('exec').addEventListener('click', () => {
 
 コールバック関数に引き数として渡される緯度経度のオブジェクトは以下のようになっています。
 
-```
+```json
 {
   addr: "大阪市中央区xxx"
   lat: 35.1234.
@@ -63,12 +64,7 @@ document.getElementById('exec').addEventListener('click', () => {
 }
 ```
 
-## 注意
-
-* このジオコーディングは、「大字町丁目」までを対象としているため、それほど精度が高いものではありません。また、住所のみに対応しておりランドマーク等からの緯度経度の取得には対応していません。
-+ Geolonia では、ElasticSearch を利用したジオコーディング API を別途提供する予定ですので、もうすこし高い精度のジオコーディングサービスが必要な場合はもうしばらくお待ち下さい。
-
-## メンテナンス方法
+## 開発者向け情報
 
 まず、以下のコマンドで環境を用意してください。
 
@@ -91,3 +87,11 @@ $ npm start
 ```
 npm run build:api
 ```
+
+プルリクエストはいつでも歓迎します。
+
+## ライセンス、利用規約
+
+* ソースコードのライセンスは MIT ライセンスです。
+* 取得した緯度経度の情報のご利用方法に制限はありません。他社の地図、アプリ、その他ご自由にご利用ください。
+* ご利用に際しましては、できればソーシャルでのシェア、[Geolonia][https://geolonia.com/] へのリンクの設置などをしていただけると、開発者たちのモチベーションが上がると思います。
