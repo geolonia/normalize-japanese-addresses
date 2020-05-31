@@ -32,7 +32,7 @@
 以下の JavaScript API をウェブページから読み込んでください。
 
 ```
-<script src="https://geolonia.github.io/community-geocoder/api.js"></script>
+<script src="https://community-geocoder.geolonia.com/api.js"></script>
 ```
 
 API 関数 `getLatLng()` を任意のクリックイベント等でコールしてください。
