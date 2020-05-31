@@ -4,7 +4,7 @@
 
 経産省の [IMI コンポーネントツール](https://info.gbiz.go.jp/tools/imi_tools/)のジオコーディングの仕組みからインスピレーションをうけて開発しました。
 
-デモ: https://geolonia.github.io/community-geocoder/
+デモ: https://community-geocoder.geolonia.com/
 
 ## 特徴
 
