@@ -66,5 +66,24 @@ document.getElementById('exec').addEventListener('click', () => {
 
 ## メンテナンス方法
 
+まず、以下のコマンドで環境を用意してください。
+
+```
+$ git clone git@github.com:geolonia/simple-geocoder.git
+$ cd simple-geocoder
+$ npm install
+```
+
+### JavaScript API の開発方法
+
+`src/api.js` がこのサービスで提供される JavaScript API のソースです。 以下のコマンドでブラウザで確認しながら作業できます。
+
+```
+$ npm start
+$ npm run build
+```
+
+### タイルのメンテナンス方法
+
 * `./data` ディレクトリに[国土交通省の位置参照情報](https://nlftp.mlit.go.jp/isj/)の「大字・町丁目レベル位置参照情報」からダウンロードしたすべての `.zip` ファイルを置いてください。
 * `npm run build:api` を実行してください。
