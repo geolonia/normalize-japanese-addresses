@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
   <title>Community Geocoder</title>
 </head>
 <body>
   <a class="forkme" href="https://github.com/geolonia/simple-geocoder"><img width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_left_red_aa0000.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1"></a>
+
+  <p class="credit">Community Geocoder powered by <a href="https://geolonia.com/">Geolonia</a></p>
 
   <div id="form">
     <h2>以下のフィールドに住所を入力してください。</h2>
@@ -17,18 +20,20 @@
     <p>緯度: <input type="text" id="lat"><br />経度: <input type="text"  id="lng"></p>
   </div>
 
-  <div
-    id="map"
-    data-hash="on"
-    data-lat="35.681236"
-    data-lng="139.767125"
-    data-zoom="12"
-    data-marker="off"
-    data-geolocate-control="on"
-    data-style="geolonia/gsi"
-  ></div>
+  <div id="container">
+    <div
+      id="map"
+      data-hash="on"
+      data-lat="35.681236"
+      data-lng="139.767125"
+      data-zoom="12"
+      data-marker="off"
+      data-geolocate-control="on"
+      data-style="geolonia/gsi"
+    ></div>
 
-  <img src="./target.svg" id="target">
+    <img src="./target.svg" id="target">
+  </div>
 
   <script type="text/javascript" src="https://api.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
   <script src="./api.js"></script>
