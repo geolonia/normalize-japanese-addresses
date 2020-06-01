@@ -13,6 +13,7 @@ window.getLatLng = (str, callback, errorCallback = () => {}) => {
     fetch(api).then((res) => {
       return res.json()
     }).then((json) => {
+      json.code = code
       callback(json)
     }).catch(() => {
       const e = new Error("見つかりませんでした。住所を修正して、もう一度お試しください。")
