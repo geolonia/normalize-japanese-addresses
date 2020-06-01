@@ -13,6 +13,7 @@ html, body
   border-top: 1px solid #CCCCCC;
   position: absolute;
   top: 32px;
+  box-sizing: border-box;
 }
 
 #map
