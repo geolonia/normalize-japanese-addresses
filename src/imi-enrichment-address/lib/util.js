@@ -156,9 +156,9 @@ const Util = {
 
     // 数字条を漢数字に
     if (name.match(/^.*?(([0-9]+|[０-９]+)(条))/)) {
-      const n = Util.z2h(RegExp.$2)
-      const jo = `${Util.h2j(n)}条`
-      name = name.replace(RegExp.$1, jo)
+      const original = RegExp.$2
+      const normalized = Util.h2j(Util.z2h(original))
+      name = name.replace(`${original}条`, `${normalized}条`)
     }
 
     if (name.endsWith("丁目")) {
