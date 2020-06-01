@@ -154,6 +154,8 @@ const Util = {
   normalize: function(name) {
     if (name.endsWith("　")) return Util.normalize(name.replace(/[　]+$/, ""));
 
+    name = name.replace('八丈島八丈町', '八丈町')
+
     // 数字条を漢数字に（札幌など）
     if (name.match(/^.*?(([0-9]+|[０-９]+)(条))/)) {
       const original = RegExp.$2
