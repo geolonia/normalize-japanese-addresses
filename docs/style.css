@@ -25,6 +25,7 @@ html, body
 
 #form
 {
+  width: 400px;
   max-width: 80%;
   position: absolute;
   bottom: 40px;
@@ -63,10 +64,12 @@ h2
 
 #err
 {
-  color: #ff0000;
-  height: 1.5em;
+  color: #FF0000;
+  height: 3em;
   font-size: 12px;
   margin-top: 4px;
+  line-height: 1.5em;
+  visibility: hidden;
 }
 
 .forkme
