@@ -25,13 +25,19 @@ html, body
 
 #form
 {
+  max-width: 80%;
   position: absolute;
-  bottom: 48px;
+  bottom: 40px;
   left: 8px;
   z-index: 9999;
   background-color: rgba(255, 255, 255);
   padding: 8px 16px;
   border: 1px solid #CCCCCC;
+}
+
+#address
+{
+  width: calc(100% - 100px);
 }
 
 h2
@@ -83,4 +89,9 @@ h2
   line-height: 32px;
   text-align: right;
   font-family: 'Baloo Thambi 2', cursive;
+}
+
+label span
+{
+  font-size: 80%;
 }
