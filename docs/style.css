@@ -32,9 +32,16 @@ html, body
   bottom: 40px;
   left: 8px;
   z-index: 9999;
-  background-color: rgba(255, 255, 255);
+  background-color: rgba(255, 255, 255, 0.8);
   padding: 8px 16px;
   border: 1px solid #CCCCCC;
+}
+
+#form p.copyright
+{
+  margin: 0;
+  text-align: right;
+  font-size: 90%;
 }
 
 #address
