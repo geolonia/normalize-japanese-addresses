@@ -1,13 +1,16 @@
 import find from "./lib/find"
+import util from './lib/util'
 
 const enrichment = (str) => {
+
+  const normalized = util.normalize(str)
 
   const target = {
     "@context": "https://imi.go.jp/ns/core/context.jsonld",
     "@type": "場所型",
     "住所": {
       "@type": "住所型",
-      "表記": str
+      "表記": normalized
     }
   }
 

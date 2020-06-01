@@ -154,6 +154,12 @@ const Util = {
   normalize: function(name) {
     if (name.endsWith("　")) return Util.normalize(name.replace(/[　]+$/, ""));
 
+    // 数字条を漢数字に
+    if (name.match(/^.*?(([0-9]+)(条))/)) {
+      const jo = `${Util.h2j(RegExp.$2)}条`
+      name = name.replace(RegExp.$1, jo)
+    }
+
     if (name.endsWith("丁目")) {
 
       // 一見すると正しいが、実は漢数字ではない
