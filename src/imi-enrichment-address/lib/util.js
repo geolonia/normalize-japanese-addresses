@@ -155,8 +155,9 @@ const Util = {
     if (name.endsWith("　")) return Util.normalize(name.replace(/[　]+$/, ""));
 
     // 数字条を漢数字に
-    if (name.match(/^.*?(([0-9]+)(条))/)) {
-      const jo = `${Util.h2j(RegExp.$2)}条`
+    if (name.match(/^.*?(([0-9]+|[０-９]+)(条))/)) {
+      const n = Util.z2h(RegExp.$2)
+      const jo = `${Util.h2j(n)}条`
       name = name.replace(RegExp.$1, jo)
     }
 
