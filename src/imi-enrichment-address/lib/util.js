@@ -154,11 +154,18 @@ const Util = {
   normalize: function(name) {
     if (name.endsWith("　")) return Util.normalize(name.replace(/[　]+$/, ""));
 
-    // 数字条を漢数字に
+    // 数字条を漢数字に（札幌など）
     if (name.match(/^.*?(([0-9]+|[０-９]+)(条))/)) {
       const original = RegExp.$2
       const normalized = Util.h2j(Util.z2h(original))
       name = name.replace(`${original}条`, `${normalized}条`)
+    }
+
+    // 数字丁を漢数字に（堺市）
+    if (name.match(/^.*?(([0-9]+|[０-９]+)(丁(?!目)))/)) {
+      const original = RegExp.$2
+      const normalized = Util.h2j(Util.z2h(original))
+      name = name.replace(`${original}丁`, `${normalized}丁`)
     }
 
     if (name.endsWith("丁目")) {
