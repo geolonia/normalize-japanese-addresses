@@ -8,7 +8,9 @@
     "build": "webpack -p --config ./webpack.config.js",
     "build:api": "npm run build:clean && node ./bin/build.js",
     "build:clean": "rm -fr ./data && mkdir ./data && rm -fr ./docs/api && mkdir ./docs/api",
-    "test": "eslint \"src/**/*.js\""
+    "test": "npm run test:lint && npm run test:mocha",
+    "test:lint": "eslint \"src/**/*.js\"",
+    "test:mocha": "mocha --recursive --exit"
   },
   "author": "",
   "license": "MIT",
@@ -19,6 +21,7 @@
     "@babel/preset-env": "^7.8.4",
     "@babel/register": "^7.8.3",
     "babel-loader": "^8.0.4",
+    "chai": "^4.2.0",
     "core-js": "^3.6.4",
     "css-loader": "^2.1.0",
     "csv-parse": "^4.10.1",

@@ -1,34 +1,34 @@
-import find from "./lib/find"
+import find from './lib/find'
 import util from './lib/util'
 
-const enrichment = (str) => {
+const enrichment = str => {
 
   const normalized = util.normalize(str)
 
   const target = {
-    "@context": "https://imi.go.jp/ns/core/context.jsonld",
-    "@type": "場所型",
-    "住所": {
-      "@type": "住所型",
-      "表記": normalized
-    }
+    '@context': 'https://imi.go.jp/ns/core/context.jsonld',
+    '@type': '場所型',
+    住所: {
+      '@type': '住所型',
+      表記: normalized,
+    },
   }
 
-  const address = target["住所"] || target;
-  const response = find(address["表記"]);
+  const address = target['住所'] || target
+  const response = find(address['表記'])
 
   if (!response || response.multipleChoice) {
-    throw new Error("見つかりませんでした。住所を修正して、もう一度お試しください。")
+    throw new Error('見つかりませんでした。住所を修正して、もう一度お試しください。')
   }
 
-  let code = response.code;
-  if (response.expectedChome !== undefined) {
-    let t = "" + response.expectedChome;
-    while (t.length < 3) t = "0" + t;
-    code = code + t;
+  let code = response.code
+  if (typeof response.expectedChome !== "undefined") {
+    let t = '' + response.expectedChome
+    while (t.length < 3) t = '0' + t
+    code = code + t
   }
 
   return code
-};
+}
 
 export default enrichment
