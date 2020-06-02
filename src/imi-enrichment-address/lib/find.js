@@ -168,6 +168,30 @@ const find = address => {
           multipleChoice: true,
         }
       }
+
+      // 京都の「通り名」に対する処理
+      // `丁目` が `tree.json` にある場合バグるかも
+      if (5 === answer[0].code.length && answer[0].code.startsWith('26') && normalized.substring(i)) {
+        const result = { code: '', tail: '' }
+        let theIndex = 0
+        for (let k = 0; k < answer[0].children.length; k++) {
+          const item = answer[0].children[k]
+          const index = normalized.substring(i).indexOf(item.label)
+
+          // もっとも後ろでマッチする町名が正しい町名それ以前は「通り名」
+          // See https://github.com/geolonia/community-geocoder/issues/10
+          if (index >= theIndex) {
+            theIndex = index
+            result.code = `${item.code}000`
+            result.tail = normalized.substring(i).split(item.label)[1]
+          }
+        }
+
+        if (result.code) {
+          return result
+        }
+      }
+
       let latest = answer[0]
       while (latest.next) latest = latest.next
       for (let j = normalized.length; j > i; j--) {
@@ -176,19 +200,6 @@ const find = address => {
         const hit = latest.children.find(child => body === child.label)
         if (typeof hit !== 'undefined') {
           return fix(hit, tail)
-        }
-      }
-
-      // For Kyoto
-      if (5 === answer[0].code.length && answer[0].code.startsWith('26')) {
-        for (let k = 0; k < answer[0].children.length; k++) {
-          const item = answer[0].children[k]
-          if (0 <= normalized.substring(i).indexOf(item.label)) {
-            return {
-              code: `${item.code}000`,
-              tail: normalized.substring(i).split(item.label)[1],
-            }
-          }
         }
       }
 
