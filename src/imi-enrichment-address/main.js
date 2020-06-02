@@ -22,7 +22,7 @@ const enrichment = str => {
   }
 
   let code = response.code
-  if (typeof response.expectedChome !== "undefined") {
+  if (typeof response.expectedChome !== 'undefined') {
     let t = '' + response.expectedChome
     while (t.length < 3) t = '0' + t
     code = code + t
