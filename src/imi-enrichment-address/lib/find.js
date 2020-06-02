@@ -113,7 +113,7 @@ const lower = (function() {
   return map
 })()
 
-export default function(address) {
+const find = (address) => {
 
   let normalized = util.simplify(address).trim()
   normalized = normalized.replace(/\s/g, '')
@@ -178,6 +178,20 @@ export default function(address) {
           return fix(hit, tail)
         }
       }
+
+      // For Kyoto
+      if (5 === answer[0].code.length && answer[0].code.startsWith('26')) {
+        for (let k = 0; k < answer[0].children.length; k++) {
+          const item = answer[0].children[k]
+          if (0 <= normalized.substring(i).indexOf(item.label)) {
+            return {
+              code: `${item.code}000`,
+              tail: normalized.substring(i).split(item.label)[1],
+            }
+          }
+        }
+      }
+
       return {
         code: answer[0].code,
         tail: normalized.substring(i),
@@ -197,3 +211,5 @@ export default function(address) {
 
   return null
 }
+
+export default find
