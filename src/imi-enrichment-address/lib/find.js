@@ -176,14 +176,15 @@ const find = address => {
         let theIndex = 0
         for (let k = 0; k < answer[0].children.length; k++) {
           const item = answer[0].children[k]
-          const index = normalized.substring(i).indexOf(item.label)
+          const index = normalized.substring(i).lastIndexOf(item.label)
 
           // もっとも後ろでマッチする町名が正しい町名それ以前は「通り名」
           // See https://github.com/geolonia/community-geocoder/issues/10
           if (index >= theIndex) {
             theIndex = index
-            result.code = `${item.code}000`
-            result.tail = normalized.substring(i).split(item.label)[1]
+            const parts = normalized.substring(i).split(item.label)
+            result.code = `${item.code}00${item.chome}`
+            result.tail = parts[parts.length - 1]
           }
         }
 
