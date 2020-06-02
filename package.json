@@ -10,17 +10,18 @@
     "build:clean": "rm -fr ./data && mkdir ./data && rm -fr ./docs/api && mkdir ./docs/api",
     "test": "npm run test:lint && npm run test:mocha",
     "test:lint": "eslint \"src/**/*.js\"",
-    "test:mocha": "mocha --recursive --exit"
+    "test:mocha": "mocha --require @babel/register --recursive --exit"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.4",
+    "@babel/core": "^7.10.2",
     "@babel/plugin-transform-classes": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
-    "@babel/register": "^7.8.3",
+    "@babel/register": "^7.10.1",
     "babel-loader": "^8.0.4",
+    "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
     "core-js": "^3.6.4",
     "css-loader": "^2.1.0",
