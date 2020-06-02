@@ -7,19 +7,19 @@ window.getLatLng = (str, callback, errorCallback = () => {}) => {
     const prefCode = code.substr(0, 2)
     const cityCode = code.substr(0, 5)
 
-    const base = "https://community-geocoder.geolonia.com/api"
+    const base = 'https://community-geocoder.geolonia.com/api'
     const api = `${base}/${prefCode}/${cityCode}/${code}.json`
 
-    fetch(api).then((res) => {
+    fetch(api).then(res => {
       return res.json()
-    }).then((json) => {
+    }).then(json => {
       json.code = code
       callback(json)
     }).catch(() => {
-      const e = new Error("見つかりませんでした。住所を修正して、もう一度お試しください。")
+      const e = new Error('見つかりませんでした。住所を修正して、もう一度お試しください。')
       errorCallback(e)
     })
-  } catch(e) {
+  } catch (e) {
     errorCallback(e)
   }
 }
