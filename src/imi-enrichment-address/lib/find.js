@@ -183,7 +183,7 @@ const find = address => {
           if (index >= theIndex) {
             theIndex = index
             const parts = normalized.substring(i).split(item.label)
-            result.code = `${item.code}00${item.chome}`
+            result.code = `${item.code}${( Array(3).join('0') + item.chome ).slice( -3 )}`
             result.tail = parts[parts.length - 1]
           }
         }
