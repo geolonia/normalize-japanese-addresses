@@ -44,7 +44,7 @@ describe('Tests for `src/imi-enrichment-address/lib/util.js`.', () => {
   it('should find the address "京都府京都市東山区大和大路二丁目" as expected.', () => {
     const res = find(util.normalize("京都府京都市東山区大和大路二丁目"))
     assert.deepEqual('261050202002', res.code)
-    assert.deepEqual('2丁目', res.tail)
+    assert.deepEqual('二丁目', res.tail)
   });
 
   it('should find the address "京都府京都市東山区大和大路通正面下る大和大路2-537-1" as expected.', () => {

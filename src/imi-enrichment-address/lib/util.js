@@ -170,7 +170,7 @@ const Util = {
       name = name.replace(`${original}丁`, `${normalized}丁`)
     }
 
-    if (name.endsWith('丁目')) {
+    if (name.match(/^.*?(([0-9]+|[０-９]+)(丁目))/)) {
 
       // 一見すると正しいが、実は漢数字ではない
       if (name.endsWith('ニ丁目')) return Util.normalize(name.replace('ニ丁目', '二丁目'))
@@ -181,20 +181,14 @@ const Util = {
       // 丁目の反復を修正
       if (name.match(/^(.+丁目)(.+丁目)$/)) {
         const r = [RegExp.$1, RegExp.$2]
-        if (r[0].endsWith(r[1])) return Util.normalize(r[0])
+        if (r[0].endsWith(r[1])) name = Util.normalize(r[0])
       }
 
-      // 全角数字丁目を半角に
-      if (name.match(/^(.*[^０１２３４５６７８９])([０１２３４５６７８９]+)(丁目)$/)) {
-        const r = [RegExp.$1, RegExp.$2, RegExp.$3]
-        r[1] = Util.z2h(r[1])
-        return r.join('')
-      }
-      // 漢字丁目を半角に
-      if (name.match(/^(.*[^十一二三四五六七八九])([十一二三四五六七八九]+)(丁目)$/)) {
-        const r = [RegExp.$1, RegExp.$2, RegExp.$3]
-        r[1] = Util.k2h(r[1])
-        return r.join('')
+      // 数字丁目を漢数字
+      if (name.match(/^.*?(([0-9]+|[０-９]+)(丁目))/)) {
+        const original = RegExp.$2
+        const normalized = Util.h2j(Util.z2h(original))
+        name = name.replace(`${original}丁目`, `${normalized}丁目`)
       }
     }
 

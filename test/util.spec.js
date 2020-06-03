@@ -21,16 +21,16 @@ describe('Tests for `src/imi-enrichment-address/lib/util.js`.', () => {
 
   it('should normalize address "札幌市中央区北1条西2丁目".', () => {
     const normalized = util.normalize("札幌市中央区北1条西2丁目")
-    assert.deepEqual("札幌市中央区北一条西2丁目", normalized)
+    assert.deepEqual("札幌市中央区北一条西二丁目", normalized)
   });
 
   it('should normalize address "札幌市中央区北２１条西2丁目".', () => {
     const normalized = util.normalize("札幌市中央区北２１条西2丁目")
-    assert.deepEqual("札幌市中央区北二十一条西2丁目", normalized)
+    assert.deepEqual("札幌市中央区北二十一条西二丁目", normalized)
   });
 
   it('should normalize address "大阪府大阪市北区梅田１丁目２".', () => {
     const normalized = util.normalize("大阪府大阪市北区梅田１丁目２")
-    assert.deepEqual("大阪府大阪市北区梅田１丁目２", normalized)
+    assert.deepEqual("大阪府大阪市北区梅田一丁目２", normalized)
   });
 })
