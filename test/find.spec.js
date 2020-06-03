@@ -4,7 +4,7 @@ const assert = chai.assert;
 import util from '../src/imi-enrichment-address/lib/util'
 import find from '../src/imi-enrichment-address/lib/find'
 
-describe('Tests for `src/imi-enrichment-address/lib/util.js`.', () => {
+describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
   it('should find the address "大阪府大阪市中央区大手前２丁目１" as expected.', () => {
     const res = find(util.normalize("大阪府大阪市中央区大手前２丁目１"))
     assert.deepEqual('271280058002', res.code)

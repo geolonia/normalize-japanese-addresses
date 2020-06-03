@@ -3,7 +3,7 @@ const assert = chai.assert;
 
 import enrichment from '../src/imi-enrichment-address/main'
 
-describe('Tests for `src/imi-enrichment-address/lib/util.js`.', () => {
+describe('Tests for `src/imi-enrichment-address/main.js`.', () => {
   it('should get the code for "大阪府堺市北区新金岡町4丁1−8" as expected.', () => {
     assert.deepEqual('271460084000', enrichment("大阪府堺市北区新金岡町4丁1−8"))
   });
