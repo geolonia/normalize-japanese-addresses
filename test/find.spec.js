@@ -59,4 +59,11 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('112080072000', res.code)
     assert.deepEqual('', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/14
+  it('should find the address "埼玉県比企郡鳩山町石坂" as expected.', () => {
+    const res = find(util.normalize("埼玉県比企郡鳩山町石坂"))
+    assert.deepEqual('113480015000', res.code)
+    assert.deepEqual('', res.tail)
+  });
 })
