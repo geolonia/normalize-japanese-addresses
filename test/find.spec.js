@@ -52,4 +52,32 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('261050202002', res.code)
     assert.deepEqual('2-537-1', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/18
+  it('should find the address "埼玉県所沢市上安松" as expected.', () => {
+    const res = find(util.normalize("埼玉県所沢市上安松"))
+    assert.deepEqual('112080072000', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/14
+  it('should find the address "埼玉県比企郡鳩山町石坂" as expected.', () => {
+    const res = find(util.normalize("埼玉県比企郡鳩山町石坂"))
+    assert.deepEqual('113480015000', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/15
+  it('should find the address "長野県松本市岡田松岡１６２－１" as expected.', () => {
+    const res = find(util.normalize("長野県松本市岡田松岡１６２－１"))
+    assert.deepEqual('202020028000', res.code)
+    assert.deepEqual('１６２－１', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/15
+  it('should find the address "長野県松本市大字岡田松岡１６２－１" as expected.', () => {
+    const res = find(util.normalize("長野県松本市大字岡田松岡１６２－１"))
+    assert.deepEqual('202020028000', res.code)
+    assert.deepEqual('１６２－１', res.tail)
+  });
 })
