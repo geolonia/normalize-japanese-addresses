@@ -81,10 +81,17 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('１６２－１', res.tail)
   });
 
-  // https://github.com/geolonia/community-geocoder/issues/15
+  // https://github.com/geolonia/community-geocoder/issues/17
   it('should find the address "京都府舞鶴市余部下無番地" as expected.', () => {
     const res = find(util.normalize("京都府舞鶴市余部下無番地"))
     assert.deepEqual('262020006000', res.code)
     assert.deepEqual('無番地', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/20
+  it('should find the address "札幌市西区二十四軒1条1丁目" as expected.', () => {
+    const res = find(util.normalize("札幌市西区二十四軒1条1丁目"))
+    assert.deepEqual('011070023001', res.code)
+    assert.deepEqual('', res.tail)
   });
 })
