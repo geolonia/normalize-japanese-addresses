@@ -66,4 +66,18 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('113480015000', res.code)
     assert.deepEqual('', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/15
+  it('should find the address "長野県松本市岡田松岡１６２－１" as expected.', () => {
+    const res = find(util.normalize("長野県松本市岡田松岡１６２－１"))
+    assert.deepEqual('202020028000', res.code)
+    assert.deepEqual('１６２－１', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/15
+  it('should find the address "長野県松本市大字岡田松岡１６２－１" as expected.', () => {
+    const res = find(util.normalize("長野県松本市大字岡田松岡１６２－１"))
+    assert.deepEqual('202020028000', res.code)
+    assert.deepEqual('１６２－１', res.tail)
+  });
 })
