@@ -80,4 +80,11 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('202020028000', res.code)
     assert.deepEqual('１６２－１', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/15
+  it('should find the address "京都府舞鶴市余部下無番地" as expected.', () => {
+    const res = find(util.normalize("京都府舞鶴市余部下無番地"))
+    assert.deepEqual('262020006000', res.code)
+    assert.deepEqual('無番地', res.tail)
+  });
 })
