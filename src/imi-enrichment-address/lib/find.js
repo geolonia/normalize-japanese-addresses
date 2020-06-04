@@ -198,7 +198,9 @@ const find = address => {
       for (let j = normalized.length; j > i; j--) {
         const body = normalized.substring(i, j)
         const tail = normalized.substring(j).trim()
-        const hit = latest.children.find(child => body.replace(/^大字/, '') === child.label.replace(/^大字/, ''))
+        const hit = latest.children.find(child => {
+          return body.replace(/^大字/, '').replace(/^字/, '') === child.label.replace(/^大字/, '').replace(/^字/, '')
+        })
         if (typeof hit !== 'undefined') {
           return fix(hit, tail)
         }
