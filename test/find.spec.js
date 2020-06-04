@@ -52,4 +52,11 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('261050202002', res.code)
     assert.deepEqual('2-537-1', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/18
+  it('should find the address "埼玉県所沢市上安松" as expected.', () => {
+    const res = find(util.normalize("埼玉県所沢市上安松"))
+    assert.deepEqual('112080072000', res.code)
+    assert.deepEqual('', res.tail)
+  });
 })
