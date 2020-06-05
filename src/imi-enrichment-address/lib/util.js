@@ -167,7 +167,7 @@ const Util = {
     if (name.match(/^.*?(([0-9]+|[０-９]+)(軒))/)) {
       const original = RegExp.$2
       const normalized = Util.h2j(Util.z2h(original))
-      name = name.replace(`${original}条`, `${normalized}条`)
+      name = name.replace(`${original}軒`, `${normalized}軒`)
     }
 
     // 数字丁を漢数字に（堺市）
