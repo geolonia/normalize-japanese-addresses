@@ -33,4 +33,8 @@ describe('Tests for `src/imi-enrichment-address/lib/util.js`.', () => {
     const normalized = util.normalize("大阪府大阪市北区梅田１丁目２")
     assert.deepEqual("大阪府大阪市北区梅田一丁目２", normalized)
   });
+  it('should normalize address "北海道上川郡鷹栖町9線6号".', () => {
+    const normalized = util.normalize("北海道上川郡鷹栖町9線6号")
+    assert.deepEqual("北海道上川郡鷹栖町九線6号", normalized)
+  })
 })
