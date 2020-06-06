@@ -8,9 +8,9 @@
     "build": "webpack -p --config ./webpack.config.js",
     "build:api": "npm run build:clean && node ./bin/build.js",
     "build:clean": "rm -fr ./data && mkdir ./data && rm -fr ./docs/api && mkdir ./docs/api",
-    "test": "npm run test:lint && npm run test:mocha",
+    "test": "npm run test:lint && npm run test:mocha ./test/**/*.spec.js",
     "test:lint": "eslint \"src/**/*.js\"",
-    "test:mocha": "mocha --require @babel/register --recursive --exit"
+    "test:mocha": "mocha --require @babel/register"
   },
   "author": "",
   "license": "MIT",

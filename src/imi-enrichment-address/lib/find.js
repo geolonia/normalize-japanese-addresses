@@ -173,18 +173,35 @@ const find = address => {
       // `丁目` が `tree.json` にある場合バグるかも
       if (5 === answer[0].code.length && answer[0].code.startsWith('26') && normalized.substring(i)) {
         const result = { code: '', tail: '' }
-        let theIndex = 0
-        for (let k = 0; k < answer[0].children.length; k++) {
-          const item = answer[0].children[k]
+        const children = answer[0].children
+
+        // 文字数が少ない順にソート（東松屋町、松屋町に対応するため）
+        children.sort((a, b) => {
+          if (a.label.length > b.label.length) return 1
+          if (a.label.length < b.label.length) return -1
+          return 0
+        })
+
+        let lastIndex = 0
+        let match = ''
+        for (let k = 0; k < children.length; k++) {
+          const item = children[k]
           const index = normalized.substring(i).lastIndexOf(item.label)
 
-          // もっとも後ろでマッチする町名が正しい町名それ以前は「通り名」
-          // See https://github.com/geolonia/community-geocoder/issues/10
-          if (index >= theIndex) {
-            theIndex = index
-            const parts = normalized.substring(i).split(item.label)
-            result.code = `${item.code}${( Array(3).join('0') + item.chome ).slice( -3 )}`
-            result.tail = parts[parts.length - 1]
+          if (0 <= index) {
+            if (match && 0 <= item.label.indexOf(match)) { // https://github.com/geolonia/community-geocoder/issues/37
+              const parts = normalized.substring(i).split(item.label)
+              result.code = `${item.code}${( Array(3).join('0') + item.chome ).slice( -3 )}`
+              result.tail = parts[parts.length - 1]
+            } else {
+              if (index > lastIndex) { // See https://github.com/geolonia/community-geocoder/issues/10
+                lastIndex = index
+                const parts = normalized.substring(i).split(item.label)
+                result.code = `${item.code}${( Array(3).join('0') + item.chome ).slice( -3 )}`
+                result.tail = parts[parts.length - 1]
+              }
+            }
+            match = item.label
           }
         }
 
