@@ -185,4 +185,10 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('012040241014', res.code)
     assert.deepEqual('', res.tail)
   });
+
+  it('should find the address "岩手県久慈市夏井町夏井第一地割36番地" as expected.', () => {
+    const res = find(util.normalize("岩手県久慈市夏井町夏井第一地割36番地"))
+    assert.deepEqual('032070032000', res.code)
+    assert.deepEqual('夏井第一地割36番地', res.tail)
+  });
 })
