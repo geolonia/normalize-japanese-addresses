@@ -136,7 +136,20 @@ const find = address => {
       }
       let chome = tail.trim().match(/^[0-9０-９一二三四五六七八九十〇]+/)[0]
       let rest = tail.trim().substring(chome.length)
-      chome = util.k2h(util.z2h(chome)).replace('十', '')
+
+      // Note: Following conditions should be moved to `z2h()`.
+      if (chome.match(/^十/)) {
+        if ('十' === chome) {
+          chome = '10'
+        } else {
+          chome = util.k2h(util.z2h(chome)).replace(/^十/, '1')
+        }
+      } else if (chome.match(/十$/)) {
+        chome = util.k2h(util.z2h(chome)).replace(/十$/, '0')
+      } else {
+        chome = util.k2h(util.z2h(chome)).replace('十', '')
+      }
+
       if (chome.match(/^([0-9]+)$/)) {
         while (chome.length < 3) chome = '0' + chome
         rest = rest.replace(/^(丁目|-)/, '')

@@ -157,4 +157,32 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('014580011000', res.code)
     assert.deepEqual('7番地', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/30
+  it('should find the address "旭川市神居2条10丁目" as expected.', () => {
+    const res = find(util.normalize("旭川市神居2条10丁目"))
+    assert.deepEqual('012040074010', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/30
+  it('should find the address "旭川市神楽6条12丁目" as expected.', () => {
+    const res = find(util.normalize("旭川市神楽6条12丁目"))
+    assert.deepEqual('012040053012', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/30
+  it('should find the address "旭川市5条通20丁目" as expected.', () => {
+    const res = find(util.normalize("旭川市5条通20丁目"))
+    assert.deepEqual('012040010020', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/30
+  it('should find the address "旭川市錦町14丁目" as expected.', () => {
+    const res = find(util.normalize("旭川市錦町14丁目"))
+    assert.deepEqual('012040241014', res.code)
+    assert.deepEqual('', res.tail)
+  });
 })
