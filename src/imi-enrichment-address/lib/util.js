@@ -156,25 +156,15 @@ const Util = {
 
     name = name.replace('八丈島八丈町', '八丈町')
 
-    // 数字条を漢数字に（札幌など）
-    if (name.match(/^.*?(([0-9]+|[０-９]+)(条))/)) {
-      const original = RegExp.$2
-      const normalized = Util.h2j(Util.z2h(original))
-      name = name.replace(`${original}条`, `${normalized}条`)
-    }
+    const units = ['番町', '条', '軒', '線', 'ノ町']
 
-    // 数字「軒」を漢数字に（札幌など）
-    if (name.match(/^.*?(([0-9]+|[０-９]+)(軒))/)) {
-      const original = RegExp.$2
-      const normalized = Util.h2j(Util.z2h(original))
-      name = name.replace(`${original}軒`, `${normalized}軒`)
-    }
-
-    // 数字「線」を感数字に（旭川市など）
-    if (name.match(/^.*?(([0-9]+|[０-９]+)(線))/)) {
-      const original = RegExp.$2
-      const normalized = Util.h2j(Util.z2h(original))
-      name = name.replace(`${original}線`, `${normalized}線`)
+    for (let i = 0; i < units.length; i++) {
+      const regexp = new RegExp(`^.*?(([0-9]+|[０-９]+)(${units[i]}))`)
+      if (name.match(regexp)) {
+        const original = RegExp.$2
+        const normalized = Util.h2j(Util.z2h(original))
+        name = name.replace(`${original}${units[i]}`, `${normalized}${units[i]}`)
+      }
     }
 
     // 数字丁を漢数字に（堺市）

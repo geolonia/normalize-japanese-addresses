@@ -122,4 +122,25 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('261060381000', res.code)
     assert.deepEqual('', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/37
+  it('should find the address "京都府京都市下京区西松屋町" as expected.', () => {
+    const res = find(util.normalize("京都府京都市下京区西松屋町"))
+    assert.deepEqual('261060381000', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/34
+  it('should find the address "新潟県新潟市中央区西湊町通1ノ町2692" as expected.', () => {
+    const res = find(util.normalize("新潟県新潟市中央区西湊町通1ノ町2692"))
+    assert.deepEqual('151030181000', res.code)
+    assert.deepEqual('2692', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/33
+  it('should find the address "新潟県新潟市中央区西堀通1番町771" as expected.', () => {
+    const res = find(util.normalize("新潟県新潟市中央区西堀通1番町771"))
+    assert.deepEqual('151030161000', res.code)
+    assert.deepEqual('771', res.tail)
+  });
 })
