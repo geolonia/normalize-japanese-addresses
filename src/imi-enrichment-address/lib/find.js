@@ -136,7 +136,7 @@ const find = address => {
       }
       let chome = tail.trim().match(/^[0-9０-９一二三四五六七八九十〇]+/)[0]
       let rest = tail.trim().substring(chome.length)
-      chome = util.k2h(util.z2h(chome))
+      chome = util.k2h(util.z2h(chome)).replace('十', '')
       if (chome.match(/^([0-9]+)$/)) {
         while (chome.length < 3) chome = '0' + chome
         rest = rest.replace(/^(丁目|-)/, '')
