@@ -143,4 +143,18 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('151030161000', res.code)
     assert.deepEqual('771', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/47
+  it('should find the address "北海道上川郡東神楽町19号南2番地" as expected.', () => {
+    const res = find(util.normalize("北海道上川郡東神楽町19号南2番地"))
+    assert.deepEqual('014530010000', res.code)
+    assert.deepEqual('南2番地', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/47
+  it('should find the address "北海道上川郡東川町西三号北7番地" as expected.', () => {
+    const res = find(util.normalize("北海道上川郡東川町西三号北7番地"))
+    assert.deepEqual('014580011000', res.code)
+    assert.deepEqual('7番地', res.tail)
+  });
 })

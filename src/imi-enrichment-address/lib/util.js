@@ -156,7 +156,7 @@ const Util = {
 
     name = name.replace('八丈島八丈町', '八丈町')
 
-    const units = ['番町', '条', '軒', '線', 'ノ町']
+    const units = ['番町', '条', '軒', '線', 'ノ町', '号']
 
     for (let i = 0; i < units.length; i++) {
       const regexp = new RegExp(`^.*?(([0-9]+|[０-９]+)(${units[i]}))`)
