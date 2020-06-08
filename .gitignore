@@ -30,3 +30,4 @@ src/config.json
 .env
 
 /data
+/cache

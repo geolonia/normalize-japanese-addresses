@@ -10,7 +10,9 @@
     "build:clean": "rm -fr ./data && mkdir ./data && rm -fr ./docs/api && mkdir ./docs/api",
     "test": "npm run test:lint && npm run test:mocha ./test/**/*.spec.js",
     "test:lint": "eslint \"src/**/*.js\"",
-    "test:mocha": "mocha --require @babel/register"
+    "test:mocha": "mocha --require @babel/register",
+    "download": "bash tools/download.sh",
+    "tree": "gzcat cache/isj.txt.gz  | node bin/tree.js cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/imi-enrichment-address/lib/tree.json"
   },
   "author": "",
   "license": "MIT",
@@ -28,6 +30,7 @@
     "csv-parse": "^4.10.1",
     "encoding-japanese": "^1.0.30",
     "eslint": "^5.3.0",
+    "imi-enrichment-address": "git+https://github.com/IMI-Tool-Project/imi-enrichment-address.git",
     "mocha": "^5.2.0",
     "node-sass": "^4.13.1",
     "prettier-eslint": "^9.0.1",
