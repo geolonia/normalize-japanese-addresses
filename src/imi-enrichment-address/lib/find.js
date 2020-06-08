@@ -117,8 +117,9 @@ const find = address => {
 
   let normalized = util.simplify(address).trim()
   normalized = normalized.replace(/\s/g, '')
-  if (normalized.match(/^(.+[都道府県])(.+[郡])(.+[町村].*)$/)) {
-    normalized = RegExp.$1 + RegExp.$3
+  if (normalized.match(/^((東京都)|(北海道)|((大阪)|(京都)府)|(.+県))(.+[郡])(.+[町村].*)$/)) {
+    normalized = RegExp.$1 + RegExp.$9
+    console.log(normalized)
   } else if (normalized.match(/^(.+[郡])(.+[町村].*)$/)) {
     normalized = RegExp.$2
   }

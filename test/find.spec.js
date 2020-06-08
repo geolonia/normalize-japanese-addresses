@@ -191,4 +191,11 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('032070032000', res.code)
     assert.deepEqual('夏井第一地割36番地', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/67
+  it('should find the address "山梨県北都留郡丹波山村" as expected.', () => {
+    const res = find(util.normalize("山梨県北都留郡丹波山村"))
+    assert.deepEqual('19443', res.code)
+    assert.deepEqual('', res.tail)
+  });
 })
