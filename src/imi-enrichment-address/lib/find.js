@@ -245,8 +245,7 @@ const find = address => {
 
   // 市区町村にヒットしない場合
   for (let i = normalized.length; i >= 0; i--) {
-    const head = normalized.substring(0, i)
-    const hit = lower[head]
+    const hit = lower[normalized]
     if (typeof hit !== 'undefined') {
       const tail = normalized.substring(i).trim()
       return fix(hit, tail)

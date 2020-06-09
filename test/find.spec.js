@@ -198,4 +198,10 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('19443', res.code)
     assert.deepEqual('', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/76
+  it('should find the address "埼玉市" as expected.', () => {
+    const res = find(util.normalize("埼玉市"))
+    assert.deepEqual(null, res)
+  });
 })
