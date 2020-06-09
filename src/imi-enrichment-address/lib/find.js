@@ -182,13 +182,15 @@ const find = address => {
         }
       }
 
-      // 京都の「通り名」に対する処理
-      // `丁目` が `tree.json` にある場合バグるかも
-      if (5 === answer[0].code.length && answer[0].code.startsWith('26') && normalized.substring(i)) {
+      let latest = answer[0]
+      let number = i
+
+      // コードが261（京都市を指す）で始まる場合は通り名が含まれているものとみなす
+      if (answer[0].code.startsWith('261') && normalized.substring(i)) {
         const result = { code: '', tail: '' }
         const children = answer[0].children
 
-        // 文字数が少ない順にソート（東松屋町、松屋町に対応するため）
+        // 文字数が少ない順にソート（東松屋町が松屋町にマッチしないようにするため）
         children.sort((a, b) => {
           if (a.label.length > b.label.length) return 1
           if (a.label.length < b.label.length) return -1
@@ -205,13 +207,15 @@ const find = address => {
             if (match && 0 <= item.label.indexOf(match)) { // https://github.com/geolonia/community-geocoder/issues/37
               const parts = normalized.substring(i).split(item.label)
               result.code = `${item.code}${( Array(3).join('0') + item.chome ).slice( -3 )}`
-              result.tail = parts[parts.length - 1]
+              result.normalized = `京都府京都市${answer[0].label}${item.label}${parts[parts.length - 1]}`
+              result.answer = item
             } else {
               if (index > lastIndex) { // See https://github.com/geolonia/community-geocoder/issues/10
                 lastIndex = index
                 const parts = normalized.substring(i).split(item.label)
                 result.code = `${item.code}${( Array(3).join('0') + item.chome ).slice( -3 )}`
-                result.tail = parts[parts.length - 1]
+                result.normalized = `京都府京都市${answer[0].label}${item.label}${parts[parts.length - 1]}`
+                result.answer = item
               }
             }
             match = item.label
@@ -219,20 +223,51 @@ const find = address => {
         }
 
         if (result.code) {
-          return result
+          normalized = result.normalized
+          number = 6 + answer[0].label.length // 通り名を削除したので文字数を補正
         }
       }
 
-      let latest = answer[0]
       while (latest.next) latest = latest.next
-      for (let j = normalized.length; j > i; j--) {
-        const body = normalized.substring(i, j)
-        const tail = normalized.substring(j).trim()
-        const hit = latest.children.find(child => {
-          return body.replace(/^大字/, '').replace(/^字/, '') === child.label.replace(/^大字/, '').replace(/^字/, '')
+      for (let j = normalized.length; j > number; j--) {
+        const body = normalized.substring(number, j)
+        let tail = normalized.substring(j).trim()
+
+        // See https://github.com/geolonia/community-geocoder/issues/75.
+        let hit = latest.children.find(child => {
+          let name = child.label
+          if (child.chome) {
+            const chome = `${util.h2j(child.chome)}丁目`
+            name = `${child.label}${chome}`
+            if (body.replace(/^大字/, '').replace(/^字/, '') === name.replace(/^大字/, '').replace(/^字/, '')) {
+              tail = normalized.substring(normalized.indexOf(chome)).trim()
+              return true
+            } else {
+              return false
+            }
+          }
+
+          return false
         })
+        if (typeof hit === 'undefined') {
+          hit = latest.children.find(child => {
+            if (body.replace(/^大字/, '').replace(/^字/, '') === child.label.replace(/^大字/, '').replace(/^字/, '')) {
+              return true
+            } else {
+              return false
+            }
+          })
+        }
+
         if (typeof hit !== 'undefined') {
-          return fix(hit, tail)
+          const response = fix(hit, tail)
+          if (typeof response.expectedChome !== 'undefined') {
+            let t = '' + response.expectedChome
+            while (t.length < 3) t = '0' + t
+            response.code = response.code + t
+          }
+
+          return response
         }
       }
 
@@ -248,7 +283,14 @@ const find = address => {
     const hit = lower[normalized]
     if (typeof hit !== 'undefined') {
       const tail = normalized.substring(i).trim()
-      return fix(hit, tail)
+      const response = fix(hit, tail)
+      if (typeof response.expectedChome !== 'undefined') {
+        let t = '' + response.expectedChome
+        while (t.length < 3) t = '0' + t
+        response.code = response.code + t
+      }
+
+      return response
     }
   }
 

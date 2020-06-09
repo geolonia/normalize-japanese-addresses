@@ -50,7 +50,25 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
   it('should find the address "京都府京都市東山区大和大路通正面下る大和大路2-537-1" as expected.', () => {
     const res = find(util.normalize("京都府京都市東山区大和大路通正面下る大和大路2-537-1"))
     assert.deepEqual('261050202002', res.code)
-    assert.deepEqual('2-537-1', res.tail)
+    assert.deepEqual('537-1', res.tail)
+  });
+
+  it('should find the address "京都府京都市東山区大和大路通正面下る大和大路2丁目537-1" as expected.', () => {
+    const res = find(util.normalize("京都府京都市東山区大和大路通正面下る大和大路2丁目537-1"))
+    assert.deepEqual('261050202002', res.code)
+    assert.deepEqual('537-1', res.tail)
+  });
+
+  it('should find the address "京都府京都市東山区大和大路2-537-1" as expected.', () => {
+    const res = find(util.normalize("京都府京都市東山区大和大路2-537-1"))
+    assert.deepEqual('261050202002', res.code)
+    assert.deepEqual('537-1', res.tail)
+  });
+
+  it('should find the address "京都府京都市東山区大和大路2丁目" as expected.', () => {
+    const res = find(util.normalize("京都府京都市東山区大和大路2丁目"))
+    assert.deepEqual('261050202002', res.code)
+    assert.deepEqual('', res.tail)
   });
 
   // https://github.com/geolonia/community-geocoder/issues/18
@@ -113,13 +131,6 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
   it('should find the address "京都府京都市下京区松屋町" as expected.', () => {
     const res = find(util.normalize("京都府京都市下京区松屋町"))
     assert.deepEqual('261060465000', res.code)
-    assert.deepEqual('', res.tail)
-  });
-
-  // https://github.com/geolonia/community-geocoder/issues/37
-  it('should find the address "京都府京都市下京区西松屋町" as expected.', () => {
-    const res = find(util.normalize("京都府京都市下京区西松屋町"))
-    assert.deepEqual('261060381000', res.code)
     assert.deepEqual('', res.tail)
   });
 
@@ -203,5 +214,19 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
   it('should find the address "埼玉市" as expected.', () => {
     const res = find(util.normalize("埼玉市"))
     assert.deepEqual(null, res)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/75
+  it('should find the address "京都府宇治市六地藏1丁目" as expected.', () => {
+    const res = find(util.normalize("京都府宇治市六地藏1丁目"))
+    assert.deepEqual('262040031001', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/75
+  it('should find the address "京都府宇治市六地藏２丁目" as expected.', () => {
+    const res = find(util.normalize("京都府宇治市六地藏２丁目"))
+    assert.deepEqual('262040030000', res.code)
+    assert.deepEqual('二丁目', res.tail)
   });
 })
