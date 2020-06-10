@@ -239,7 +239,7 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js` with address list.'
     if (data[i]) {
       it(`should find the address "${data[i]}" as expected.`, () => {
         const res = find(util.normalize(data[i]))
-        assert.deepEqual(12, res.code.length)
+        assert.isTrue(12 == res.code.length)
       });
     }
   }
