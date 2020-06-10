@@ -155,6 +155,7 @@ const Util = {
     if (name.endsWith('　')) return Util.normalize(name.replace(/[　]+$/, ''))
 
     name = name.replace('八丈島八丈町', '八丈町')
+    name = name.replace('三宅島三宅村', '三宅村')
 
     const units = ['番町', '条', '軒', '線', 'ノ町', '号', '地割']
 

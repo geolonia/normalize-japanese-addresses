@@ -239,7 +239,8 @@ const find = address => {
           if (child.chome) {
             const chome = `${util.h2j(child.chome)}丁目`
             name = `${child.label}${chome}`
-            if (body.replace(/^大字/, '').replace(/^字/, '') === name.replace(/^大字/, '').replace(/^字/, '')) {
+            if (body.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')
+                      === name.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')) {
               tail = normalized.substring(normalized.indexOf(chome)).trim()
               return true
             } else {
@@ -251,7 +252,8 @@ const find = address => {
         })
         if (typeof hit === 'undefined') {
           hit = latest.children.find(child => {
-            if (body.replace(/^大字/, '').replace(/^字/, '') === child.label.replace(/^大字/, '').replace(/^字/, '')) {
+            if (body.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')
+                    === child.label.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')) {
               return true
             } else {
               return false
