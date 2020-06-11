@@ -23,6 +23,7 @@ const dict = {
   ヱ: 'え',
   通り: 'とおり',
   埠頭: 'ふ頭',
+  塩釜市: '塩竈市',
   三宅島三宅村: '三宅村',
   八丈島八丈町: '八丈町',
   長野市東の門町: '長野市長野東の門町', // https://github.com/geolonia/community-geocoder/issues/52
