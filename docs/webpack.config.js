@@ -4,7 +4,7 @@ module.exports = {
   ...config,
   output: {
     path: __dirname,
-    filename: 'api.js',
+    filename: '[name].js',
   },
   devtool: 'inline-source-map',
 

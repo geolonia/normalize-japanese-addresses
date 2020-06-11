@@ -1,10 +1,13 @@
 const path = require('path')
 
 module.exports = {
-  entry: './src/api.js',
+  entry: {
+    app: './src/app.js',
+    api: './src/api.js',
+  },
   output: {
     path: path.join(__dirname, 'docs'),
-    filename: 'api.js',
+    filename: '[name].js',
   },
 
   module: {

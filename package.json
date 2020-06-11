@@ -44,6 +44,7 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
+    "@mapbox/geojson-extent": "^0.3.2",
     "babel-polyfill": "^6.26.0"
   }
 }
