@@ -13,8 +13,7 @@ const dict = {
   塩釜: '塩竈',
   三宅島三宅村: '三宅村',
   八丈島八丈町: '八丈町',
-  長野東之門町: '東之門町', // https://github.com/geolonia/community-geocoder/issues/52
-  裏ノ南栄町: '南栄町', // https://github.com/geolonia/community-geocoder/issues/55
+  長野市東の門町: '長野市長野東の門町', // https://github.com/geolonia/community-geocoder/issues/52
   神田猿楽町: '猿楽町', // https://github.com/geolonia/community-geocoder/issues/60
   神田三崎町: '三崎町', // https://github.com/geolonia/community-geocoder/issues/60
   那珂川市: '筑紫郡那珂川町', // https://github.com/geolonia/community-geocoder/issues/66

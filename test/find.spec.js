@@ -259,6 +259,41 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('042030034000', res.code)
     assert.deepEqual('1-1', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/50
+  it('should find the address "長野県長野市東之門町" as expected.', () => {
+    const res = find(util.normalize("長野県長野市東之門町"))
+    assert.deepEqual('202010060000', res.code)
+    assert.deepEqual('東の門町', res.tail) // 内部的に `之` を `の` に変換
+  })
+
+  // https://github.com/geolonia/community-geocoder/issues/60
+  it('should find the address "東京都千代田区猿楽町" as expected.', () => {
+    const res = find(util.normalize("東京都千代田区猿楽町"))
+    assert.deepEqual('131010047002', res.code)
+    assert.deepEqual('', res.tail) // 内部的に `之` を `の` に変換
+  })
+
+  // https://github.com/geolonia/community-geocoder/issues/60
+  it('should find the address "千代田区三崎町" as expected.', () => {
+    const res = find(util.normalize("千代田区三崎町"))
+    assert.deepEqual('131010049003', res.code)
+    assert.deepEqual('', res.tail) // 内部的に `之` を `の` に変換
+  })
+
+  // https://github.com/geolonia/community-geocoder/issues/60
+  it('should find the address "東京都千代田区神田猿楽町" as expected.', () => {
+    const res = find(util.normalize("東京都千代田区神田猿楽町"))
+    assert.deepEqual('131010047002', res.code)
+    assert.deepEqual('', res.tail) // 内部的に `之` を `の` に変換
+  })
+
+  // https://github.com/geolonia/community-geocoder/issues/60
+  it('should find the address "千代田区神田三崎町" as expected.', () => {
+    const res = find(util.normalize("千代田区神田三崎町"))
+    assert.deepEqual('131010049003', res.code)
+    assert.deepEqual('', res.tail) // 内部的に `之` を `の` に変換
+  })
 })
 
 // describe('Tests for `src/imi-enrichment-address/lib/find.js` with address list.', () => {
