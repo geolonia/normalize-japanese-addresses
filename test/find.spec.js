@@ -231,6 +231,34 @@ describe('Tests for `src/imi-enrichment-address/lib/find.js`.', () => {
     assert.deepEqual('262040030000', res.code)
     assert.deepEqual('二丁目', res.tail)
   });
+
+  // https://github.com/geolonia/community-geocoder/issues/24
+  it('should find the address "岡山県笠岡市大冝" as expected.', () => {
+    const res = find(util.normalize("岡山県笠岡市大冝"))
+    assert.deepEqual('332050010000', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/25
+  it('should find the address "岡山県岡山市中区穝" as expected.', () => {
+    const res = find(util.normalize("岡山県岡山市中区穝"))
+    assert.deepEqual('331020031000', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/24
+  it('should find the address "福岡県遠賀郡水巻町杁" as expected.', () => {
+    const res = find(util.normalize("福岡県遠賀郡水巻町杁"))
+    assert.deepEqual('403820004002', res.code)
+    assert.deepEqual('', res.tail)
+  });
+
+  // https://github.com/geolonia/community-geocoder/issues/50
+  it('should find the address "宮城県塩釜市旭町1-1" as expected.', () => {
+    const res = find(util.normalize("宮城県塩釜市旭町1-1"))
+    assert.deepEqual('042030034000', res.code)
+    assert.deepEqual('1-1', res.tail)
+  });
 })
 
 // describe('Tests for `src/imi-enrichment-address/lib/find.js` with address list.', () => {

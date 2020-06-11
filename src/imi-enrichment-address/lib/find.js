@@ -1,4 +1,5 @@
 import util from './util'
+import dict from './dict'
 
 // tree の構造変更
 const tree = (function(src) {
@@ -58,10 +59,10 @@ const upper = (function() {
   const dig = function(list) {
     list.forEach(focus => {
       if (focus.code.length === 5) {
-        const s = [focus.label]
+        const s = [dict(focus.label)]
         for (let f = focus.parent; f; f = f.parent) {
           s.forEach(t => {
-            s.push(f.label + t)
+            s.push(dict(f.label) + t)
           })
         }
         s.forEach(x => {
@@ -239,8 +240,7 @@ const find = address => {
           if (child.chome) {
             const chome = `${util.h2j(child.chome)}丁目`
             name = `${child.label}${chome}`
-            if (body.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')
-                      === name.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')) {
+            if (body === dict(name)) {
               tail = normalized.substring(normalized.indexOf(chome)).trim()
               return true
             } else {
@@ -252,8 +252,7 @@ const find = address => {
         })
         if (typeof hit === 'undefined') {
           hit = latest.children.find(child => {
-            if (body.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')
-                    === child.label.replace(/^大字/, '').replace(/^字/, '').replace('ヶ', 'が').replace('ケ', 'が')) {
+            if (body === dict(child.label)) {
               return true
             } else {
               return false

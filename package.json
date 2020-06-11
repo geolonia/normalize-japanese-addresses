@@ -11,7 +11,7 @@
     "test": "npm run test:lint && npm run test:mocha ./test/**/*.spec.js",
     "test:lint": "eslint \"src/**/*.js\"",
     "test:mocha": "mocha --require @babel/register",
-    "download": "bash tools/download.sh",
+    "download": "bash bin/download.sh",
     "tree": "gzcat cache/isj.txt.gz  | node bin/tree.js cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/imi-enrichment-address/lib/tree.json"
   },
   "author": "",

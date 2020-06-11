@@ -1,3 +1,5 @@
+import dict from './dict'
+
 const replacer = function(keyval) {
   const reg = new RegExp('[' + Object.keys(keyval).join('') + ']', 'g')
   const rep = a => keyval[a]
@@ -154,10 +156,9 @@ const Util = {
   normalize: function(name) {
     if (name.endsWith('　')) return Util.normalize(name.replace(/[　]+$/, ''))
 
-    name = name.replace('八丈島八丈町', '八丈町')
-    name = name.replace('三宅島三宅村', '三宅村')
+    name = dict(name)
 
-    const units = ['番町', '条', '軒', '線', 'ノ町', '号', '地割']
+    const units = ['番町', '条', '軒', '線', 'の町', '号', '地割']
 
     for (let i = 0; i < units.length; i++) {
       const regexp = new RegExp(`^.*?(([0-9]+|[０-９]+)(${units[i]}))`)
