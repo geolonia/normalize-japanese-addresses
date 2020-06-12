@@ -51,7 +51,8 @@ html, body
 
 h2
 {
-  font-size: 16px;
+  font-size: 12px;
+  font-weight: normal;
 }
 
 #target
@@ -104,5 +105,11 @@ h2
 
 label span
 {
-  font-size: 80%;
+  font-size: 70%;
+}
+
+input[type="text"]
+{
+  border: none;
+  border-bottom: 1px solid #CCCCCC;
 }
