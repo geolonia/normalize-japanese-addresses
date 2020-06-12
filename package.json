@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@mapbox/geojson-extent": "^0.3.2",
-    "babel-polyfill": "^6.26.0"
+    "babel-polyfill": "^6.26.0",
+    "viewport-units-buggyfill": "^0.6.2"
   }
 }
