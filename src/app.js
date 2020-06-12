@@ -1,6 +1,6 @@
 import geojsonExtent from '@mapbox/geojson-extent'
 
-require('viewport-units-buggyfill').init();
+require('viewport-units-buggyfill').init()
 
 document.addEventListener('DOMContentLoaded', () => {
   const map = new window.geolonia.Map('#map')
