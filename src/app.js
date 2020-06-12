@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
               layout: {},
               paint: {
                 'fill-color': '#ff0000',
-                'fill-opacity': 0.05,
+                'fill-opacity': 0.08,
               },
             })
             showMessage(`住所の判定ができなかったので「${data.features[0].properties.name}」に移動します。`)
