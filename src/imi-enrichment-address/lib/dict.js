@@ -21,6 +21,7 @@ const dict = {
   渕: '淵',
   エ: 'え',
   ヱ: 'え',
+  曾: '曽',
   通り: 'とおり',
   埠頭: 'ふ頭',
   塩釜市: '塩竈市',
@@ -38,11 +39,13 @@ const newKanji = '亜,囲,壱,栄,駅,応,桜,仮,会,懐,覚,楽,陥,歓,気,�
 
 const replace = str => {
   for (let key in dict) {
-    str = str.replace(key, dict[key])
+    const reg1 = new RegExp(key, 'g')
+    str = str.replace(reg1, dict[key])
   }
 
   for (let i = 0; i < oldKanji.length; i++) {
-    str = str.replace(oldKanji[i], newKanji[i])
+    const reg2 = new RegExp(oldKanji[i], 'g')
+    str = str.replace(reg2, newKanji[i])
   }
 
   return str
