@@ -156,7 +156,7 @@ const Util = {
   normalize: function(name) {
     if (name.endsWith('　')) return Util.normalize(name.replace(/[　]+$/, ''))
 
-    name = dict(name)
+    name = dict(name).normalize('NFKD')
 
     const units = ['番町', '条', '軒', '線', 'の町', '号', '地割']
 
