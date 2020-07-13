@@ -3,7 +3,6 @@ import enrichment from './imi-enrichment-address/main'
 window.getLatLng = (str, callback, errorCallback = () => {}) => {
   try {
     let code = enrichment(str)
-    console.log(code)
 
     const prefCode = code.substr(0, 2)
     const cityCode = code.substr(0, 5)
