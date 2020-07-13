@@ -3,7 +3,7 @@ import util from './lib/util'
 
 const enrichment = str => {
 
-  const normalized = util.normalize(str.normalize('NFKD'))
+  const normalized = util.normalize(str)
 
   const target = {
     '@context': 'https://imi.go.jp/ns/core/context.jsonld',
