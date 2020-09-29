@@ -6,6 +6,7 @@ name: build
 on:
   push:
     branches: ['*']
+    tags: ['*']
   pull_request:
     branches: [master]
 
@@ -24,8 +25,27 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run build --if-present
+      - run: npm run build
       - run: npm run lint
       - run: npm test
       # allow fails
       - run: npm run test:addresses || true
+
+  publish:
+    name: "Publish npm package"
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
+    # Setup .npmrc file to publish to npm
+    - uses: actions/setup-node@v1
+      with:
+        tag_name: 'v%s'
+        node-version: '12.x'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@geolonia' 
+    - run: npm install
+    - run: npm run build
+    - run: echp 'npm publish'
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
