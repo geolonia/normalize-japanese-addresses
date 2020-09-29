@@ -1,7 +1,12 @@
 import { a2h } from './util'
 
+type Bangou = {
+  番地?: string
+  号?: string
+}
+
 export default (src: string) => {
-  const dst: Geolonia.NormalizeJapaneseAddresses.Bangou = {}
+  const dst: Bangou = {}
 
   if (
     src.match(
