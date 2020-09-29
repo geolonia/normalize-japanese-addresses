@@ -6,7 +6,7 @@
   "scripts": {
     "download": "bash bin/download.sh",
     "tree": "npm run build && gzcat cache/isj.txt.gz | node bin/tree.js cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/lib/tree.json",
-    "test": "jest --testPathIgnorePatterns src/addresses.test.ts",
+    "test": "jest src/lib/*.ts",
     "test:addresses": "jest src/addresses.test.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "build": "tsc"

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import util from './lib/util'
+import { normalize } from './lib/util'
 import find from './lib/find'
 
 const addresses = fs
@@ -11,6 +11,6 @@ const addresses = fs
   .split(/\n/)
 
 test.each(addresses)('Tests for `src/lib/find.js` with %s', (address) => {
-  const res: any = find(util.normalize(address))
+  const res: any = find(normalize(address))
   expect(res.code.length).toBe(12)
 })

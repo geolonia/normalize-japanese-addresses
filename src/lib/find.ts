@@ -1,4 +1,4 @@
-import util from './util'
+import { simplify, k2h, z2h, h2j } from './util'
 import dict from './dict'
 import treeJSON from './tree.json'
 
@@ -119,7 +119,7 @@ const lower = (function () {
 })()
 
 const find = (address: string) => {
-  let normalized = util.simplify(address).trim()
+  let normalized = simplify(address).trim()
   normalized = normalized.replace(/\s/g, '')
   if (
     normalized.match(
@@ -151,12 +151,12 @@ const find = (address: string) => {
         if ('十' === chome) {
           chome = '10'
         } else {
-          chome = util.k2h(util.z2h(chome)).replace(/^十/, '1')
+          chome = k2h(z2h(chome)).replace(/^十/, '1')
         }
       } else if (chome.match(/十$/)) {
-        chome = util.k2h(util.z2h(chome)).replace(/十$/, '0')
+        chome = k2h(z2h(chome)).replace(/十$/, '0')
       } else {
-        chome = util.k2h(util.z2h(chome)).replace('十', '')
+        chome = k2h(z2h(chome)).replace('十', '')
       }
 
       if (chome.match(/^([0-9]+)$/)) {
@@ -257,7 +257,7 @@ const find = (address: string) => {
         let hit = latest.children.find((child: any) => {
           let name = child.label
           if (child.chome) {
-            const chome = `${util.h2j(child.chome)}丁目`
+            const chome = `${h2j(child.chome)}丁目`
             name = `${child.label}${chome}`
             if (body === dict(name)) {
               tail = normalized.substring(normalized.indexOf(chome)).trim()
