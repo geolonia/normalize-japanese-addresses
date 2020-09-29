@@ -7,7 +7,7 @@
 ## 使い方
 
 ライブラリは npm レジストリで `@geolonia/normalize-japanese-addresses` として配布されています。
-npm コマンドなどを使って’インストールして下さい。
+npm コマンドなどを使ってインストールして下さい。
 
 ```shell
 $ npm install @geolonia/normalize-japanese-addresses -S
@@ -15,9 +15,31 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 
 ### `normalize(address: string)`
 
+住所を正規化します。
+
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 console.log(normalize('大阪府堺市北区新金岡町4丁1−8')) // 大阪府堺市北区新金岡町四丁1−8
+```
+
+### `find(normalizedAddress: string)`
+
+正規化された住所から町丁目コードを取得します。
+
+```javascript
+const { find } = require('@geolonia/normalize-japanese-addresses')
+const normalized = normalize('大阪府大阪市中央区大手前２丁目１')
+console.log(find(normalized)) // { code: '271280058002', tail: '１' }
+```
+
+### `enrichment(address: string)`
+
+正規化された住所と町丁目コードを同時に返します。
+
+```javascript
+const { enrichment } = require('@geolonia/normalize-japanese-addresses')
+const result = enrichment('大阪府堺市北区新金岡町4丁1−8')
+console.log(result) // { address: '大阪府堺市北区新金岡町4丁1−8', code: '271460084000', tail: '1−8' }
 ```
 
 ## 開発者向け情報

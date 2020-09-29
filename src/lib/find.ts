@@ -118,8 +118,8 @@ const lower = (function () {
   return map
 })()
 
-const find = (address: string) => {
-  let normalized = simplify(address).trim()
+const find = (normalizedAddress: string) => {
+  let normalized = simplify(normalizedAddress).trim()
   normalized = normalized.replace(/\s/g, '')
   if (
     normalized.match(

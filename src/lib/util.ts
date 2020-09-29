@@ -153,7 +153,8 @@ export const a2h = function (a: string) {
   return a
 }
 // 地名文字列を正規化して返す。丁目は半角数字にする。空白はトリム。OCR由来の誤字を修正。
-export const normalize = function (name: string): string {
+export const normalize = function (address: string): string {
+  let name = address
   if (name.endsWith('　')) return normalize(name.replace(/[　]+$/, ''))
 
   name = dict(name)

@@ -1,8 +1,8 @@
 import { normalize } from './util'
 import find from './find'
 
-const enrich = (str: string) => {
-  const normalized = normalize(str)
+const enrichment = (address: string) => {
+  const normalized = normalize(address)
   const response = find(normalized)
 
   return {
@@ -11,4 +11,4 @@ const enrich = (str: string) => {
   }
 }
 
-export default enrich
+export default enrichment
