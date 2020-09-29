@@ -21,7 +21,7 @@ const enrichment = (str: string) => {
     return null
   }
 
-  return response
+  return response.code
 }
 
 export default enrichment

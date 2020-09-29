@@ -5,7 +5,7 @@ name: build
 
 on:
   push:
-    branches: ["*"]
+    branches: ['*']
   pull_request:
     branches: [master]
 
@@ -27,3 +27,5 @@ jobs:
       - run: npm run build --if-present
       - run: npm run lint
       - run: npm test
+      # allow fails
+      - run: npm run test:addresses || true
