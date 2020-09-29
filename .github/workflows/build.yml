@@ -29,7 +29,7 @@ jobs:
       - run: npm run lint
       - run: npm test
       # allow fails
-      - run: npm run test:addresses || true
+      # - run: npm run test:addresses || true
 
   publish:
     name: "Publish npm package"
@@ -43,7 +43,7 @@ jobs:
         tag_name: 'v%s'
         node-version: '12.x'
         registry-url: 'https://registry.npmjs.org'
-        scope: '@geolonia' 
+        scope: '@geolonia'
     - run: npm install
     - run: npm run build
     - run: echp 'npm publish'
