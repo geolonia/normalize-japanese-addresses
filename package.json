@@ -1,52 +1,42 @@
 {
-  "name": "simple-geocoding",
-  "version": "1.0.0",
+  "name": "@geolonia/normalize-japanese-addresses",
+  "version": "0.0.1",
   "description": "",
   "main": "./bin/build.js",
   "scripts": {
-    "start": "webpack-dev-server --mode development --config ./docs/webpack.config.js",
-    "build": "webpack -p --config ./webpack.config.js",
-    "build:api": "npm run build:clean && node ./bin/build.js",
-    "build:clean": "rm -fr ./data && mkdir ./data && rm -fr ./docs/api && mkdir ./docs/api",
-    "test": "npm run test:lint && npm run test:mocha ./test/**/*.spec.js",
-    "test:lint": "eslint \"src/**/*.js\"",
-    "test:mocha": "mocha --require @babel/register",
-    "test:addresses": "npm run test:mocha ./test/addresses.js",
     "download": "bash bin/download.sh",
-    "tree": "gzcat cache/isj.txt.gz  | node bin/tree.js cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/imi-enrichment-address/lib/tree.json"
+    "tree": "gzcat cache/isj.txt.gz | ts-node bin/tree.ts cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/lib/tree.json",
+    "test": "jest"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.10.2",
-    "@babel/plugin-transform-classes": "^7.8.3",
-    "@babel/preset-env": "^7.8.4",
-    "@babel/register": "^7.10.1",
-    "babel-loader": "^8.0.4",
-    "babel-preset-env": "^1.7.0",
-    "chai": "^4.2.0",
+    "@types/jest": "^26.0.14",
+    "@types/node": "^14.11.2",
     "core-js": "^3.6.4",
-    "css-loader": "^2.1.0",
     "csv-parse": "^4.10.1",
     "encoding-japanese": "^1.0.30",
     "eslint": "^5.3.0",
-    "imi-enrichment-address": "git+https://github.com/IMI-Tool-Project/imi-enrichment-address.git",
+    "jest": "^26.4.2",
     "mocha": "^5.2.0",
-    "node-sass": "^4.13.1",
-    "prettier-eslint": "^9.0.1",
-    "prettier-eslint-cli": "^5.0.0",
-    "sass-loader": "^8.0.2",
-    "style-loader": "^0.23.1",
-    "svg-inline-loader": "^0.8.2",
-    "unzipper": "^0.10.11",
-    "webpack": "^4.42.0",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "ts-jest": "^26.4.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3",
+    "unzipper": "^0.10.11"
   },
-  "dependencies": {
-    "@mapbox/geojson-extent": "^0.3.2",
-    "babel-polyfill": "^6.26.0",
-    "viewport-units-buggyfill": "^0.6.2"
-  }
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json"
+      }
+    }
+  },
+  "dependencies": {}
 }
