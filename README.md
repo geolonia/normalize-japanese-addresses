@@ -24,7 +24,7 @@ console.log(normalize('大阪府堺市北区新金岡町4丁1−8')) // 大阪�
 
 ### `find(normalizedAddress: string)`
 
-正規化された住所から町丁目コードを取得します。
+正規化された住所から町丁目コードを取得します。また、正規化の対象とされない住所の末尾の文字列を取得します。
 
 ```javascript
 const { find } = require('@geolonia/normalize-japanese-addresses')
@@ -34,7 +34,7 @@ console.log(find(normalized)) // { code: '271280058002', tail: '１' }
 
 ### `enrichment(address: string)`
 
-正規化された住所と町丁目コードを同時に返します。
+正規化された住所と町丁目コードおよび末尾の文字列を同時に返します。
 
 ```javascript
 const { enrichment } = require('@geolonia/normalize-japanese-addresses')
