@@ -18,12 +18,10 @@ const enrichment = (str: string) => {
 
   // @ts-ignore
   if (!response || response.multipleChoice) {
-    throw new Error(
-      '見つかりませんでした。住所を修正して、もう一度お試しください。',
-    )
+    return null
   }
 
-  return response.code
+  return response
 }
 
 export default enrichment

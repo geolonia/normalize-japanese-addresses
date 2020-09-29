@@ -1,64 +1,30 @@
 import dict from './dict'
 
-const replacer = function (keyval: any) {
+const replacer = (keyval: { [key: string]: string }) => {
   const reg = new RegExp('[' + Object.keys(keyval).join('') + ']', 'g')
   const rep = (a: string) => keyval[a]
   return (src: string) => src.replace(reg, rep)
 }
 
-const table = {} as any
-const list = [] as any
+const table: { [key: string]: number } = {}
+const list: string[] = []
 
-;[
-  '',
-  '千',
-  '二千',
-  '三千',
-  '四千',
-  '五千',
-  '六千',
-  '七千',
-  '八千',
-  '九千',
-].forEach((s1, i1) => {
-  ;[
-    '',
-    '百',
-    '二百',
-    '三百',
-    '四百',
-    '五百',
-    '六百',
-    '七百',
-    '八百',
-    '九百',
-  ].forEach((s2, i2) => {
-    ;[
-      '',
-      '十',
-      '二十',
-      '三十',
-      '四十',
-      '五十',
-      '六十',
-      '七十',
-      '八十',
-      '九十',
-    ].forEach((s3, i3) => {
-      ;['', '一', '二', '三', '四', '五', '六', '七', '八', '九'].forEach(
-        (s4, i4) => {
-          let key = s1 + s2 + s3 + s4
-          if (key.length === 0) key = '零'
-          const val = i1 * 1000 + i2 * 100 + i3 * 10 + i4
-          table[key] = val
-          list[val] = key
-        },
-      )
+// prettier-ignore
+;['', '千', '二千', '三千', '四千', '五千', '六千', '七千', '八千', '九千'].forEach((s1, i1) => {
+  ;['', '百', '二百', '三百', '四百', '五百', '六百', '七百', '八百', '九百'].forEach((s2, i2) => {
+    ;['', '十', '二十', '三十', '四十', '五十', '六十', '七十', '八十', '九十'].forEach((s3, i3) => {
+      ;['', '一', '二', '三', '四', '五', '六', '七', '八', '九'].forEach((s4, i4) => {
+        let key = s1 + s2 + s3 + s4
+        if (key.length === 0) key = '零'
+        const val = i1 * 1000 + i2 * 100 + i3 * 10 + i4
+        table[key] = val
+        list[val] = key
+      })
     })
   })
 })
 
-const deepStrictEqual = function (expected: any, actual: any) {
+const deepStrictEqual = function (expected: any, actual: any): boolean {
   if (typeof expected !== typeof actual) return false
 
   if (Array.isArray(expected)) {

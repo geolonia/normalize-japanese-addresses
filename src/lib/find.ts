@@ -294,6 +294,7 @@ const find = (address: string) => {
       return {
         code: answer[0].code,
         tail: normalized.substring(i),
+        multipleChoice: false,
       }
     }
   }
@@ -310,7 +311,7 @@ const find = (address: string) => {
         response.code = response.code + t
       }
 
-      return response
+      return { ...response, multipleChoice: false }
     }
   }
 
