@@ -1,29 +1,64 @@
 import dict from './dict'
 
-const replacer = function(keyval: any) {
+const replacer = function (keyval: any) {
   const reg = new RegExp('[' + Object.keys(keyval).join('') + ']', 'g')
   const rep = (a: string) => keyval[a]
   return (src: string) => src.replace(reg, rep)
 }
 
 const table = {} as any
-const list = [] as any;
+const list = [] as any
 
-['', '千', '二千', '三千', '四千', '五千', '六千', '七千', '八千', '九千'].forEach((s1, i1) => {
-  ['', '百', '二百', '三百', '四百', '五百', '六百', '七百', '八百', '九百'].forEach((s2, i2) => {
-    ['', '十', '二十', '三十', '四十', '五十', '六十', '七十', '八十', '九十'].forEach((s3, i3) => {
-      ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'].forEach((s4, i4) => {
-        let key = s1 + s2 + s3 + s4
-        if (key.length === 0) key = '零'
-        const val = i1 * 1000 + i2 * 100 + i3 * 10 + i4
-        table[key] = val
-        list[val] = key
-      })
+;[
+  '',
+  '千',
+  '二千',
+  '三千',
+  '四千',
+  '五千',
+  '六千',
+  '七千',
+  '八千',
+  '九千',
+].forEach((s1, i1) => {
+  ;[
+    '',
+    '百',
+    '二百',
+    '三百',
+    '四百',
+    '五百',
+    '六百',
+    '七百',
+    '八百',
+    '九百',
+  ].forEach((s2, i2) => {
+    ;[
+      '',
+      '十',
+      '二十',
+      '三十',
+      '四十',
+      '五十',
+      '六十',
+      '七十',
+      '八十',
+      '九十',
+    ].forEach((s3, i3) => {
+      ;['', '一', '二', '三', '四', '五', '六', '七', '八', '九'].forEach(
+        (s4, i4) => {
+          let key = s1 + s2 + s3 + s4
+          if (key.length === 0) key = '零'
+          const val = i1 * 1000 + i2 * 100 + i3 * 10 + i4
+          table[key] = val
+          list[val] = key
+        },
+      )
     })
   })
 })
 
-const deepStrictEqual = function(expected: any, actual: any) {
+const deepStrictEqual = function (expected: any, actual: any) {
   if (typeof expected !== typeof actual) return false
 
   if (Array.isArray(expected)) {
@@ -37,8 +72,8 @@ const deepStrictEqual = function(expected: any, actual: any) {
     const k1 = Object.keys(expected)
     const k2 = Object.keys(actual)
     if (k1.length !== k2.length) return false
-    if (k1.find(k => k2.indexOf(k) === -1)) return false
-    if (k1.find(k => !deepStrictEqual(expected[k], actual[k]))) return false
+    if (k1.find((k) => k2.indexOf(k) === -1)) return false
+    if (k1.find((k) => !deepStrictEqual(expected[k], actual[k]))) return false
     return true
   }
   return expected === actual
@@ -102,7 +137,7 @@ const Util = {
     9: '九',
   }),
   // 漢字表記（一十百千万億）を半角数字に
-  j2h: function(a: string) {
+  j2h: function (a: string) {
     const x = a.replace(/一千/g, '千')
     for (let end = x.length; end > 0; end--) {
       const head = x.substring(0, end)
@@ -124,10 +159,10 @@ const Util = {
     return '0'
   },
   // 半角数字を漢字表記（一十百千万億）に
-  h2j: function(a: string) {
+  h2j: function (a: string) {
     let n = parseInt(a)
-    let s = '';
-    ['京', '兆', '億', '万'].forEach((unit, i) => {
+    let s = ''
+    ;['京', '兆', '億', '万'].forEach((unit, i) => {
       const base = Math.pow(10, 16 - i * 4)
       if (n >= base) {
         const b = Math.floor(n / base)
@@ -138,14 +173,14 @@ const Util = {
     s += list[n]
     return s
   },
-  z2k: function(a: string) {
+  z2k: function (a: string) {
     return Util.h2k(Util.z2h(a))
   },
-  k2z: function(a: string) {
+  k2z: function (a: string) {
     return Util.h2z(Util.k2h(a))
   },
   // any to hankaku
-  a2h: function(a: string) {
+  a2h: function (a: string) {
     if (a.match(/^[0-9]+$/)) return a
     if (a.match(/^[０-９]+$/)) return Util.z2h(a)
     if (a.match(/^[〇一二三四五六七八九]+$/)) return Util.k2h(a)
@@ -153,7 +188,7 @@ const Util = {
     return a
   },
   // 地名文字列を正規化して返す。丁目は半角数字にする。空白はトリム。OCR由来の誤字を修正。
-  normalize: function(name: string): any {
+  normalize: function (name: string): any {
     if (name.endsWith('　')) return Util.normalize(name.replace(/[　]+$/, ''))
 
     name = dict(name)
@@ -165,7 +200,10 @@ const Util = {
       if (name.match(regexp)) {
         const original = RegExp.$2
         const normalized = Util.h2j(Util.z2h(original))
-        name = name.replace(`${original}${units[i]}`, `${normalized}${units[i]}`)
+        name = name.replace(
+          `${original}${units[i]}`,
+          `${normalized}${units[i]}`,
+        )
       }
     }
 
@@ -177,12 +215,15 @@ const Util = {
     }
 
     if (name.match(/^.*?(([0-9]+|[０-９]+)(丁目))/)) {
-
       // 一見すると正しいが、実は漢数字ではない
-      if (name.endsWith('ニ丁目')) return Util.normalize(name.replace('ニ丁目', '二丁目'))
-      if (name.endsWith('ー丁目')) return Util.normalize(name.replace('ー丁目', '一丁目'))
-      if (name.endsWith('ハ丁目')) return Util.normalize(name.replace('ハ丁目', '八丁目'))
-      if (name.endsWith('十〇丁目')) return Util.normalize(name.replace('十〇丁目', '十丁目'))
+      if (name.endsWith('ニ丁目'))
+        return Util.normalize(name.replace('ニ丁目', '二丁目'))
+      if (name.endsWith('ー丁目'))
+        return Util.normalize(name.replace('ー丁目', '一丁目'))
+      if (name.endsWith('ハ丁目'))
+        return Util.normalize(name.replace('ハ丁目', '八丁目'))
+      if (name.endsWith('十〇丁目'))
+        return Util.normalize(name.replace('十〇丁目', '十丁目'))
 
       // 丁目の反復を修正
       if (name.match(/^(.+丁目)(.+丁目)$/)) {
@@ -201,7 +242,7 @@ const Util = {
     return name
   },
   deepStrictEqual: deepStrictEqual,
-  put: function(s: any, p: any, o: any) {
+  put: function (s: any, p: any, o: any) {
     if (typeof s[p] === 'undefined') {
       s[p] = o
     } else if (Array.isArray(s[p])) {
