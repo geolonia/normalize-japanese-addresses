@@ -5,8 +5,8 @@ name: build
 
 on:
   push:
-    branches: ["*"]
-    tags: ["*"]
+    branches: ['*']
+    tags: ['*']
   pull_request:
     branches: [master]
 
@@ -32,7 +32,7 @@ jobs:
       # - run: npm run test:addresses || true
 
   publish:
-    name: "Publish npm package"
+    name: 'Publish npm package'
     runs-on: ubuntu-latest
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
@@ -41,12 +41,12 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v1
         with:
-          tag_name: "v%s"
-          node-version: "12.x"
-          registry-url: "https://registry.npmjs.org"
-          scope: "@geolonia"
+          tag_name: 'v%s'
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@geolonia'
       - run: npm install
       - run: npm run build
-      - run: echo 'npm publish'
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
