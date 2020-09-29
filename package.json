@@ -2,7 +2,7 @@
   "name": "@geolonia/normalize-japanese-addresses",
   "version": "0.0.1",
   "description": "",
-  "main": "./bin/build.js",
+  "main": "./dist/main.js",
   "scripts": {
     "download": "bash bin/download.sh",
     "tree": "npm run build && gzcat cache/isj.txt.gz | node bin/tree.js cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/lib/tree.json",
