@@ -5,8 +5,9 @@
   "main": "./bin/build.js",
   "scripts": {
     "download": "bash bin/download.sh",
-    "tree": "gzcat cache/isj.txt.gz | ts-node bin/tree.ts cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/lib/tree.json",
-    "test": "jest"
+    "tree": "npm run build && gzcat cache/isj.txt.gz | node bin/tree.js cache/sac_label.json cache/sac_parent.json cache/sac_change.json > src/lib/tree.json",
+    "test": "jest",
+    "build": "tsc"
   },
   "author": "",
   "license": "MIT",
