@@ -1,6 +1,6 @@
 const readline = require('readline')
 const fs = require('fs')
-const simplify = require('../dist/lib/util').default.simplify
+const simplify = require('../dist/lib/util').simplify
 
 const chome = [
   '〇', '一', '二', '三', '四', '五', '六', '七', '八', '九',

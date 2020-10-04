@@ -1,5 +1,6 @@
 import { simplify, k2h, z2h, h2j } from './util'
 import dict from './dict'
+// @ts-ignore
 import treeJSON from './tree.json'
 
 // tree の構造変更
