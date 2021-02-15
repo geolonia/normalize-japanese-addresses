@@ -182,14 +182,60 @@ const find = (normalizedAddress: string) => {
     }
   }
 
+  /**
+   * 「重複する 町名・村名」+「大字・字」の検索時に指定の住所データを取得
+   * @param {string} normalized
+   * @param {*} answer
+   */
+  const getUniqueAddressFromSameName = (normalized: any, answer: any) => {
+    const uniqueAddressIndex = answer.findIndex((singleAnswer: any) => {
+      if (!singleAnswer.children && singleAnswer.label === normalized) {
+        return false
+      }
+
+      // 重複している町村名以下を取得
+      const regExp = new RegExp(singleAnswer.label, 'g')
+      normalized = normalized.replace(regExp, '')
+
+      let match
+      for (let i = 0; i < singleAnswer.children.length; i++) {
+        // 大字・字・字なしの条件でチェック
+        const child = singleAnswer.children[i]
+        if (
+          child.label === normalized ||
+          child.label === `大字${normalized}` ||
+          child.label === `字${normalized}`
+        ) {
+          match = true
+          break
+        } else {
+          match = false
+        }
+      }
+      return match
+    })
+
+    if (-1 === uniqueAddressIndex) {
+      return answer
+    } else {
+      return [answer[uniqueAddressIndex]]
+    }
+  }
+
   // 市区町村にヒットする場合
   for (let i = normalized.length; i >= 0; i--) {
     const head = normalized.substring(0, i)
-    const answer = upper[head]
+    let answer = upper[head]
+
     if (typeof answer !== 'undefined') {
       if (answer.length > 1) {
-        return {
-          multipleChoice: true,
+        // 大字を追加して再検索
+        answer = getUniqueAddressFromSameName(normalized, answer)
+
+        if (answer.length > 1) {
+          return {
+            multipleChoice: true,
+          }
         }
       }
 

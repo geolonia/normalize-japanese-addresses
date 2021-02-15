@@ -297,4 +297,29 @@ describe('Tests for `src/lib/find.ts`.', () => {
     expect(res.code).toEqual('131010049003')
     expect(res.tail).toEqual('') // 内部的に `之` を `の` に変換
   })
+
+  // https://github.com/geolonia/community-geocoder/issues/91
+  it('should find the address "高山村高井" as expected.', () => {
+    const res: any = find(normalize('高山村高井'))
+    expect(res.code).toEqual('205430002000')
+    expect(res.tail).toEqual('')
+  })
+
+  it('should find the address "高山村大字高井" as expected.', () => {
+    const res: any = find(normalize('高山村大字高井'))
+    expect(res.code).toEqual('205430002000')
+    expect(res.tail).toEqual('')
+  })
+
+  it('should find the address "森町赤井川" as expected.', () => {
+    const res: any = find(normalize('森町赤井川'))
+    expect(res.code).toEqual('013450001000')
+    expect(res.tail).toEqual('')
+  })
+
+  it('should find the address "森町字赤井川" as expected.', () => {
+    const res: any = find(normalize('森町字赤井川'))
+    expect(res.code).toEqual('013450001000')
+    expect(res.tail).toEqual('')
+  })
 })
