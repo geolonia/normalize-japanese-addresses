@@ -1,5 +1,7 @@
 # @geolonia/normalize-japanese-addresses
 
+![build](https://github.com/geolonia/normalize-japanese-addresses/workflows/build/badge.svg)
+
 オープンソースの住所正規化ライブラリです。
 
 経産省の [IMI コンポーネントツール](https://info.gbiz.go.jp/tools/imi_tools/)のジオコーディングの仕組みからインスピレーションをうけて開発しました。

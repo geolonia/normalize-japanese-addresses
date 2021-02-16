@@ -274,28 +274,28 @@ describe('Tests for `src/lib/find.ts`.', () => {
   it('should find the address "東京都千代田区猿楽町" as expected.', () => {
     const res: any = find(normalize('東京都千代田区猿楽町'))
     expect(res.code).toEqual('131010047002')
-    expect(res.tail).toEqual('') // 内部的に `之` を `の` に変換
+    expect(res.tail).toEqual('')
   })
 
   // https://github.com/geolonia/community-geocoder/issues/60
   it('should find the address "千代田区三崎町" as expected.', () => {
     const res: any = find(normalize('千代田区三崎町'))
     expect(res.code).toEqual('131010049003')
-    expect(res.tail).toEqual('') // 内部的に `之` を `の` に変換
+    expect(res.tail).toEqual('')
   })
 
   // https://github.com/geolonia/community-geocoder/issues/60
   it('should find the address "東京都千代田区神田猿楽町" as expected.', () => {
     const res: any = find(normalize('東京都千代田区神田猿楽町'))
     expect(res.code).toEqual('131010047002')
-    expect(res.tail).toEqual('') // 内部的に `之` を `の` に変換
+    expect(res.tail).toEqual('')
   })
 
   // https://github.com/geolonia/community-geocoder/issues/60
   it('should find the address "千代田区神田三崎町" as expected.', () => {
     const res: any = find(normalize('千代田区神田三崎町'))
     expect(res.code).toEqual('131010049003')
-    expect(res.tail).toEqual('') // 内部的に `之` を `の` に変換
+    expect(res.tail).toEqual('')
   })
 
   // https://github.com/geolonia/community-geocoder/issues/91
