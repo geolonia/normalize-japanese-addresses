@@ -5,6 +5,11 @@ test('大阪府堺市北区新金岡町4丁1−8', async () => {
   expect(res).toBe('大阪府堺市北区新金岡町4丁1−8')
 })
 
+test('大阪府堺市北区新金岡町４丁１ー８', async () => {
+  const res = await normalize('大阪府堺市北区新金岡町４丁１ー８')
+  expect(res).toBe('大阪府堺市北区新金岡町4丁1-8')
+})
+
 test('和歌山県串本町串本1234', async () => {
   const res = await normalize('和歌山県串本町串本1234')
   expect(res).toBe('和歌山県東牟婁郡串本町串本1234')
