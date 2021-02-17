@@ -33,11 +33,17 @@ export const normalize = async (address: string) => {
 
   let pref = '' // 都道府県名
   for (let i = 0; i < prefs.length; i++) {
-    if (0 === addr.indexOf(dict(prefs[i]))) {
+    const _pref = dict(prefs[i]).replace(/(都|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
+    const reg = new RegExp(`${_pref}(都|府|県)`)
+    if (addr.match(reg)) {
       pref = prefs[i]
-      addr = addr.substr(prefs[i].length) // 都道府県名以降の住所
+      addr = addr.replace(reg, '') // 都道府県名以降の住所
       break
     }
+  }
+
+  if (!pref) {
+    throw new Error("Cant't detect the prefecture.")
   }
 
   // 市区町村名の正規化
@@ -65,6 +71,10 @@ export const normalize = async (address: string) => {
     }
   }
 
+  if (!city) {
+    throw new Error("Cant't detect the city.")
+  }
+
   // 町丁目以降の正規化
 
   const responseTowns = await fetch(
@@ -88,6 +98,10 @@ export const normalize = async (address: string) => {
       const reg = new RegExp(`^.*${_town}`)
       addr = addr.replace(reg, '') // 町丁目以降の住所
     }
+  }
+
+  if (!town) {
+    throw new Error("Cant't detect the town.")
   }
 
   return pref + city + town + addr
