@@ -47,7 +47,7 @@ export const normalize = async (address: string) => {
   }
 
   if (!pref) {
-    throw new Error("Cant't detect the prefecture.")
+    throw new Error("Can't detect the prefecture.")
   }
 
   // 市区町村名の正規化
@@ -76,7 +76,7 @@ export const normalize = async (address: string) => {
   }
 
   if (!city) {
-    throw new Error("Cant't detect the city.")
+    throw new Error("Can't detect the city.")
   }
 
   // 町丁目以降の正規化
@@ -105,7 +105,7 @@ export const normalize = async (address: string) => {
   }
 
   if (!town) {
-    throw new Error("Cant't detect the town.")
+    throw new Error("Can't detect the town.")
   }
 
   return pref + city + town + addr
