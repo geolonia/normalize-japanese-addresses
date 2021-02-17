@@ -24,26 +24,6 @@ const { normalize } = require('@geolonia/normalize-japanese-addresses')
 console.log(normalize('大阪府堺市北区新金岡町4丁1−8')) // 大阪府堺市北区新金岡町四丁1−8
 ```
 
-### `find(normalizedAddress: string)`
-
-正規化された住所から町丁目コードを取得します。
-
-```javascript
-const { find } = require('@geolonia/normalize-japanese-addresses')
-const normalized = normalize('大阪府大阪市中央区大手前２丁目１')
-console.log(find(normalized)) // { code: '271280058002', tail: '１' }
-```
-
-### `enrichment(address: string)`
-
-正規化された住所と町丁目コードを同時に返します。
-
-```javascript
-const { enrichment } = require('@geolonia/normalize-japanese-addresses')
-const result = enrichment('大阪府堺市北区新金岡町4丁1−8')
-console.log(result) // { address: '大阪府堺市北区新金岡町4丁1−8', code: '271460084000', tail: '1−8' }
-```
-
 ## 開発者向け情報
 
 まず、以下のコマンドで環境を用意してください。
@@ -52,16 +32,6 @@ console.log(result) // { address: '大阪府堺市北区新金岡町4丁1−8', 
 $ git clone git@github.com:geolonia/normalize-japanese-addresses.git
 $ cd normalize-japanese-addresses
 $ npm install
-```
-
-### tree.json のビルド
-
-`src/lib/tree.json` が住所の正規化に用いられるデータソースになります。
-データを更新するためには以下のコマンドを実行してください。
-
-```shell
-$ npm run download
-$ npm run tree
 ```
 
 ### 貢献方法
