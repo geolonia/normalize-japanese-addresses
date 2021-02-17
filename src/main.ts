@@ -89,7 +89,7 @@ export const normalize = async (address: string) => {
   let town = ''
   for (let i = 0; i < towns.length; i++) {
     const _town = kan2num(dict(towns[i]))
-    if (0 === addr.indexOf(_town)) {
+    if ('京都府' !== pref && 0 === addr.indexOf(_town)) {
       town = kan2num(towns[i])
       addr = addr.substr(kan2num(towns[i]).length) // 町丁目以降の住所
       break
