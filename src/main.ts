@@ -2,7 +2,7 @@ import os from 'os'
 import path from 'path'
 import { kanji2number, findKanjiNumbers } from '@geolonia/japanese-numeral'
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
-const fetch = require('node-fetch-cache')(tmpdir);
+const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
 
 const endpoint = 'https://cdn.geolonia.com/address/japan'
@@ -18,9 +18,9 @@ const kan2num = (string: string) => {
 }
 
 const zen2han = (str: string) => {
-  return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
-      return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-  });
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) {
+    return String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+  })
 }
 
 export const normalize = async (address: string) => {
@@ -28,8 +28,8 @@ export const normalize = async (address: string) => {
 
   // 都道府県名の正規化
 
-  const responsePrefs = await fetch(`${endpoint}.json`);
-  const prefs = await responsePrefs.json();
+  const responsePrefs = await fetch(`${endpoint}.json`)
+  const prefs = await responsePrefs.json()
 
   let pref = '' // 都道府県名
   for (let i = 0; i < prefs.length; i++) {
@@ -42,8 +42,8 @@ export const normalize = async (address: string) => {
 
   // 市区町村名の正規化
 
-  const responseCities = await fetch(`${endpoint}/${encodeURI(pref)}.json`);
-  const cities = await responseCities.json();
+  const responseCities = await fetch(`${endpoint}/${encodeURI(pref)}.json`)
+  const cities = await responseCities.json()
 
   let city = '' // 市区町村名
   for (let i = 0; i < cities.length; i++) {
@@ -53,7 +53,8 @@ export const normalize = async (address: string) => {
       break
     } else {
       // 以下 `xxx郡` が省略されているケースに対する対応
-      if (0 < cities[i].indexOf('郡')) { // `郡山` のように `郡` で始まる地名はスキップ
+      if (0 < cities[i].indexOf('郡')) {
+        // `郡山` のように `郡` で始まる地名はスキップ
         const _city = cities[i].replace(/.+郡/, '')
         if (0 === addr.indexOf(dict(_city))) {
           city = cities[i]
@@ -66,8 +67,12 @@ export const normalize = async (address: string) => {
 
   // 町丁目以降の正規化
 
-  const responseTowns = await fetch(`${endpoint}/${encodeURI(pref)}/${encodeURI(city.replace(/.+郡/, ''))}.json`);
-  const towns = await responseTowns.json();
+  const responseTowns = await fetch(
+    `${endpoint}/${encodeURI(pref)}/${encodeURI(
+      city.replace(/.+郡/, ''),
+    )}.json`,
+  )
+  const towns = await responseTowns.json()
 
   addr = kan2num(addr) // 漢数字を数字に
 
