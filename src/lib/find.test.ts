@@ -94,14 +94,14 @@ describe('Tests for `src/lib/find.ts`.', () => {
   it('should find the address "長野県松本市岡田松岡１６２－１" as expected.', () => {
     const res: any = find(normalize('長野県松本市岡田松岡１６２－１'))
     expect(res.code).toEqual('202020028000')
-    expect(res.tail).toEqual('１６２－１')
+    expect(res.tail).toEqual('１６２-１')
   })
 
   // https://github.com/geolonia/community-geocoder/issues/15
   it('should find the address "長野県松本市大字岡田松岡１６２－１" as expected.', () => {
     const res: any = find(normalize('長野県松本市大字岡田松岡１６２－１'))
     expect(res.code).toEqual('202020028000')
-    expect(res.tail).toEqual('１６２－１')
+    expect(res.tail).toEqual('１６２-１')
   })
 
   // https://github.com/geolonia/community-geocoder/issues/17
@@ -321,5 +321,29 @@ describe('Tests for `src/lib/find.ts`.', () => {
     const res: any = find(normalize('森町字赤井川'))
     expect(res.code).toEqual('013450001000')
     expect(res.tail).toEqual('')
+  })
+
+  it('should find the address "北海道札幌市白石区南郷通１－北" as expected.', () => {
+    const res: any = find(normalize('北海道札幌市白石区南郷通１－北'))
+    expect(res.code).toEqual('011040071000')
+    expect(res.tail).toEqual('')
+  })
+
+  it('should find the address "北海道札幌市白石区南郷通1-北" as expected.', () => {
+    const res: any = find(normalize('北海道札幌市白石区南郷通1-北'))
+    expect(res.code).toEqual('011040071000')
+    expect(res.tail).toEqual('')
+  })
+
+  it('should find the address "北海道札幌市白石区南郷通一丁目北" as expected.', () => {
+    const res: any = find(normalize('北海道札幌市白石区南郷通一丁目北'))
+    expect(res.code).toEqual('011040071000')
+    expect(res.tail).toEqual('')
+  })
+
+  it('should find the address "大阪府堺市堺区向陵西町2-3-17  " as expected.', () => {
+    const res: any = find(normalize('大阪府堺市堺区向陵西町2-3-17'))
+    expect(res.code).toEqual('271410403000')
+    expect(res.tail).toEqual('3-17')
   })
 })

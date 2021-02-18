@@ -41,5 +41,7 @@
       }
     }
   },
-  "dependencies": {}
+  "dependencies": {
+    "@geolonia/japanese-numeral": "^0.1.5"
+  }
 }

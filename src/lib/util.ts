@@ -202,6 +202,11 @@ export const normalize = function (address: string): string {
     }
   }
 
+  // 半角ハイフンに変換
+  if (name.match(/[－ー–—―]/)) {
+    name = name.replace(/[－ー–—―]/, '-')
+  }
+
   return name
 }
 export const put = function (s: any, p: any, o: any) {
