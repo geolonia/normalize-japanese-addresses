@@ -51,3 +51,8 @@ test('京都府京都市東山区大和大路2丁目五百三十七-1', async ()
   const res = await normalize('京都府京都市東山区大和大路2丁目五百三十七の1')
   expect(res).toBe('京都府京都市東山区大和大路2丁目537-1')
 })
+
+test('愛知県蒲郡市旭町17番1号', async () => {
+  const res = await normalize('愛知県蒲郡市旭町17番1号')
+  expect(res).toBe('愛知県蒲郡市旭町17番1号')
+})
