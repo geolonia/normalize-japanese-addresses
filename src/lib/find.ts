@@ -319,11 +319,10 @@ const find = (normalizedAddress: string) => {
         })
         if (typeof hit === 'undefined') {
           hit = latest.children.find((child: any) => {
-
             // 「半角数字  -（ハイフン）」の住所に対応
             // See https://github.com/geolonia/community-geocoder/issues/87
             if (body.match(/[0-9０-９]+/)) {
-              body = body.replace(/[0-9０-９]+/, function(match) {
+              body = body.replace(/[0-9０-９]+/, function (match) {
                 const chomeNumber = parseInt(z2h(match), 10)
                 return number2kanji(chomeNumber)
               })
@@ -331,7 +330,11 @@ const find = (normalizedAddress: string) => {
 
             const bodyAddChome = body.replace('-', '丁目')
             const bodyAddCho = body.replace('-', '丁')
-            if (body === dict(child.label) || bodyAddChome === dict(child.label) || bodyAddCho === dict(child.label)) {
+            if (
+              body === dict(child.label) ||
+              bodyAddChome === dict(child.label) ||
+              bodyAddCho === dict(child.label)
+            ) {
               return true
             } else {
               return false
