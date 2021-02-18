@@ -18,7 +18,7 @@ const kan2num = (string: string) => {
 }
 
 const zen2han = (str: string) => {
-  return str.replace(/[Ａ-Ｚａ-ｚ０-９ー]/g, function (s) {
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９ー]/g, (s) => {
     if ('ー' === s) {
       return '-'
     } else {
@@ -37,8 +37,8 @@ export const normalize = async (address: string) => {
 
   let pref = '' // 都道府県名
   for (let i = 0; i < prefs.length; i++) {
-    const _pref = dict(prefs[i]).replace(/(都|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
-    const reg = new RegExp(`${_pref}(都|府|県)`)
+    const _pref = dict(prefs[i]).replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
+    const reg = new RegExp(`^${_pref}(都|道|府|県)`)
     if (addr.match(reg)) {
       pref = prefs[i]
       addr = addr.replace(reg, '') // 都道府県名以降の住所
@@ -90,12 +90,20 @@ export const normalize = async (address: string) => {
 
   addr = kan2num(addr) // 漢数字を数字に
 
+  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|\-)'
+
   let town = ''
   for (let i = 0; i < towns.length; i++) {
-    const _town = kan2num(dict(towns[i]))
-    if ('京都府' !== pref && 0 === addr.indexOf(_town)) {
+    const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
+    const _town = dict(towns[i]).replace(reg, (s) => {
+      return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
+    })
+
+    const regex = new RegExp(_town.replace(/([0-9]+)([^0-9]+)/g, `$1${units}`))
+
+    if ('京都府' !== pref && addr.match(regex)) {
       town = kan2num(towns[i])
-      addr = addr.substr(kan2num(towns[i]).length) // 町丁目以降の住所
+      addr = addr.replace(regex, '') // 町丁目以降の住所
       break
     } else if ('京都府' === pref && 0 <= addr.lastIndexOf(_town)) {
       town = kan2num(towns[i])
