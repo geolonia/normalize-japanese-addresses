@@ -57,7 +57,7 @@ export const normalize = async (address: string) => {
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   cities.sort((a: string, b: string) => {
-    return b.length - a.length;
+    return b.length - a.length
   })
 
   let city = '' // 市区町村名
@@ -95,12 +95,14 @@ export const normalize = async (address: string) => {
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a: string, b: string) => {
-    return b.length - a.length;
+    return b.length - a.length
   })
 
-  addr = kan2num(addr) // 漢数字を数字に
+  addr = kan2num(addr).replace(/の([0-9]+)/g, (s) => {
+    return s.replace('の', '-')
+  })
 
-  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|\-)'
+  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|-)'
 
   let town = ''
   for (let i = 0; i < towns.length; i++) {
