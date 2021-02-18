@@ -55,6 +55,11 @@ export const normalize = async (address: string) => {
   const responseCities = await fetch(`${endpoint}/${encodeURI(pref)}.json`)
   const cities = await responseCities.json()
 
+  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
+  cities.sort((a: string, b: string) => {
+    return b.length - a.length;
+  })
+
   let city = '' // 市区町村名
   for (let i = 0; i < cities.length; i++) {
     if (0 === addr.indexOf(dict(cities[i]))) {
@@ -88,6 +93,11 @@ export const normalize = async (address: string) => {
   )
   const towns = await responseTowns.json()
 
+  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
+  towns.sort((a: string, b: string) => {
+    return b.length - a.length;
+  })
+
   addr = kan2num(addr) // 漢数字を数字に
 
   const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|\-)'
@@ -100,15 +110,11 @@ export const normalize = async (address: string) => {
     })
 
     const regex = new RegExp(_town.replace(/([0-9]+)([^0-9]+)/g, `$1${units}`))
-
-    if ('京都府' !== pref && addr.match(regex)) {
+    const match = addr.match(regex)
+    if (match) {
       town = kan2num(towns[i])
-      addr = addr.replace(regex, '') // 町丁目以降の住所
+      addr = addr.substr(addr.lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
       break
-    } else if ('京都府' === pref && 0 <= addr.lastIndexOf(_town)) {
-      town = kan2num(towns[i])
-      const reg = new RegExp(`^.*${_town}`)
-      addr = addr.replace(reg, '') // 町丁目以降の住所
     }
   }
 
