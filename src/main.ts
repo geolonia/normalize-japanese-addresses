@@ -33,7 +33,8 @@ export const normalize = async (address: string) => {
   // 都道府県名の正規化
 
   const responsePrefs = await fetch(`${endpoint}.json`)
-  const prefs = await responsePrefs.json()
+  const prefectures = await responsePrefs.json()
+  const prefs = Object.keys(prefectures)
 
   let pref = '' // 都道府県名
   for (let i = 0; i < prefs.length; i++) {
@@ -52,8 +53,7 @@ export const normalize = async (address: string) => {
 
   // 市区町村名の正規化
 
-  const responseCities = await fetch(`${endpoint}/${encodeURI(pref)}.json`)
-  const cities = await responseCities.json()
+  const cities = prefectures[pref]
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   cities.sort((a: string, b: string) => {
@@ -87,9 +87,7 @@ export const normalize = async (address: string) => {
   // 町丁目以降の正規化
 
   const responseTowns = await fetch(
-    `${endpoint}/${encodeURI(pref)}/${encodeURI(
-      city.replace(/.+郡/, ''),
-    )}.json`,
+    `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
   )
   const towns = await responseTowns.json()
 
