@@ -123,6 +123,7 @@ export const normalize = async (address: string) => {
   }
 
   addr = addr.replace(/([(0-9]+)番([0-9]+)号/, '$1-$2')
+          .replace(/([0-9]+)番地/, '$1')
 
   return pref + city + town + addr
 }
