@@ -41,7 +41,7 @@
     }
   },
   "dependencies": {
-    "@geolonia/japanese-numeral": "^0.1.7",
+    "@geolonia/japanese-numeral": "^0.1.9",
     "node-fetch": "^2.6.1",
     "node-fetch-cache": "^1.0.6"
   }
