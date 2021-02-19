@@ -67,12 +67,12 @@ test('北海道久遠郡せたな町北檜山区北檜山１９３', async () =>
   expect(res).toBe('北海道久遠郡せたな町北檜山区北檜山193')
 })
 
-// test('京都府京都市中京区錦小路通大宮東入七軒町466', async () => {
-//   const res = await normalize('京都府京都市中京区錦小路通大宮東入七軒町466')
-//   expect(res).toBe('京都府京都市中京区錦小路通大宮東入七軒町466')
-// })
+test('京都府京都市中京区錦小路通大宮東入七軒町466', async () => {
+  const res = await normalize('京都府京都市中京区錦小路通大宮東入七軒町466')
+  expect(res).toBe('京都府京都市中京区七軒町466')
+})
 
-// test('栃木県佐野市七軒町2201', async () => {
-//   const res = await normalize('栃木県佐野市七軒町2201')
-//   expect(res).toBe('栃木県佐野市七軒町2201')
-// })
+test('栃木県佐野市七軒町2201', async () => {
+  const res = await normalize('栃木県佐野市七軒町2201')
+  expect(res).toBe('栃木県佐野市七軒町2201')
+})
