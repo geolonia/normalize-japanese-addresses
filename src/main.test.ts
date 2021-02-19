@@ -62,10 +62,10 @@ test('北海道岩見沢市栗沢町万字寿町１−２', async () => {
   expect(res).toBe('北海道岩見沢市栗沢町万字寿町1-2')
 })
 
-// test('北海道久遠郡せたな町北檜山区北檜山１９３', async () => {
-//   const res = await normalize('北海道久遠郡せたな町北檜山区北檜山１９３')
-//   expect(res).toBe('北海道久遠郡せたな町北檜山区北檜山193')
-// })
+test('北海道久遠郡せたな町北檜山区北檜山１９３', async () => {
+  const res = await normalize('北海道久遠郡せたな町北檜山区北檜山１９３')
+  expect(res).toBe('北海道久遠郡せたな町北檜山区北檜山193')
+})
 
 // test('京都府京都市中京区錦小路通大宮東入七軒町466', async () => {
 //   const res = await normalize('京都府京都市中京区錦小路通大宮東入七軒町466')
