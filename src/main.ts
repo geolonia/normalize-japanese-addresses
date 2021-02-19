@@ -1,6 +1,6 @@
 import os from 'os'
 import path from 'path'
-import { kanji2number, findKanjiNumbers } from '@geolonia/japanese-numeral'
+import { kanji2number, number2kanji, findKanjiNumbers } from '@geolonia/japanese-numeral'
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
@@ -64,7 +64,7 @@ export const normalize = async (address: string) => {
   for (let i = 0; i < cities.length; i++) {
     if (0 === addr.indexOf(dict(cities[i]))) {
       city = cities[i]
-      addr = addr.substr(cities[i].length) // 市区町村名以降の住所
+      addr = addr.substring(cities[i].length) // 市区町村名以降の住所
       break
     } else {
       // 以下 `xxx郡` が省略されているケースに対する対応
@@ -73,7 +73,7 @@ export const normalize = async (address: string) => {
         const _city = cities[i].replace(/.+郡/, '')
         if (0 === addr.indexOf(dict(_city))) {
           city = cities[i]
-          addr = addr.substr(_city.length) // 市区町村名以降の住所
+          addr = addr.substring(_city.length) // 市区町村名以降の住所
           break
         }
       }
@@ -109,14 +109,19 @@ export const normalize = async (address: string) => {
       return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
     })
 
-    const regex = new RegExp(_town.replace(/([0-9]+)([^0-9]+)/ig, `$1${units}`))
+    const regex = new RegExp(_town.replace(/([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|-)/ig, `$1${units}`))
     const match = addr.match(regex)
     if (match) {
       town = kan2num(towns[i])
-      addr = addr.substr(addr.lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
+      addr = addr.substring(addr.lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
       break
     }
   }
+
+  // 町名部分に対する例外的な処理
+  town = town.replace(/([0-9])軒町/, (s, p1) => {
+    return `${number2kanji(parseInt(p1))}軒町` // 京都などに存在する `七軒町` などの地名の数字を漢数字に戻す
+  })
 
   if (!town) {
     throw new Error("Can't detect the town.")
