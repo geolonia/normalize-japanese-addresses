@@ -18,8 +18,8 @@ const kan2num = (string: string) => {
 }
 
 const zen2han = (str: string) => {
-  return str.replace(/[Ａ-Ｚａ-ｚ０-９ー]/g, (s) => {
-    if ('ー' === s) {
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９ー−]/g, (s) => {
+    if ('ー' === s || '−' === s) {
       return '-'
     } else {
       return String.fromCharCode(s.charCodeAt(0) - 0xfee0)
