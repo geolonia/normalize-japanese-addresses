@@ -109,7 +109,7 @@ export const normalize = async (address: string) => {
       return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
     })
 
-    const regex = new RegExp(_town.replace(/([0-9]+)([^0-9]+)/g, `$1${units}`))
+    const regex = new RegExp(_town.replace(/([0-9]+)([^0-9]+)/ig, `$1${units}`))
     const match = addr.match(regex)
     if (match) {
       town = kan2num(towns[i])
@@ -121,6 +121,8 @@ export const normalize = async (address: string) => {
   if (!town) {
     throw new Error("Can't detect the town.")
   }
+
+  addr = addr.replace(/([(0-9]+)番([0-9]+)号/, '$1-$2')
 
   return pref + city + town + addr
 }
