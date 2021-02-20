@@ -1,5 +1,7 @@
 import { normalize } from './main'
 
+
+
 test('大阪府堺市北区新金岡町4丁1−8', async () => {
   const res = await normalize('大阪府堺市北区新金岡町4丁1−8')
   expect(res).toBe('大阪府堺市北区新金岡町4丁1-8')
@@ -28,6 +30,13 @@ test('和歌山県東牟婁郡串本町串本一二三四', async () => {
 test('京都府京都市中京区寺町通御池上る上本能寺前町488番地', async () => {
   const res = await normalize(
     '京都府京都市中京区寺町通御池上る上本能寺前町488番地',
+  )
+  expect(res).toBe('京都府京都市中京区上本能寺前町488')
+})
+
+test('京都府京都市中京区上本能寺前町488', async () => {
+  const res = await normalize(
+    '京都府京都市中京区上本能寺前町488',
   )
   expect(res).toBe('京都府京都市中京区上本能寺前町488')
 })
@@ -75,4 +84,14 @@ test('京都府京都市中京区錦小路通大宮東入七軒町466', async ()
 test('栃木県佐野市七軒町2201', async () => {
   const res = await normalize('栃木県佐野市七軒町2201')
   expect(res).toBe('栃木県佐野市七軒町2201')
+})
+
+test('京都府京都市東山区大和大路通三条下る東入若松町393', async () => {
+  const res = await normalize('京都府京都市東山区大和大路通三条下る東入若松町393')
+  expect(res).toBe('京都府京都市東山区若松町393')
+})
+
+test('長野県長野市長野東之門町2462', async () => {
+  const res = await normalize('長野県長野市長野東之門町2462')
+  expect(res).toBe('長野県長野市長野東之門町2462')
 })
