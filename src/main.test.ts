@@ -91,7 +91,13 @@ test('京都府京都市東山区大和大路通三条下る東入若松町393',
   expect(res).toBe('京都府京都市東山区若松町393')
 })
 
-test('長野県長野市長野東之門町2462', async () => {
-  const res = await normalize('長野県長野市長野東之門町2462')
-  expect(res).toBe('長野県長野市長野東之門町2462')
+// TODO
+// test('長野県長野市長野東之門町2462', async () => {
+//   const res = await normalize('長野県長野市長野東之門町2462')
+//   expect(res).toBe('長野県長野市長野東之門町2462')
+// })
+
+test('岩手県下閉伊郡普代村第１地割上村４３−２５', async () => {
+  const res = await normalize('岩手県下閉伊郡普代村第１地割上村４３−２５')
+  expect(res).toBe('岩手県下閉伊郡普代村第1地割字上村43-25')
 })
