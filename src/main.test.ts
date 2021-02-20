@@ -104,3 +104,8 @@ test('岩手県花巻市下北万丁目１７４−１', async () => {
   const res = await normalize('岩手県花巻市下北万丁目１７４−１')
   expect(res).toBe('岩手県花巻市下北万丁目174-1')
 })
+
+test('岩手県花巻市十二丁目１１９２', async () => {
+  const res = await normalize('岩手県花巻市十二丁目１１９２')
+  expect(res).toBe('岩手県花巻市12丁目1192')
+})
