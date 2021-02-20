@@ -115,3 +115,7 @@ test('岩手県滝沢市後２６８−５６６', async () => {
   expect(res).toBe('岩手県滝沢市後268-566')
 })
 
+test('青森県五所川原市金木町喜良市千苅６２−８', async () => {
+  const res = await normalize('青森県五所川原市金木町喜良市千苅６２−８')
+  expect(res).toBe('青森県五所川原市金木町喜良市千苅62-8')
+})
