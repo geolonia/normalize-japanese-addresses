@@ -33,9 +33,7 @@ test('京都府京都市中京区寺町通御池上る上本能寺前町488番�
 })
 
 test('京都府京都市中京区上本能寺前町488', async () => {
-  const res = await normalize(
-    '京都府京都市中京区上本能寺前町488',
-  )
+  const res = await normalize('京都府京都市中京区上本能寺前町488')
   expect(res).toBe('京都府京都市中京区上本能寺前町488')
 })
 
@@ -85,7 +83,9 @@ test('栃木県佐野市七軒町2201', async () => {
 })
 
 test('京都府京都市東山区大和大路通三条下る東入若松町393', async () => {
-  const res = await normalize('京都府京都市東山区大和大路通三条下る東入若松町393')
+  const res = await normalize(
+    '京都府京都市東山区大和大路通三条下る東入若松町393',
+  )
   expect(res).toBe('京都府京都市東山区若松町393')
 })
 
@@ -118,4 +118,9 @@ test('岩手県滝沢市後２６８−５６６', async () => {
 test('青森県五所川原市金木町喜良市千苅６２−８', async () => {
   const res = await normalize('青森県五所川原市金木町喜良市千苅６２−８')
   expect(res).toBe('青森県五所川原市金木町喜良市千苅62-8')
+})
+
+test('岩手県盛岡市盛岡駅西通２丁目９番地１号', async () => {
+  const res = await normalize('岩手県盛岡市盛岡駅西通２丁目９番地１号')
+  expect(res).toBe('岩手県盛岡市盛岡駅西通2丁目9-1')
 })
