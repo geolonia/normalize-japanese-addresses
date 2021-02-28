@@ -21,7 +21,9 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
-console.log(normalize('大阪府堺市北区新金岡町4丁1−8')) // 大阪府堺市北区新金岡町四丁1−8
+normalize('大阪府堺市北区新金岡町4丁1−8')).then(result => {
+  console.log(result) // 大阪府堺市北区新金岡町四丁1−8
+})
 ```
 
 ## 開発者向け情報
