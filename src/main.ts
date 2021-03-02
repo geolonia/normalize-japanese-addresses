@@ -5,7 +5,7 @@ const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
 
-const endpoint = 'https://cdn.geolonia.com/address/japan'
+const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
 const kan2num = (string: string) => {
   const kanjiNumbers = findKanjiNumbers(string)
