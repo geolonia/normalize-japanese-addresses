@@ -1,6 +1,10 @@
 import os from 'os'
 import path from 'path'
-import { kanji2number, number2kanji, findKanjiNumbers } from '@geolonia/japanese-numeral'
+import {
+  kanji2number,
+  number2kanji,
+  findKanjiNumbers,
+} from '@geolonia/japanese-numeral'
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
@@ -109,7 +113,12 @@ export const normalize = async (address: string) => {
       return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
     })
 
-    const regex = new RegExp(_town.replace(/([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|-)/ig, `$1${units}`))
+    const regex = new RegExp(
+      _town.replace(
+        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|-)/gi,
+        `$1${units}`,
+      ),
+    )
     const match = addr.match(regex)
     if (match) {
       town = kan2num(towns[i])
@@ -127,8 +136,9 @@ export const normalize = async (address: string) => {
     throw new Error("Can't detect the town.")
   }
 
-  addr = addr.replace(/([(0-9]+)番([0-9]+)号/, '$1-$2')
-          .replace(/([0-9]+)番地/, '$1')
+  addr = addr
+    .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
+    .replace(/([0-9]+)番地/, '$1')
 
   return pref + city + town + addr
 }
