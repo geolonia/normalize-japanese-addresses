@@ -32,7 +32,7 @@ const zen2han = (str: string) => {
 }
 
 export const normalize = async (address: string) => {
-  let addr = dict(zen2han(address))
+  let addr = address
 
   // 都道府県名の正規化
 
@@ -42,11 +42,11 @@ export const normalize = async (address: string) => {
 
   let pref = '' // 都道府県名
   for (let i = 0; i < prefs.length; i++) {
-    const _pref = dict(prefs[i]).replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
+    const _pref = prefs[i].replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
     const reg = new RegExp(`^${_pref}(都|道|府|県)`)
     if (addr.match(reg)) {
       pref = prefs[i]
-      addr = addr.replace(reg, '') // 都道府県名以降の住所
+      addr = addr.substring(pref.length) // 都道府県名以降の住所
       break
     }
   }
@@ -66,7 +66,7 @@ export const normalize = async (address: string) => {
 
   let city = '' // 市区町村名
   for (let i = 0; i < cities.length; i++) {
-    if (0 === addr.indexOf(dict(cities[i]))) {
+    if (0 === addr.indexOf(cities[i])) {
       city = cities[i]
       addr = addr.substring(cities[i].length) // 市区町村名以降の住所
       break
@@ -75,7 +75,7 @@ export const normalize = async (address: string) => {
       if (0 < cities[i].indexOf('郡')) {
         // `郡山` のように `郡` で始まる地名はスキップ
         const _city = cities[i].replace(/.+郡/, '')
-        if (0 === addr.indexOf(dict(_city))) {
+        if (0 === zen2han(addr).indexOf(_city)) {
           city = cities[i]
           addr = addr.substring(_city.length) // 市区町村名以降の住所
           break
@@ -119,13 +119,21 @@ export const normalize = async (address: string) => {
         `$1${units}`,
       ),
     )
-    const match = addr.match(regex)
+    const match = dict(zen2han(addr)).match(regex)
     if (match) {
-      town = kan2num(towns[i])
-      addr = addr.substring(addr.lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
+      town = kan2num(towns[i]).replace(/^大字/, '')
+      const _m = addr.match(/字/g)
+      if (_m && _m.length) {
+        // 住所内に `字` がある場合、正規化でそれらを削除してしまっているので、その文字数分だけずれるのでそれを補正する。
+        addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length + _m.length) // 町丁目以降の住所
+      } else {
+        addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
+      }
       break
     }
   }
+
+  addr = zen2han(addr)
 
   // 町名部分に対する例外的な処理
   town = town.replace(/([0-9])軒町/, (s, p1) => {

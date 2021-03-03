@@ -12,28 +12,6 @@ const dict = {
   カ: 'か',
   ッ: 'つ',
   ツ: 'つ',
-  大冝: '大宜',
-  穝: 'さい',
-  杁: 'えぶり',
-  薭: 'ひえ',
-  稗: 'ひえ',
-  ヒエ: 'ひえ',
-  條: '条',
-  狛: '拍',
-  藪: '薮',
-  渕: '淵',
-  エ: 'え',
-  ヱ: 'え',
-  曾: '曽',
-  通り: 'とおり',
-  埠頭: 'ふ頭',
-  塩釜市: '塩竈市',
-  三宅島三宅村: '三宅村',
-  八丈島八丈町: '八丈町',
-  長野市東の門町: '長野市長野東の門町', // https://github.com/geolonia/community-geocoder/issues/52
-  神田猿楽町: '猿楽町', // https://github.com/geolonia/community-geocoder/issues/60
-  神田三崎町: '三崎町', // https://github.com/geolonia/community-geocoder/issues/60
-  那珂川市: '筑紫郡那珂川町', // https://github.com/geolonia/community-geocoder/issues/66
 }
 
 // JIS 第2水準 => 第1水準 及び 旧字体 => 新字体
