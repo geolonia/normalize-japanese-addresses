@@ -41,6 +41,7 @@ export const normalize = async (address: string) => {
   const prefs = Object.keys(prefectures)
 
   let pref = '' // 都道府県名
+  addr = addr.trim()
   for (let i = 0; i < prefs.length; i++) {
     const _pref = prefs[i].replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
     const reg = new RegExp(`^${_pref}(都|道|府|県)`)
@@ -65,6 +66,7 @@ export const normalize = async (address: string) => {
   })
 
   let city = '' // 市区町村名
+  addr = addr.trim()
   for (let i = 0; i < cities.length; i++) {
     if (0 === addr.indexOf(cities[i])) {
       city = cities[i]
@@ -107,6 +109,7 @@ export const normalize = async (address: string) => {
   const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|-)'
 
   let town = ''
+  addr = addr.trim()
   for (let i = 0; i < towns.length; i++) {
     const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
     const _town = dict(towns[i]).replace(reg, (s) => {
