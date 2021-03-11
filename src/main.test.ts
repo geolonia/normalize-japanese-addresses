@@ -124,6 +124,16 @@ test('岩手県盛岡市盛岡駅西通２丁目９番地１号', async () => {
   expect(res).toBe('岩手県盛岡市盛岡駅西通2丁目9-1')
 })
 
+test('岩手県盛岡市盛岡駅西通２丁目９の１', async () => {
+  const res = await normalize('岩手県盛岡市盛岡駅西通２丁目９の１')
+  expect(res).toBe('岩手県盛岡市盛岡駅西通2丁目9-1')
+})
+
+test('岩手県盛岡市盛岡駅西通２の９の１', async () => {
+  const res = await normalize('岩手県盛岡市盛岡駅西通２の９の１')
+  expect(res).toBe('岩手県盛岡市盛岡駅西通2丁目9-1')
+})
+
 test(' 東京都文京区千石4丁目15-7YNビル4階', async () => {
   const res = await normalize(' 東京都文京区千石4丁目15-7YNビル4階')
   expect(res).toBe('東京都文京区千石4丁目15-7YNビル4階')
@@ -152,4 +162,9 @@ test('和歌山県東牟婁郡串本町串本 833', async () => {
 test('和歌山県東牟婁郡串本町串本　833', async () => {
   const res = await normalize('和歌山県東牟婁郡串本町串本　833')
   expect(res).toBe('和歌山県東牟婁郡串本町串本　833')
+})
+
+test('東京都世田谷区上北沢４の９の２', async () => {
+  const res = await normalize('東京都世田谷区上北沢４の９の２')
+  expect(res).toBe('東京都世田谷区上北沢4丁目9-2')
 })
