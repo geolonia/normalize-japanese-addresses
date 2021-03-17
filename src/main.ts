@@ -151,5 +151,10 @@ export const normalize = async (address: string) => {
     .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
     .replace(/([0-9]+)番地/, '$1')
 
-  return pref + city + town + addr
+  return {
+    pref: pref,
+    city: city,
+    town: town,
+    addr: addr
+  }
 }
