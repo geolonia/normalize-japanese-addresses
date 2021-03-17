@@ -159,6 +159,11 @@ test('和歌山県東牟婁郡串本町串本 833', async () => {
   expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": " 833"})
 })
 
+test('和歌山県東牟婁郡串本町串本　833', async () => {
+  const res = await normalize('和歌山県東牟婁郡串本町串本　833')
+  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "　833"})
+})
+
 test('東京都世田谷区上北沢４の９の２', async () => {
   const res = await normalize('東京都世田谷区上北沢４の９の２')
   expect(res).toStrictEqual({"pref": "東京都", "city": "世田谷区", "town": "上北沢4丁目", "addr": "9-2"})
