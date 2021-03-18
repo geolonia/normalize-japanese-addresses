@@ -21,8 +21,8 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
-normalize('大阪府堺市北区新金岡町4丁1−8')).then(result => {
-  console.log(result) // 大阪府堺市北区新金岡町四丁1−8
+normalize('北海道札幌市西区24-2-2-3-3')).then(result => {
+  console.log({"pref": "北海道", "city": "札幌市西区", "town": "24軒2条2丁目", "addr": "3-3"})
 })
 ```
 
@@ -35,6 +35,13 @@ $ git clone git@github.com:geolonia/normalize-japanese-addresses.git
 $ cd normalize-japanese-addresses
 $ npm install
 ```
+
+## 注意
+
+* この正規化エンジンは、住所の「名寄せ」を目的としており、たとえば京都の「通り名」は削除します。
+  * 郵便や宅急便などに使用される住所としては、問題ないと考えています。
+* この正規化エンジンは、町丁目及び小字レベルまでは対応していますが、それ以降（例: ）については対応しておりません。
+* 住居表示が未整備の地域については全体的に苦手です。
 
 ### 貢献方法
 
