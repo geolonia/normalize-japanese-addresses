@@ -151,10 +151,22 @@ export const normalize = async (address: string) => {
     .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
     .replace(/([0-9]+)番地/, '$1')
 
+  let building = "";
+  const regexBuilding = new RegExp(/-[0-9]*/, 'g')
+  const matchBuilding = addr.match(regexBuilding)
+
+  if( matchBuilding && matchBuilding.length ){
+    building = addr.substring(addr.lastIndexOf(matchBuilding[matchBuilding.length -1]) + matchBuilding[matchBuilding.length -1].length)
+    addr = addr.replace(building,'') // 町丁目以降の住所からビル名を削除
+    building = address.substring(kan2num(address).lastIndexOf(building))
+    building = building.replace(/\s+/g,'')
+  }
+
   return {
     pref: pref,
     city: city,
     town: town,
-    addr: addr
+    addr: addr,
+    building:building
   }
 }
