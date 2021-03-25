@@ -152,14 +152,21 @@ export const normalize = async (address: string) => {
     .replace(/([0-9]+)番地/, '$1')
 
   let building = "";
-  const regexBuilding = new RegExp(/-[0-9]*/, 'g')
+  const regexBuilding = new RegExp(/-[0-9]*/, 'g') //ハイフン数字を抽出
   const matchBuilding = addr.match(regexBuilding)
 
   if( matchBuilding && matchBuilding.length ){
-    building = addr.substring(addr.lastIndexOf(matchBuilding[matchBuilding.length -1]) + matchBuilding[matchBuilding.length -1].length)
-    addr = addr.replace(building,'') // 町丁目以降の住所からビル名を削除
-    building = address.substring(kan2num(address).lastIndexOf(building))
-    building = building.replace(/\s+/g,'')
+    building = addr.substring(addr.lastIndexOf(matchBuilding[matchBuilding.length -1]) + matchBuilding[matchBuilding.length -1].length) //半角数字に変換されたビル名を取得
+    addr = addr.replace(building,'') // 町丁目の住所
+
+    building = building
+    .replace(/([0-9])/, (s, p1) => {
+      return `${number2kanji(parseInt(p1))}`
+    })
+    .replace(/([一二三四五六七八九壱壹弐貳貮参參肆伍陸漆捌玖十拾百陌佰千阡仟万萬億兆]*[階|号室|号棟|番館])|(第[一二三四五六七八九壱壹弐貳貮参參肆伍陸漆捌玖十拾百陌佰千阡仟万萬億兆]*)/, (s,p1) => {  // 「第X、階、号室、号棟、番館」は、以外の数字は、数字に変換。
+      return `${kan2num(p1)}`
+    })
+    .replace(/\s+/g,'')
   }
 
   return {
