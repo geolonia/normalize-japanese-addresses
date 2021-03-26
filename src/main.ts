@@ -106,8 +106,6 @@ export const normalize = async (address: string) => {
     return s.replace('の', '-')
   })
 
-  console.log({addr})
-
   const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|-)'
 
   let town = ''
@@ -153,20 +151,24 @@ export const normalize = async (address: string) => {
     .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
     .replace(/([0-9]+)番地/, '$1')
 
-  let building = "";
+  let building = '';
   const regexBuilding = new RegExp(/-[0-9]+/, 'g') //-（ハイフン）数字を抽出
   const matchBuilding = addr.match(regexBuilding)
 
   if( matchBuilding && matchBuilding.length ){
-    building = addr.substring(addr.lastIndexOf(matchBuilding[matchBuilding.length -1]) + matchBuilding[matchBuilding.length -1].length) //半角数字に変換されたビル名を取得
-    addr = addr.replace(building,'') // 町丁目の住所
 
-    // 元の住所から、ビルの文字数を引く（第3五反田ビル）を正規化できない
-    building = building
-    .replace(/\s+/g,'')
-    .replace(/(([0-9]+)(?![0-9]+[階|号室|号棟|番館])(?!第[0-9]+))/, (s, p1) => { //TODO: 第3、 第が効いてない。
-      return `${number2kanji(parseInt(p1))}`
-    })
+    let buildingHan = addr.substring(addr.lastIndexOf(matchBuilding[matchBuilding.length -1]) + matchBuilding[matchBuilding.length -1].length) //半角数字表記のビル名を取得
+    addr = addr.replace(buildingHan,'') // 町丁目の住所
+
+    const numbersInBuliding = findKanjiNumbers(buildingHan).reverse()
+    const numbersInAddress = findKanjiNumbers(address).reverse()
+
+    for (let i = 0; i < numbersInBuliding.length; i++) {
+      buildingHan = buildingHan.replace(numbersInBuliding[i], numbersInAddress[i])
+    }
+
+    building = buildingHan.replace(/\s+/g, '')
+
   }
 
   return {
@@ -177,13 +179,3 @@ export const normalize = async (address: string) => {
     building:building
   }
 }
-
-
-    // .replace(/[0-9]+/g, (s, p1,p2) => { //TODO: 第3、 第が効いてない。
-
-    //   console.log({s})
-    //   console.log({p1})
-    //   console.log({p2})
-
-    //   return `${number2kanji(parseInt(p1))}`
-    // })
