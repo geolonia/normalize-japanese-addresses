@@ -169,7 +169,22 @@ test('東京都世田谷区上北沢４の９の２', async () => {
   expect(res).toStrictEqual({"pref": "東京都", "city": "世田谷区", "town": "上北沢4丁目", "addr": "9-2", "building": ""})
 })
 
-test('大阪府堺市堺区向陵西町2丁1-26 Northグランドメゾン三国ヶ丘', async () => {
-  const res = await normalize('大阪府堺市堺区向陵西町2丁1-26 Northグランドメゾン三国ヶ丘')
-  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市堺区", "town": "向陵西町2丁", "addr": "1-26", "building": "Northグランドメゾン三国ヶ丘"})
+test('大阪府堺市堺区向陵西町2丁1-26 ハイツ三国ヶ丘2番館10階102号室', async () => {
+  const res = await normalize('大阪府堺市堺区向陵西町2丁1-26 ハイツ三国ヶ丘2番館10階102号室')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市堺区", "town": "向陵西町2丁", "addr": "1-26", "building": "ハイツ三国ヶ丘2番館10階102号室"})
+})
+
+test('大阪府堺市堺区向陵西町2丁1-26 第3ハイツ三国ヶ丘10号棟', async () => {
+  const res = await normalize('大阪府堺市堺区向陵西町2丁1-26 第3ハイツ三国ヶ丘10号棟')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市堺区", "town": "向陵西町2丁", "addr": "1-26", "building": "第3ハイツ三国ヶ丘10号棟"})
+})
+
+test('大阪府堺市堺区向陵西町2丁1-26 ハイツ三国ヶ丘二番館十階百二号室', async () => {
+  const res = await normalize('大阪府堺市堺区向陵西町2丁1-26 ハイツ三国ヶ丘二番館十階百二号室')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市堺区", "town": "向陵西町2丁", "addr": "1-26", "building": "ハイツ三国ヶ丘二番館十階百二号室"})
+})
+
+test('大阪府堺市堺区向陵西町2丁1-26 第三ハイツ三国ヶ丘十号棟', async () => {
+  const res = await normalize('大阪府堺市堺区向陵西町2丁1-26 第三ハイツ三国ヶ丘十号棟')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市堺区", "town": "向陵西町2丁", "addr": "1-26", "building": "第三ハイツ三国ヶ丘十号棟"})
 })
