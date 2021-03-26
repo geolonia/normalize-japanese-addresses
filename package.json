@@ -4,7 +4,7 @@
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
-    "test": "jest src/main.test.ts",
+    "test": "jest test/main.test.ts",
     "test:addresses": "jest src/addresses.test.ts",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "build": "tsc"
