@@ -31,7 +31,14 @@ const zen2han = (str: string) => {
   })
 }
 
-export const normalize = async (address: string) => {
+export interface NormalizeResult {
+  pref: string
+  city: string
+  town: string
+  addr: string
+}
+
+export const normalize: (input: string) => Promise<NormalizeResult> = async (address) => {
   let addr = address
 
   // 都道府県名の正規化
@@ -172,10 +179,10 @@ export const normalize = async (address: string) => {
   }
 
   return {
-    pref: pref,
-    city: city,
-    town: town,
-    addr: addr,
-    building:building
+    pref,
+    city,
+    town,
+    addr,
+    building,
   }
 }
