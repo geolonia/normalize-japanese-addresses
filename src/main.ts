@@ -36,6 +36,7 @@ export interface NormalizeResult {
   city: string
   town: string
   addr: string
+  building: string
 }
 
 export const normalize: (input: string) => Promise<NormalizeResult> = async (address) => {
