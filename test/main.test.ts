@@ -284,6 +284,11 @@ test('東京都町田市木曽東4丁目14-イ22', async () => {
   expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
 })
 
+test('東京都町田市木曽東4丁目14のイ22', async () => {
+  const res = await normalize('東京都町田市木曽東四丁目１４のイ２２')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
+})
+
 test('岩手県花巻市南万丁目127', async () => {
   const res = await normalize('岩手県花巻市南万丁目127')
   expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "南万丁目", "addr": "127"})
