@@ -1,4 +1,4 @@
-import { normalize } from './main'
+import { normalize } from '../src/main'
 
 test('大阪府堺市北区新金岡町4丁1−8', async () => {
   const res = await normalize('大阪府堺市北区新金岡町4丁1−8')
@@ -167,4 +167,9 @@ test('和歌山県東牟婁郡串本町串本　833', async () => {
 test('東京都世田谷区上北沢４の９の２', async () => {
   const res = await normalize('東京都世田谷区上北沢４の９の２')
   expect(res).toStrictEqual({"pref": "東京都", "city": "世田谷区", "town": "上北沢4丁目", "addr": "9-2"})
+})
+
+test('東京都品川区東五反田２丁目５－１１', async () => {
+  const res = await normalize('東京都品川区東五反田２丁目５－１１')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "品川区", "town": "", "addr": "東五反田2丁目5－11"})
 })

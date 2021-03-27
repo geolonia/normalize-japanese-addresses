@@ -150,9 +150,9 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     return `${number2kanji(parseInt(p1))}軒町` // 京都などに存在する `七軒町` などの地名の数字を漢数字に戻す
   })
 
-  if (!town) {
-    throw new Error("Can't detect the town.")
-  }
+  // if (!town) {
+  //   throw new Error("Can't detect the town.")
+  // }
 
   addr = addr
     .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
