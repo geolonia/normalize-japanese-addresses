@@ -5,8 +5,6 @@ import path from 'path'
 
 const data = fs.readFileSync(path.join(path.dirname(__filename), '/buildings.csv'), {encoding: 'utf-8'}).split(/\n/)
 
-const buildings = {}
-
 for (let i = 0; i < data.length; i++) {
   const address = data[i].trim()
   if (! address) {
