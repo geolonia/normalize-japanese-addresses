@@ -8,7 +8,10 @@ const data = fs.readFileSync(path.join(path.dirname(__filename), '/buildings.csv
 const buildings = {}
 
 for (let i = 0; i < data.length; i++) {
-  const [address] = data[i].split(/,/)
+  const address = data[i].trim()
+  if (! address) {
+    continue
+  }
 
   test(address, async () => {
     const res = await normalize(address)

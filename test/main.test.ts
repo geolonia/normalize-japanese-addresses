@@ -213,3 +213,28 @@ test('東京都品川区西五反田2-31-6', async () => {
   const res = await normalize('東京都品川区西五反田2-31-6')
   expect(res).toStrictEqual({"pref": "東京都", "city": "品川区", "town": "西五反田二丁目", "addr": "31-6"})
 })
+
+test('大阪府大阪市此花区西九条三丁目２－１６', async () => {
+  const res = await normalize('大阪府大阪市此花区西九条三丁目２－１６')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16"})
+})
+
+test('大阪府大阪市此花区西九条三丁目2番16号', async () => {
+  const res = await normalize('大阪府大阪市此花区西九条三丁目2番16号')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16"})
+})
+
+test('大阪府大阪市此花区西九条3-2-16', async () => {
+  const res = await normalize('大阪府大阪市此花区西九条3-2-16')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16"})
+})
+
+test('大阪府大阪市此花区西九条３丁目２－１６', async () => {
+  const res = await normalize('大阪府大阪市此花区西九条３丁目２－１６')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16"})
+})
+
+test('大阪府大阪市此花区西九条3-2-16', async () => {
+  const res = await normalize('大阪府大阪市此花区西九条3-2-16')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16"})
+})

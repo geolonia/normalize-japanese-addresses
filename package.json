@@ -4,7 +4,7 @@
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
-    "test": "jest test/*.test.ts",
+    "test": "npm run test:main",
     "test:main": "jest test/main.test.ts",
     "test:buildings": "jest test/buildings.test.ts",
     "lint": "eslint \"src/**/*.ts\" --fix",

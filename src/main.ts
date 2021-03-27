@@ -2,7 +2,6 @@ import os from 'os'
 import path from 'path'
 import {
   kanji2number,
-  number2kanji,
   findKanjiNumbers,
 } from '@geolonia/japanese-numeral'
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
@@ -116,28 +115,32 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
   addr = addr.trim()
 
   for (let i = 0; i < towns.length; i++) {
-    const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
-    const _town = dict(towns[i]).replace(reg, (s) => {
-      return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
-    })
-
     const regex1 = new RegExp(
-      _town.replace(
-        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-        `$1${units}`,
-      ),
-    )
-
-    const regex2 = new RegExp(
       towns[i].replace(
         /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
         `$1${units}`,
       ),
     )
 
-    const match1 = dict(zen2han(addr)).match(regex1) // n丁目などのnの部分を数字にした場合のパターンマッチ
-    const match2 = dict(zen2han(addr)).match(regex2) // n丁目などのnの部分を漢数字にした場合のパターンマッチ
-    const match = match1 || match2
+    const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
+
+    const _town = dict(towns[i]).replace(reg, (s) => {
+      return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
+    })
+
+    const regex2 = new RegExp(
+      _town.replace(
+        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+        `$1${units}`,
+      ),
+    )
+
+    const match1 = dict(zen2han(addr)).match(regex1) // n丁目などのnの部分を漢数字にした場合のパターンマッチ
+    const match2 = dict(zen2han(addr)).match(regex2) // n丁目などのnの部分を数字にした場合のパターンマッチ
+    const match3 = kan2num(dict(zen2han(addr))).match(regex1) // 入力側の住所内の数字を数字に変換してパターンマッチ
+    const match4 = kan2num(dict(zen2han(addr))).match(regex2) // 入力側の住所内の数字を数字に変換してパターンマッチ
+
+    const match = match1 || match2 || match3 || match4
 
     if (match) {
       town = towns[i].replace(/^大字/, '')
@@ -160,6 +163,9 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
   addr = kan2num(zen2han(addr))
 
   addr = addr
+    .replace(/^-/, '')
+    .replace(/^目/, '') // `丁目`に対して`丁`がマッチして目が取り残される事例がある
+    .replace(/^町/, '') // `の町`に対して`の`がマッチして`町`が取り残される事例がある
     .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
     .replace(/([0-9]+)番地/, '$1')
     .replace(/([0-9]+)の/g, '$1-')
