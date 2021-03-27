@@ -2,7 +2,6 @@ import os from 'os'
 import path from 'path'
 import {
   kanji2number,
-  number2kanji,
   findKanjiNumbers,
 } from '@geolonia/japanese-numeral'
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
@@ -75,16 +74,16 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
   let city = '' // 市区町村名
   addr = addr.trim()
   for (let i = 0; i < cities.length; i++) {
-    if (0 === addr.indexOf(cities[i])) {
+    if (0 === dict(addr).indexOf(dict(cities[i]))) {
       city = cities[i]
       addr = addr.substring(cities[i].length) // 市区町村名以降の住所
       break
     } else {
       // 以下 `xxx郡` が省略されているケースに対する対応
       if (0 < cities[i].indexOf('郡')) {
-        // `郡山` のように `郡` で始まる地名はスキップ
+        // `郡山市` のように `郡` で始まる地名はスキップ
         const _city = cities[i].replace(/.+郡/, '')
-        if (0 === zen2han(addr).indexOf(_city)) {
+        if (0 === dict(addr).indexOf(dict(_city))) {
           city = cities[i]
           addr = addr.substring(_city.length) // 市区町村名以降の住所
           break
@@ -109,30 +108,43 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     return b.length - a.length
   })
 
-  addr = kan2num(addr).replace(/の([0-9]+)/g, (s) => {
-    return s.replace('の', '-')
-  })
-
-  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|-)'
+  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])'
 
   let town = ''
   addr = addr.trim()
+
   for (let i = 0; i < towns.length; i++) {
+    const regex1 = new RegExp(
+      towns[i].replace(
+        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+        `$1${units}`,
+      ),
+    )
+
     const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
+
     const _town = dict(towns[i]).replace(reg, (s) => {
       return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
     })
 
-    const regex = new RegExp(
+    const regex2 = new RegExp(
       _town.replace(
-        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|-)/gi,
+        /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
         `$1${units}`,
       ),
     )
-    const match = dict(zen2han(addr)).match(regex)
+
+    const match1 = dict(zen2han(addr)).match(regex1) // n丁目などのnの部分を漢数字にした場合のパターンマッチ
+    const match2 = dict(zen2han(addr)).match(regex2) // n丁目などのnの部分を数字にした場合のパターンマッチ
+    const match3 = kan2num(dict(zen2han(addr))).match(regex1) // 入力側の住所内の数字を数字に変換してパターンマッチ
+    const match4 = kan2num(dict(zen2han(addr))).match(regex2) // 入力側の住所内の数字を数字に変換してパターンマッチ
+
+    const match = match1 || match2 || match3 || match4
+
     if (match) {
-      town = kan2num(towns[i]).replace(/^大字/, '')
+      town = towns[i].replace(/^大字/, '')
       const _m = addr.match(/字/g)
+
       if (_m && _m.length) {
         // 住所内に `字` がある場合、正規化でそれらを削除してしまっているので、その文字数分だけずれるのでそれを補正する。
         addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length + _m.length) // 町丁目以降の住所
@@ -143,20 +155,16 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     }
   }
 
-  addr = zen2han(addr)
-
-  // 町名部分に対する例外的な処理
-  town = town.replace(/([0-9])軒町/, (s, p1) => {
-    return `${number2kanji(parseInt(p1))}軒町` // 京都などに存在する `七軒町` などの地名の数字を漢数字に戻す
-  })
-
-  if (!town) {
-    throw new Error("Can't detect the town.")
-  }
+  addr = kan2num(zen2han(addr))
 
   addr = addr
+    .replace(/^-/, '')
+    .replace(/^目/, '') // `丁目`に対して`丁`がマッチして目が取り残される事例がある
+    .replace(/^町/, '') // `の町`に対して`の`がマッチして`町`が取り残される事例がある
     .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
     .replace(/([0-9]+)番地/, '$1')
+    .replace(/([0-9]+)の/g, '$1-')
+    .replace(/([0-9]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '$1-')
 
   return {
     pref,

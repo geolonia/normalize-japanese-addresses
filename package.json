@@ -4,8 +4,9 @@
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
-    "test": "jest src/main.test.ts",
-    "test:addresses": "jest src/addresses.test.ts",
+    "test": "npm run test:main",
+    "test:main": "jest test/main.test.ts",
+    "test:buildings": "jest test/buildings.test.ts",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "build": "tsc"
   },
