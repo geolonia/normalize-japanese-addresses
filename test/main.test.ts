@@ -2,12 +2,12 @@ import { normalize } from '../src/main'
 
 test('大阪府堺市北区新金岡町4丁1−8', async () => {
   const res = await normalize('大阪府堺市北区新金岡町4丁1−8')
-  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町4丁", "addr": "1-8"})
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町四丁", "addr": "1-8"})
 })
 
 test('大阪府堺市北区新金岡町４丁１ー８', async () => {
   const res = await normalize('大阪府堺市北区新金岡町４丁１ー８')
-  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町4丁", "addr": "1-8"})
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町四丁", "addr": "1-8"})
 })
 
 test('和歌山県串本町串本1234', async () => {
@@ -39,22 +39,22 @@ test('京都府京都市中京区上本能寺前町488', async () => {
 
 test('大阪府大阪市中央区大手前２-１', async () => {
   const res = await normalize('大阪府大阪市中央区大手前２-１')
-  expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市中央区", "town": "大手前2丁目", "addr": "1"})
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市中央区", "town": "大手前二丁目", "addr": "1"})
 })
 
 test('北海道札幌市西区二十四軒二条2丁目3番3号', async () => {
   const res = await normalize('北海道札幌市西区24-2-2-3-3')
-  expect(res).toStrictEqual({"pref": "北海道", "city": "札幌市西区", "town": "24軒2条2丁目", "addr": "3-3"})
+  expect(res).toStrictEqual({"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3"})
 })
 
 test('京都府京都市東山区大和大路2-537-1', async () => {
   const res = await normalize('京都府京都市東山区大和大路2-537-1')
-  expect(res).toStrictEqual({"pref": "京都府", "city": "京都市東山区", "town": "大和大路2丁目", "addr": "537-1"})
+  expect(res).toStrictEqual({"pref": "京都府", "city": "京都市東山区", "town": "大和大路二丁目", "addr": "537-1"})
 })
 
 test('京都府京都市東山区大和大路2丁目五百三十七-1', async () => {
   const res = await normalize('京都府京都市東山区大和大路2丁目五百三十七の1')
-  expect(res).toStrictEqual({"pref": "京都府", "city": "京都市東山区", "town": "大和大路2丁目", "addr": "537-1"})
+  expect(res).toStrictEqual({"pref": "京都府", "city": "京都市東山区", "town": "大和大路二丁目", "addr": "537-1"})
 })
 
 test('愛知県蒲郡市旭町17番1号', async () => {
@@ -96,7 +96,7 @@ test('長野県長野市長野東之門町2462', async () => {
 
 test('岩手県下閉伊郡普代村第１地割上村４３−２５', async () => {
   const res = await normalize('岩手県下閉伊郡普代村第１地割上村４３−２５')
-  expect(res).toStrictEqual({"pref": "岩手県", "city": "下閉伊郡普代村", "town": "第1地割字上村", "addr": "43-25"})
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "下閉伊郡普代村", "town": "第一地割字上村", "addr": "43-25"})
 })
 
 test('岩手県花巻市下北万丁目１７４−１', async () => {
@@ -106,7 +106,7 @@ test('岩手県花巻市下北万丁目１７４−１', async () => {
 
 test('岩手県花巻市十二丁目１１９２', async () => {
   const res = await normalize('岩手県花巻市十二丁目１１９２')
-  expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "12丁目", "addr": "1192"})
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "1192"})
 })
 
 test('岩手県滝沢市後２６８−５６６', async () => {
@@ -121,37 +121,47 @@ test('青森県五所川原市金木町喜良市千苅６２−８', async () =>
 
 test('岩手県盛岡市盛岡駅西通２丁目９番地１号', async () => {
   const res = await normalize('岩手県盛岡市盛岡駅西通２丁目９番地１号')
-  expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通2丁目", "addr": "9-1"})
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通二丁目", "addr": "9-1"})
 })
 
 test('岩手県盛岡市盛岡駅西通２丁目９の１', async () => {
   const res = await normalize('岩手県盛岡市盛岡駅西通２丁目９の１')
-  expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通2丁目", "addr": "9-1"})
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通二丁目", "addr": "9-1"})
 })
 
 test('岩手県盛岡市盛岡駅西通２の９の１', async () => {
   const res = await normalize('岩手県盛岡市盛岡駅西通２の９の１')
-  expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通2丁目", "addr": "9-1"})
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通二丁目", "addr": "9-1"})
 })
 
-test(' 東京都文京区千石4丁目15-7YNビル4階', async () => {
-  const res = await normalize(' 東京都文京区千石4丁目15-7YNビル4階')
-  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石4丁目", "addr": "15-7YNビル4階"})
+test('東京都文京区千石4丁目15－7', async () => {
+  const res = await normalize('東京都文京区千石4丁目15-7')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石四丁目", "addr": "15-7"})
 })
 
-test('東京都 文京区千石4丁目15-7YNビル4階', async () => {
-  const res = await normalize('東京都 文京区千石4丁目15-7YNビル4階')
-  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石4丁目", "addr": "15-7YNビル4階"})
+test('東京都文京区千石四丁目15－7', async () => {
+  const res = await normalize('東京都文京区千石四丁目15-7')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石四丁目", "addr": "15-7"})
 })
 
-test('東京都文京区 千石4丁目15-7YNビル4階', async () => {
-  const res = await normalize('東京都文京区 千石4丁目15-7YNビル4階')
-  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石4丁目", "addr": "15-7YNビル4階"})
+test('東京都文京区千石4丁目15－7', async () => {
+  const res = await normalize('東京都文京区千石4丁目15－7')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石四丁目", "addr": "15-7"})
 })
 
-test('東京都文京区千石4丁目15-7 YNビル4階', async () => {
-  const res = await normalize('東京都文京区千石4丁目15-7 YNビル4階')
-  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石4丁目", "addr": "15-7 YNビル4階"})
+test('東京都 文京区千石4丁目15－7', async () => {
+  const res = await normalize('東京都 文京区千石4丁目15－7')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石四丁目", "addr": "15-7"})
+})
+
+test('東京都文京区 千石4丁目15－7', async () => {
+  const res = await normalize('東京都文京区 千石4丁目15－7')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石四丁目", "addr": "15-7"})
+})
+
+test('東京都文京区千石4-15-7 ', async () => {
+  const res = await normalize('東京都文京区千石4-15-7 ')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石四丁目", "addr": "15-7"})
 })
 
 test('和歌山県東牟婁郡串本町串本 833', async () => {
@@ -166,10 +176,10 @@ test('和歌山県東牟婁郡串本町串本　833', async () => {
 
 test('東京都世田谷区上北沢４の９の２', async () => {
   const res = await normalize('東京都世田谷区上北沢４の９の２')
-  expect(res).toStrictEqual({"pref": "東京都", "city": "世田谷区", "town": "上北沢4丁目", "addr": "9-2"})
+  expect(res).toStrictEqual({"pref": "東京都", "city": "世田谷区", "town": "上北沢四丁目", "addr": "9-2"})
 })
 
 test('東京都品川区東五反田２丁目５－１１', async () => {
   const res = await normalize('東京都品川区東五反田２丁目５－１１')
-  expect(res).toStrictEqual({"pref": "東京都", "city": "品川区", "town": "", "addr": "東五反田2丁目5－11"})
+  expect(res).toStrictEqual({"pref": "東京都", "city": "品川区", "town": "東五反田二丁目", "addr": "5-11"})
 })

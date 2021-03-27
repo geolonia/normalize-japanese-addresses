@@ -8,6 +8,7 @@ import {
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
+import { isRegExp } from 'node:util'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
@@ -109,30 +110,39 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     return b.length - a.length
   })
 
-  addr = kan2num(addr).replace(/の([0-9]+)/g, (s) => {
-    return s.replace('の', '-')
-  })
-
-  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|-)'
+  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|の|-)'
 
   let town = ''
   addr = addr.trim()
+
   for (let i = 0; i < towns.length; i++) {
     const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
     const _town = dict(towns[i]).replace(reg, (s) => {
       return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
     })
 
-    const regex = new RegExp(
+    const regex1 = new RegExp(
       _town.replace(
-        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|-)/gi,
+        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|-)/gi,
         `$1${units}`,
       ),
     )
-    const match = dict(zen2han(addr)).match(regex)
+
+    const regex2 = new RegExp(
+      towns[i].replace(
+        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|-)/gi,
+        `$1${units}`,
+      ),
+    )
+
+    const match1 = dict(zen2han(addr)).match(regex1) // n丁目などのnの部分を数字にした場合のパターンマッチ
+    const match2 = dict(zen2han(addr)).match(regex2) // n丁目などのnの部分を漢数字にした場合のパターンマッチ
+    const match = match1 || match2
+
     if (match) {
-      town = kan2num(towns[i]).replace(/^大字/, '')
+      town = towns[i].replace(/^大字/, '')
       const _m = addr.match(/字/g)
+
       if (_m && _m.length) {
         // 住所内に `字` がある場合、正規化でそれらを削除してしまっているので、その文字数分だけずれるのでそれを補正する。
         addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length + _m.length) // 町丁目以降の住所
@@ -143,20 +153,17 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     }
   }
 
-  addr = zen2han(addr)
+  if (!town) {
+    throw new Error("Can't detect the town.")
+  }
 
-  // 町名部分に対する例外的な処理
-  town = town.replace(/([0-9])軒町/, (s, p1) => {
-    return `${number2kanji(parseInt(p1))}軒町` // 京都などに存在する `七軒町` などの地名の数字を漢数字に戻す
-  })
-
-  // if (!town) {
-  //   throw new Error("Can't detect the town.")
-  // }
+  addr = kan2num(zen2han(addr))
 
   addr = addr
     .replace(/([(0-9]+)(番|番地)([0-9]+)号/, '$1-$3')
     .replace(/([0-9]+)番地/, '$1')
+    .replace(/([0-9]+)の/g, '$1-')
+    .replace(/([0-9]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '$1-')
 
   return {
     pref,
