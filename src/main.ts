@@ -7,7 +7,6 @@ import {
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
-import { isRegExp } from 'node:util'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
@@ -75,16 +74,16 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
   let city = '' // 市区町村名
   addr = addr.trim()
   for (let i = 0; i < cities.length; i++) {
-    if (0 === addr.indexOf(cities[i])) {
+    if (0 === dict(addr).indexOf(dict(cities[i]))) {
       city = cities[i]
       addr = addr.substring(cities[i].length) // 市区町村名以降の住所
       break
     } else {
       // 以下 `xxx郡` が省略されているケースに対する対応
       if (0 < cities[i].indexOf('郡')) {
-        // `郡山` のように `郡` で始まる地名はスキップ
+        // `郡山市` のように `郡` で始まる地名はスキップ
         const _city = cities[i].replace(/.+郡/, '')
-        if (0 === zen2han(addr).indexOf(_city)) {
+        if (0 === dict(addr).indexOf(dict(_city))) {
           city = cities[i]
           addr = addr.substring(_city.length) // 市区町村名以降の住所
           break
@@ -130,7 +129,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
 
     const regex2 = new RegExp(
       _town.replace(
-        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+        /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
         `$1${units}`,
       ),
     )
@@ -154,10 +153,6 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
       }
       break
     }
-  }
-
-  if (!town) {
-    throw new Error("Can't detect the town.")
   }
 
   addr = kan2num(zen2han(addr))

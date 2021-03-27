@@ -238,3 +238,18 @@ test('大阪府大阪市此花区西九条3-2-16', async () => {
   const res = await normalize('大阪府大阪市此花区西九条3-2-16')
   expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16"})
 })
+
+test('千葉県鎌ケ谷市中佐津間２丁目１５－１４－９', async () => {
+  const res = await normalize('千葉県鎌ケ谷市中佐津間２丁目１５－１４－９')
+  expect(res).toStrictEqual({"pref": "千葉県", "city": "鎌ヶ谷市", "town": "中佐津間二丁目", "addr": "15-14-9"})
+})
+
+test('岐阜県不破郡関ケ原町関ヶ原１７０１−６', async () => {
+  const res = await normalize('岐阜県不破郡関ケ原町関ヶ原１７０１−６')
+  expect(res).toStrictEqual({"pref": "岐阜県", "city": "不破郡関ケ原町", "town": "関ケ原", "addr": "1701-6"})
+})
+
+test('岐阜県関ケ原町関ヶ原１７０１−６', async () => {
+  const res = await normalize('岐阜県関ケ原町関ヶ原１７０１−６')
+  expect(res).toStrictEqual({"pref": "岐阜県", "city": "不破郡関ケ原町", "town": "関ケ原", "addr": "1701-6"})
+})
