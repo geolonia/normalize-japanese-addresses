@@ -110,7 +110,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     return b.length - a.length
   })
 
-  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|の|-)'
+  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])'
 
   let town = ''
   addr = addr.trim()
@@ -123,14 +123,14 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
 
     const regex1 = new RegExp(
       _town.replace(
-        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|-)/gi,
+        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
         `$1${units}`,
       ),
     )
 
     const regex2 = new RegExp(
       towns[i].replace(
-        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|-)/gi,
+        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
         `$1${units}`,
       ),
     )
