@@ -168,6 +168,12 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     .replace(/([0-9〇一二三四五六七八九十百千]+)(-([0-9〇一二三四五六七八九十百千]+))+/, (s) => { // 1-2-3 のようなケース
       return kan2num(s)
     })
+    .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => { // `1-あ2` のようなケース
+      return kan2num(s)
+    })
+    .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => { // `あ-1` のようなケース
+      return kan2num(s)
+    })
     .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => { // `串本町串本１２３４` のようなケース
       return kan2num(s)
     })
