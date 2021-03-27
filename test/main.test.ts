@@ -253,3 +253,23 @@ test('岐阜県関ケ原町関ヶ原１７０１−６', async () => {
   const res = await normalize('岐阜県関ケ原町関ヶ原１７０１−６')
   expect(res).toStrictEqual({"pref": "岐阜県", "city": "不破郡関ケ原町", "town": "関ケ原", "addr": "1701-6"})
 })
+
+test('東京都町田市木曽東4丁目14-イ22', async () => {
+  const res = await normalize('東京都町田市木曽東4丁目14-イ22')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
+})
+
+test('東京都町田市木曽東4丁目14-イ22', async () => {
+  const res = await normalize('東京都町田市木曽東4丁目14ーイ22')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
+})
+
+test('東京都町田市木曽東4丁目14-イ22', async () => {
+  const res = await normalize('東京都町田市木曽東四丁目十四ーイ二十二')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
+})
+
+test('東京都町田市木曽東4丁目14-イ22', async () => {
+  const res = await normalize('東京都町田市木曽東四丁目１４ーイ２２')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
+})

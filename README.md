@@ -22,7 +22,7 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3')).then(result => {
-  console.log({"pref": "北海道", "city": "札幌市西区", "town": "24軒2条2丁目", "addr": "3-3"})
+  console.log({"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3"})
 })
 ```
 
