@@ -299,3 +299,7 @@ test('和歌山県東牟婁郡串本町田並1512', async () => {
   expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "田並", "addr": "1512"})
 })
 
+test('神奈川県川崎市多摩区東三田1-2-2', async () => {
+  const res = await normalize('神奈川県川崎市多摩区東三田1-2-2')
+  expect(res).toStrictEqual({"pref": "神奈川県", "city": "川崎市多摩区", "town": "東三田一丁目", "addr": "2-2"})
+})
