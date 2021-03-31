@@ -7,6 +7,7 @@ import {
 const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
+import NormalizationError from './lib/NormalizationError'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
@@ -59,7 +60,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
   }
 
   if (!pref) {
-    throw new Error("Can't detect the prefecture.")
+    throw new NormalizationError("Can't detect the prefecture.", address)
   }
 
   // 市区町村名の正規化
@@ -93,7 +94,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
   }
 
   if (!city) {
-    throw new Error("Can't detect the city.")
+    throw new NormalizationError("Can't detect the city.", address)
   }
 
   // 町丁目以降の正規化
