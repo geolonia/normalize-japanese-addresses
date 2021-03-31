@@ -15,7 +15,7 @@ for (let i = 0; i < data.length; i++) {
     const res = await normalize(address)
     expect(!! res.pref).toStrictEqual(true)
     expect(!! res.city).toStrictEqual(true)
-    // expect(!! res.town).toStrictEqual(true)
+    expect(!! res.town).toStrictEqual(true)
     expect(!! res.addr).toStrictEqual(true)
   })
 }
