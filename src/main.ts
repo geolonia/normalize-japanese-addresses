@@ -114,12 +114,24 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
   addr = addr.trim()
 
   for (let i = 0; i < towns.length; i++) {
-    const regex1 = new RegExp(
-      towns[i].replace(
-        /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-        `$1${units}`,
-      ),
-    )
+    let regex1, regex2
+
+    // 京都は通り名があるので後方でマッチさせる。京都以外は先頭でマッチ。
+    if ('京都府' === pref) {
+      regex1 = new RegExp(
+        towns[i].replace(
+          /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+          `$1${units}`,
+        ),
+      )
+    } else {
+      regex1 = new RegExp(
+        '^' + towns[i].replace(
+          /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+          `$1${units}`,
+        ),
+      )
+    }
 
     const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
 
@@ -127,12 +139,22 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
       return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
     })
 
-    const regex2 = new RegExp(
-      _town.replace(
-        /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-        `$1${units}`,
-      ),
-    )
+    // 京都は通り名があるので後方でマッチさせる。京都以外は先頭でマッチ。
+    if ('京都府' === pref) {
+      regex2 = new RegExp(
+        _town.replace(
+          /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+          `$1${units}`,
+        ),
+      )
+    } else {
+      regex2 = new RegExp(
+        '^' + _town.replace(
+          /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+          `$1${units}`,
+        ),
+      )
+    }
 
     const match1 = dict(zen2han(addr)).match(regex1) // n丁目などのnの部分を漢数字にした場合のパターンマッチ
     const match2 = dict(zen2han(addr)).match(regex2) // n丁目などのnの部分を数字にした場合のパターンマッチ
