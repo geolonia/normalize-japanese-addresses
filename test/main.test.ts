@@ -313,3 +313,13 @@ test('東京都町田市木曽東４ー１４ーイ２２', async () => {
   const res = await normalize('東京都町田市木曽東４ー１４ーイ２２')
   expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
 })
+
+test('富山県富山市三番町1番23号', async () => {
+  const res = await normalize('富山県富山市三番町1番23号')
+  expect(res).toStrictEqual({"pref": "富山県", "city": "富山市", "town": "三番町", "addr": "1-23"})
+})
+
+test('富山県富山市3-1-23', async () => {
+  const res = await normalize('富山県富山市3-1-23')
+  expect(res).toStrictEqual({"pref": "富山県", "city": "富山市", "town": "三番町", "addr": "1-23"})
+})
