@@ -117,7 +117,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     let regex1, regex2
 
     // 京都は通り名があるので後方でマッチさせる。京都以外は先頭でマッチ。
-    if ('京都' === pref) {
+    if ('京都府' === pref) {
       regex1 = new RegExp(
         towns[i].replace(
           /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
@@ -140,7 +140,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     })
 
     // 京都は通り名があるので後方でマッチさせる。京都以外は先頭でマッチ。
-    if ('京都' === pref) {
+    if ('京都府' === pref) {
       regex2 = new RegExp(
         _town.replace(
           /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
