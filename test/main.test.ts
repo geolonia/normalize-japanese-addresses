@@ -303,3 +303,13 @@ test('神奈川県川崎市多摩区東三田1-2-2', async () => {
   const res = await normalize('神奈川県川崎市多摩区東三田1-2-2')
   expect(res).toStrictEqual({"pref": "神奈川県", "city": "川崎市多摩区", "town": "東三田一丁目", "addr": "2-2"})
 })
+
+test('東京都町田市木曽東４の１４のイ２２', async () => {
+  const res = await normalize('東京都町田市木曽東４の１４のイ２２')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
+})
+
+test('東京都町田市木曽東４ー１４ーイ２２', async () => {
+  const res = await normalize('東京都町田市木曽東４ー１４ーイ２２')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22"})
+})
