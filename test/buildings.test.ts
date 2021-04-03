@@ -3,7 +3,7 @@ import { normalize } from '../src/main'
 import fs from 'fs'
 import path from 'path'
 
-const data = fs.readFileSync(path.join(path.dirname(__filename), '/buildings.csv'), {encoding: 'utf-8'}).split(/\n/)
+const data = fs.readFileSync(path.join(path.dirname(__filename), '/list1.csv'), {encoding: 'utf-8'}).split(/\n/)
 
 for (let i = 0; i < data.length; i++) {
   const address = data[i].trim()
