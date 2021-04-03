@@ -1,7 +1,7 @@
 declare class Error {
-  public message: string;
-  public address: string;
-  constructor(message?: string);
+  public message: string
+  public address: string
+  constructor(message?: string)
 }
 
 class NormalizationError extends Error {
