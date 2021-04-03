@@ -4,7 +4,7 @@
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
-    "test": "npm run test:main",
+    "test": "npm run test:main && npm run test:addresses",
     "test:main": "jest test/main.test.ts",
     "test:addresses": "jest test/addresses.test.ts",
     "test:generate-test-data": "npx ts-node test/build-test-data.ts > test/addresses.csv",
