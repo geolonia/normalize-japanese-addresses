@@ -130,8 +130,8 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
 
   for (let i = 0; i < towns.length; i++) {
     const regex = towns[i]
-      .replace(/大字/g, '(大字)?')
       .replace(/字/g, '字?')
+      .replace(/大字/g, '(大字)?')
       .replace(/(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g, '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])')
       .replace(/[之ノの]/g, '[之ノの]')
       .replace(/[ヶケが]/g, '[ヶケが]')
