@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm run test:main",
     "test:main": "jest test/main.test.ts",
-    "test:addresses": "jest test/buildings.test.ts",
+    "test:addresses": "jest test/addresses.test.ts",
     "test:generate-test-data": "npx ts-node test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "build": "tsc"
