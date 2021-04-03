@@ -35,6 +35,11 @@ test('和歌山県東牟婁郡串本町串本一二三四', async () => {
   expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234"})
 })
 
+test('和歌山県東牟婁郡串本町くじ野川一二三四', async () => {
+  const res = await normalize('和歌山県東牟婁郡串本町くじ野川一二三四')
+  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "鬮野川", "addr": "1234"})
+})
+
 test('京都府京都市中京区寺町通御池上る上本能寺前町488番地', async () => {
   const res = await normalize(
     '京都府京都市中京区寺町通御池上る上本能寺前町488番地',
@@ -365,4 +370,29 @@ test('大阪府高槻市奈佐原２丁目１－２ メゾンエトワール', a
 test('埼玉県八潮市大字大瀬１丁目１－１', async () => {
   const res = await normalize('埼玉県八潮市大字大瀬１丁目１－１')
   expect(res).toStrictEqual({"pref": "埼玉県", "city": "八潮市", "town": "大瀬一丁目", "addr": "1-1"})
+})
+
+test('岡山県笠岡市大宜1249－1', async () => {
+  const res = await normalize('岡山県笠岡市大宜1249－1')
+  expect(res).toStrictEqual({"pref": "岡山県", "city": "笠岡市", "town": "大宜", "addr": "1249-1"})
+})
+
+test('岡山県笠岡市大宜1249－1', async () => {
+  const res = await normalize('岡山県笠岡市大宜1249－1')
+  expect(res).toStrictEqual({"pref": "岡山県", "city": "笠岡市", "town": "大宜", "addr": "1249-1"})
+})
+
+test('岡山県笠岡市大冝1249－1', async () => {
+  const res = await normalize('岡山県笠岡市大冝1249－1')
+  expect(res).toStrictEqual({"pref": "岡山県", "city": "笠岡市", "town": "大宜", "addr": "1249-1"})
+})
+
+test('岡山県岡山市中区さい33-2', async () => {
+  const res = await normalize('岡山県岡山市中区さい33-2')
+  expect(res).toStrictEqual({"pref": "岡山県", "city": "岡山市中区", "town": "さい", "addr": "33-2"})
+})
+
+test('岡山県岡山市中区穝33-2', async () => {
+  const res = await normalize('岡山県岡山市中区穝33-2')
+  expect(res).toStrictEqual({"pref": "岡山県", "city": "岡山市中区", "town": "さい", "addr": "33-2"})
 })
