@@ -346,3 +346,13 @@ test('should not be able to detect city', async () => {
     expect(e.address).toStrictEqual('東京都どこかの区')
   }
 })
+
+test('埼玉県南埼玉郡宮代町大字国納３０9－１', async () => {
+  const res = await normalize('埼玉県南埼玉郡宮代町大字国納３０9－１')
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "南埼玉郡宮代町", "town": "国納", "addr": "309-1"})
+})
+
+test('埼玉県南埼玉郡宮代町国納３０9－１', async () => {
+  const res = await normalize('埼玉県南埼玉郡宮代町国納３０9－１')
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "南埼玉郡宮代町", "town": "国納", "addr": "309-1"})
+})

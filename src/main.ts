@@ -165,15 +165,10 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     const match = match1 || match2 || match3 || match4
 
     if (match) {
+      // 大字という文字列が入る場合は、常に町丁目名の先頭にはいるものと想定する。
       town = towns[i].replace(/^大字/, '')
-      const _m = addr.match(/字/g)
-
-      if (_m && _m.length) {
-        // 住所内に `字` がある場合、正規化でそれらを削除してしまっているので、その文字数分だけずれるのでそれを補正する。
-        addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length + _m.length) // 町丁目以降の住所
-      } else {
-        addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
-      }
+      addr = addr.replace(/^大字/, '')
+      addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
       break
     }
   }
