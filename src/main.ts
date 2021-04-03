@@ -181,7 +181,9 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
       // 大字という文字列が入る場合は、常に町丁目名の先頭にはいるものと想定する。
       town = towns[i].replace(/^大字/, '')
       addr = addr.replace(/^大字/, '')
-      addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
+      addr = addr.substring(
+        dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length,
+      ) // 町丁目以降の住所
       break
     }
   }
@@ -190,25 +192,38 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
     .replace(/^-/, '')
     .replace(/^目/, '') // `丁目`に対して`丁`がマッチして目が取り残される事例がある
     .replace(/^町/, '') // `の町`に対して`の`がマッチして`町`が取り残される事例がある
-    .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => { // 全角のアラビア数字は問答無用で半角にする
+    .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => {
+      // 全角のアラビア数字は問答無用で半角にする
       return zen2han(match)
     })
-    .replace(/([(0-9〇一二三四五六七八九十百千]+)(番|番地)([(0-9〇一二三四五六七八九十百千]+)号?/, '$1-$3')
+    .replace(
+      /([(0-9〇一二三四五六七八九十百千]+)(番|番地)([(0-9〇一二三四五六七八九十百千]+)号?/,
+      '$1-$3',
+    )
     .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
     .replace(/([0-9〇一二三四五六七八九十百千]+)の/g, '$1-')
-    .replace(/([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, (match) => {
-      return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
-    })
-    .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g, (match) => {
-      return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
-    })
-    .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => { // `1-あ2` のようなケース
+    .replace(
+      /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+      (match) => {
+        return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+      },
+    )
+    .replace(
+      /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
+      (match) => {
+        return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+      },
+    )
+    .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
+      // `1-あ2` のようなケース
       return zen2han(kan2num(s))
     })
-    .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => { // `あ-1` のようなケース
+    .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => {
+      // `あ-1` のようなケース
       return zen2han(kan2num(s))
     })
-    .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => { // `串本町串本１２３４` のようなケース
+    .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => {
+      // `串本町串本１２３４` のようなケース
       return zen2han(kan2num(s))
     })
 
