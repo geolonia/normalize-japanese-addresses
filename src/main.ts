@@ -1,6 +1,10 @@
 import os from 'os'
 import path from 'path'
-import { kanji2number, number2kanji, findKanjiNumbers } from '@geolonia/japanese-numeral'
+import {
+  kanji2number,
+  number2kanji,
+  findKanjiNumbers,
+} from '@geolonia/japanese-numeral'
 
 const numformat = (number: number) => {
   return ('0' + number).slice(-2)
@@ -122,17 +126,26 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
   let town = ''
 
   // `1丁目` 等の文字列を `一丁目` に変換
-  addr = addr.trim().replace(/([0-9０-９]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g, (match) => {
-    return match.replace(/([0-9０-９]+)/g, (num) => {
-      return number2kanji(Number(zen2han(num)))
-    })
-  }).replace(/^大字/, '')
+  addr = addr
+    .trim()
+    .replace(
+      /([0-9０-９]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g,
+      (match) => {
+        return match.replace(/([0-9０-９]+)/g, (num) => {
+          return number2kanji(Number(zen2han(num)))
+        })
+      },
+    )
+    .replace(/^大字/, '')
 
   for (let i = 0; i < towns.length; i++) {
     const regex = towns[i]
       .replace(/字/g, '字?')
       .replace(/大字/g, '(大字)?')
-      .replace(/(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g, '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])')
+      .replace(
+        /(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g,
+        '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])',
+      )
       .replace(/[之ノの]/g, '[之ノの]')
       .replace(/[ヶケが]/g, '[ヶケが]')
       .replace(/[ヵカか力]/g, '[ヵカか力]')
@@ -146,7 +159,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
       if (match) {
         town = towns[i].replace(/^大字/, '')
         addr = addr.substr(match[0].length)
-        break;
+        break
       }
     } else {
       const reg = new RegExp(`^${regex}`)
@@ -154,7 +167,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
       if (match) {
         town = towns[i].replace(/^大字/, '')
         addr = addr.substr(match[0].length)
-        break;
+        break
       }
     }
   }
