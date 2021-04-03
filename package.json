@@ -6,7 +6,8 @@
   "scripts": {
     "test": "npm run test:main",
     "test:main": "jest test/main.test.ts",
-    "test:buildings": "jest test/buildings.test.ts",
+    "test:addresses": "jest test/buildings.test.ts",
+    "test:generate-test-data": "npx ts-node test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "build": "tsc"
   },
@@ -14,7 +15,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^26.0.20",
-    "@types/node": "^14.14.31",
+    "@types/node": "^14.14.37",
     "@types/node-fetch": "^2.5.8",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
