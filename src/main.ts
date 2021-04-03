@@ -4,7 +4,13 @@ import {
   kanji2number,
   findKanjiNumbers,
 } from '@geolonia/japanese-numeral'
-const tmpdir = path.join(os.tmpdir(), 'normalize-japanese-addresses')
+
+const numformat = (number: number) => {
+  return ("0" + number).slice(-2)
+}
+
+const today = new Date()
+const tmpdir = path.join(os.tmpdir(), `normalize-japanese-addresses-${today.getFullYear()}${numformat(today.getMonth() + 1)}${numformat(today.getDate())}`)
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
 import NormalizationError from './lib/NormalizationError'
