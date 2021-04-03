@@ -1,6 +1,6 @@
 import os from 'os'
 import path from 'path'
-import { kanji2number, findKanjiNumbers } from '@geolonia/japanese-numeral'
+import { kanji2number, number2kanji, findKanjiNumbers } from '@geolonia/japanese-numeral'
 
 const numformat = (number: number) => {
   return ('0' + number).slice(-2)
@@ -119,79 +119,48 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
     return b.length - a.length
   })
 
-  const units =
-    '(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])'
-
   let town = ''
-  addr = addr.trim()
+
+  // `1丁目` 等の文字列を `一丁目` に変換
+  addr = addr.trim().replace(/([0-9０-９]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g, (match) => {
+    return match.replace(/([0-9０-９]+)/g, (num) => {
+      return number2kanji(Number(zen2han(num)))
+    })
+  }).replace(/^大字/, '')
 
   for (let i = 0; i < towns.length; i++) {
-    let regex1, regex2
+    const regex = towns[i]
+      .replace(/大字/g, '(大字)?')
+      .replace(/字/g, '字?')
+      .replace(/(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g, '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])')
+      .replace(/[之ノの]/g, '[之ノの]')
+      .replace(/[ヶケが]/g, '[ヶケが]')
+      .replace(/[ヵカか力]/g, '[ヵカか力]')
+      .replace(/[ッツつ]/g, '[ッツつ]')
+      .replace(/[ニ二]/g, '[ニ二]')
+      .replace(/[ハ八]/g, '[ハ八]')
 
-    // 京都は通り名があるので後方でマッチさせる。京都以外は先頭でマッチ。
     if (city.match(/^京都市/)) {
-      regex1 = new RegExp(
-        towns[i].replace(
-          /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-          `$1${units}`,
-        ),
-      )
+      const reg = new RegExp(`.*${regex}`)
+      const match = addr.match(reg)
+      if (match) {
+        town = towns[i].replace(/^大字/, '')
+        addr = addr.substr(match[0].length)
+        break;
+      }
     } else {
-      regex1 = new RegExp(
-        '^' +
-          towns[i].replace(
-            /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-            `$1${units}`,
-          ),
-      )
-    }
-
-    const reg = new RegExp(`[〇一二三四五六七八九十百千]+${units}`, 'g')
-
-    const _town = dict(towns[i]).replace(reg, (s) => {
-      return kan2num(s) // API からのレスポンスに含まれる `n丁目` 等の `n` を数字に変換する。
-    })
-
-    // 京都は通り名があるので後方でマッチさせる。京都以外は先頭でマッチ。
-    if (city.match(/^京都市/)) {
-      regex2 = new RegExp(
-        _town.replace(
-          /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-          `$1${units}`,
-        ),
-      )
-    } else {
-      regex2 = new RegExp(
-        '^' +
-          _town.replace(
-            /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-            `$1${units}`,
-          ),
-      )
-    }
-
-    const match1 = dict(zen2han(addr)).match(regex1) // n丁目などのnの部分を漢数字にした場合のパターンマッチ
-    const match2 = dict(zen2han(addr)).match(regex2) // n丁目などのnの部分を数字にした場合のパターンマッチ
-    const match3 = kan2num(dict(zen2han(addr))).match(regex1) // 入力側の住所内の数字を数字に変換してパターンマッチ
-    const match4 = kan2num(dict(zen2han(addr))).match(regex2) // 入力側の住所内の数字を数字に変換してパターンマッチ
-
-    const match = match1 || match2 || match3 || match4
-
-    if (match) {
-      // 大字という文字列が入る場合は、常に町丁目名の先頭にはいるものと想定する。
-      town = towns[i].replace(/^大字/, '')
-      addr = addr.replace(/^大字/, '')
-      addr = addr.substring(
-        dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length,
-      ) // 町丁目以降の住所
-      break
+      const reg = new RegExp(`^${regex}`)
+      const match = addr.match(reg)
+      if (match) {
+        town = towns[i].replace(/^大字/, '')
+        addr = addr.substr(match[0].length)
+        break;
+      }
     }
   }
 
   addr = addr
     .replace(/^-/, '')
-    .replace(/^目/, '') // `丁目`に対して`丁`がマッチして目が取り残される事例がある
-    .replace(/^町/, '') // `の町`に対して`の`がマッチして`町`が取り残される事例がある
     .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => {
       // 全角のアラビア数字は問答無用で半角にする
       return zen2han(match)
