@@ -1,16 +1,18 @@
 import os from 'os'
 import path from 'path'
-import {
-  kanji2number,
-  findKanjiNumbers,
-} from '@geolonia/japanese-numeral'
+import { kanji2number, findKanjiNumbers } from '@geolonia/japanese-numeral'
 
 const numformat = (number: number) => {
-  return ("0" + number).slice(-2)
+  return ('0' + number).slice(-2)
 }
 
 const today = new Date()
-const tmpdir = path.join(os.tmpdir(), `normalize-japanese-addresses-${today.getFullYear()}${numformat(today.getMonth() + 1)}${numformat(today.getDate())}`)
+const tmpdir = path.join(
+  os.tmpdir(),
+  `normalize-japanese-addresses-${today.getFullYear()}${numformat(
+    today.getMonth() + 1,
+  )}${numformat(today.getDate())}`,
+)
 const fetch = require('node-fetch-cache')(tmpdir)
 import dict from './lib/dict'
 import NormalizationError from './lib/NormalizationError'
@@ -44,7 +46,9 @@ export interface NormalizeResult {
   addr: string
 }
 
-export const normalize: (input: string) => Promise<NormalizeResult> = async (address) => {
+export const normalize: (input: string) => Promise<NormalizeResult> = async (
+  address,
+) => {
   let addr = address
 
   // 都道府県名の正規化
@@ -115,7 +119,8 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     return b.length - a.length
   })
 
-  const units = '(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])'
+  const units =
+    '(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])'
 
   let town = ''
   addr = addr.trim()
@@ -133,10 +138,11 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
       )
     } else {
       regex1 = new RegExp(
-        '^' + towns[i].replace(
-          /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-          `$1${units}`,
-        ),
+        '^' +
+          towns[i].replace(
+            /([0-9]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+            `$1${units}`,
+          ),
       )
     }
 
@@ -156,10 +162,11 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
       )
     } else {
       regex2 = new RegExp(
-        '^' + _town.replace(
-          /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
-          `$1${units}`,
-        ),
+        '^' +
+          _town.replace(
+            /([0-9]+)(丁目?|番町|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/gi,
+            `$1${units}`,
+          ),
       )
     }
 
@@ -176,9 +183,15 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
 
       if (_m && _m.length) {
         // 住所内に `字` がある場合、正規化でそれらを削除してしまっているので、その文字数分だけずれるのでそれを補正する。
-        addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length + _m.length) // 町丁目以降の住所
+        addr = addr.substring(
+          dict(zen2han(addr)).lastIndexOf(match[0]) +
+            match[0].length +
+            _m.length,
+        ) // 町丁目以降の住所
       } else {
-        addr = addr.substring(dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length) // 町丁目以降の住所
+        addr = addr.substring(
+          dict(zen2han(addr)).lastIndexOf(match[0]) + match[0].length,
+        ) // 町丁目以降の住所
       }
       break
     }
@@ -190,21 +203,34 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     .replace(/^-/, '')
     .replace(/^目/, '') // `丁目`に対して`丁`がマッチして目が取り残される事例がある
     .replace(/^町/, '') // `の町`に対して`の`がマッチして`町`が取り残される事例がある
-    .replace(/([(0-9〇一二三四五六七八九十百千]+)(番|番地)([0-9]+)号/, '$1-$3')
+    .replace(/([(0-9〇一二三四五六七八九十百千]+)(番|番地)([0-9]+)号?/, '$1-$3')
     .replace(/([0-9〇一二三四五六七八九十百千]+)番地/, '$1')
     .replace(/([0-9〇一二三四五六七八九十百千]+)の/g, '$1-')
-    .replace(/([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '$1-')
-    .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g, '-$1')
-    .replace(/([0-9〇一二三四五六七八九十百千]+)(-([0-9〇一二三四五六七八九十百千]+))+/, (s) => { // 1-2-3 のようなケース
+    .replace(
+      /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+      '$1-',
+    )
+    .replace(
+      /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
+      '-$1',
+    )
+    .replace(
+      /([0-9〇一二三四五六七八九十百千]+)(-([0-9〇一二三四五六七八九十百千]+))+/,
+      (s) => {
+        // 1-2-3 のようなケース
+        return kan2num(s)
+      },
+    )
+    .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
+      // `1-あ2` のようなケース
       return kan2num(s)
     })
-    .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => { // `1-あ2` のようなケース
+    .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => {
+      // `あ-1` のようなケース
       return kan2num(s)
     })
-    .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => { // `あ-1` のようなケース
-      return kan2num(s)
-    })
-    .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => { // `串本町串本１２３４` のようなケース
+    .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => {
+      // `串本町串本１２３４` のようなケース
       return kan2num(s)
     })
 
@@ -212,6 +238,6 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (add
     pref,
     city,
     town,
-    addr
+    addr,
   }
 }
