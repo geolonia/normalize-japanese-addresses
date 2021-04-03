@@ -356,3 +356,8 @@ test('埼玉県南埼玉郡宮代町国納３０9－１', async () => {
   const res = await normalize('埼玉県南埼玉郡宮代町国納３０9－１')
   expect(res).toStrictEqual({"pref": "埼玉県", "city": "南埼玉郡宮代町", "town": "国納", "addr": "309-1"})
 })
+
+test('大阪府高槻市奈佐原２丁目１－２ メゾンエトワール', async () => {
+  const res = await normalize('大阪府高槻市奈佐原２丁目１－２ メゾンエトワール')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "高槻市", "town": "奈佐原二丁目", "addr": "1-2 メゾンエトワール"})
+})
