@@ -20,10 +20,11 @@ export const jisKanji = (str: String) => {
 export const toRegex = (string: String) => {
   let _str = string
 
-  _str = string.replace(/[之ノの]/g, '[之ノの]')
+  _str = _str
+  .replace(/[之ノの]/g, '[之ノの]')
   .replace(/[ヶケが]/g, '[ヶケが]')
   .replace(/[ヵカか力]/g, '[ヵカか力]')
-  .replace(/[ッツつ]/g, '[ッツつ]')
+  .replace(/[ッツっつ]/g, '[ッツっつ]')
   .replace(/[ニ二]/g, '[ニ二]')
   .replace(/[ハ八]/g, '[ハ八]')
   .replace(/大冝|大宜/g, '(大冝|大宜)')
