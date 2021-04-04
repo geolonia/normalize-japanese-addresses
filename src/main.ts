@@ -122,9 +122,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
   let town = ''
 
   // `1丁目` 等の文字列を `一丁目` に変換
-  addr = addr
-    .trim()
-    .replace(/^大字/, '')
+  addr = addr.trim().replace(/^大字/, '')
 
   for (let i = 0; i < towns.length; i++) {
     const regex = toRegex(
@@ -132,20 +130,33 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
         .replace(/字/g, '字?')
         .replace(/大字/g, '(大字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
-        .replace(/([一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g, (match: String) => {
-          const regexes = []
+        .replace(
+          /([一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
+          (match: string) => {
+            const regexes = []
 
-          regexes.push(match.toString().replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')) // 漢数字
+            regexes.push(
+              match
+                .toString()
+                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, ''),
+            ) // 漢数字
 
-          const num = match.replace(/([一二三四五六七八九十]+)/g, (match) => {
-            return kan2num(match)
-          }).replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
-          regexes.push(num.toString()) // 半角アラビア数字
-          regexes.push(String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0)) // 全角アラビア数字
+            const num = match
+              .replace(/([一二三四五六七八九十]+)/g, (match) => {
+                return kan2num(match)
+              })
+              .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
+            regexes.push(num.toString()) // 半角アラビア数字
+            regexes.push(
+              String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0),
+            ) // 全角アラビア数字
 
-          // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
-          return `(${regexes.join('|')})(丁目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
-        }),
+            // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+            return `(${regexes.join(
+              '|',
+            )})(丁目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+          },
+        ),
     )
 
     if (city.match(/^京都市/)) {
