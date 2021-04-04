@@ -416,3 +416,38 @@ test('東京都新宿区三榮町１７－１６', async () => {
   const res = await normalize('東京都新宿区三榮町１７－１６')
   expect(res).toStrictEqual({"pref": "東京都", "city": "新宿区", "town": "四谷三栄町", "addr": "17-16"})
 })
+
+test('新潟県新潟市中央区礎町通１ノ町１９６８−１', async () => {
+  const res = await normalize('新潟県新潟市中央区礎町通１ノ町１９６８−１')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市中央区", "town": "礎町通一ノ町", "addr": "1968-1"})
+})
+
+test('新潟県新潟市中央区礎町通１の町１９６８−１', async () => {
+  const res = await normalize('新潟県新潟市中央区礎町通１の町１９６８−１')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市中央区", "town": "礎町通一ノ町", "addr": "1968-1"})
+})
+
+test('新潟県新潟市中央区礎町通１の町１９６８の１', async () => {
+  const res = await normalize('新潟県新潟市中央区礎町通１の町１９６８の１')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市中央区", "town": "礎町通一ノ町", "addr": "1968-1"})
+})
+
+test('新潟県新潟市中央区礎町通1-1968-1', async () => {
+  const res = await normalize('新潟県新潟市中央区礎町通1-1968-1')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市中央区", "town": "礎町通一ノ町", "addr": "1968-1"})
+})
+
+test('新潟県新潟市中央区上大川前通11番町1881-2', async () => {
+  const res = await normalize('新潟県新潟市中央区上大川前通11番町1881-2')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市中央区", "town": "上大川前通十一番町", "addr": "1881-2"})
+})
+
+test('新潟県新潟市中央区上大川前通11-1881-2', async () => {
+  const res = await normalize('新潟県新潟市中央区上大川前通11-1881-2')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市中央区", "town": "上大川前通十一番町", "addr": "1881-2"})
+})
+
+test('新潟県新潟市中央区上大川前通十一番町1881-2', async () => {
+  const res = await normalize('新潟県新潟市中央区上大川前通十一番町1881-2')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市中央区", "town": "上大川前通十一番町", "addr": "1881-2"})
+})
