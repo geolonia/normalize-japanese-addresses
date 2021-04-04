@@ -127,8 +127,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
   for (let i = 0; i < towns.length; i++) {
     const regex = toRegex(
       towns[i]
-        .replace(/字/g, '字?')
-        .replace(/大字/g, '(大字)?')
+        .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
           /([壱一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
