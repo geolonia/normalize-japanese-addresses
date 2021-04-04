@@ -20,7 +20,12 @@ export const jisKanji = (str: string) => {
 export const toRegex = (string: string) => {
   let _str = string
 
+  // 以下なるべく文字数が多いものほど上にすること
   _str = _str
+    .replace(/三栄町|四谷三栄町/g, '(三栄町|四谷三栄町)')
+    .replace(/通り|とおり/g, '(通り|とおり)')
+    .replace(/埠頭|ふ頭/g, '(埠頭|ふ頭)')
+    .replace(/鬮野川|くじ野川|くじの川/g, '(鬮野川|くじ野川|くじの川)')
     .replace(/[之ノの]/g, '[之ノの]')
     .replace(/[ヶケが]/g, '[ヶケが]')
     .replace(/[ヵカか力]/g, '[ヵカか力]')
@@ -38,9 +43,6 @@ export const toRegex = (string: string) => {
     .replace(/渕|淵/g, '(渕|淵)')
     .replace(/エ|ヱ|え/g, '(エ|ヱ|え)')
     .replace(/曾|曽/g, '(曾|曽)')
-    .replace(/通り|とおり/g, '(通り|とおり)')
-    .replace(/埠頭|ふ頭/g, '(埠頭|ふ頭)')
-    .replace(/鬮野川|くじ野川|くじの川/g, '(鬮野川|くじ野川|くじの川)')
 
   _str = jisKanji(_str)
 
