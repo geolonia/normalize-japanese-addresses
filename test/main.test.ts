@@ -467,6 +467,11 @@ test('埼玉県上尾市一町目１１１', async () => {
   expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111"})
 })
 
+test('埼玉県上尾市壱町目１１１', async () => {
+  const res = await normalize('埼玉県上尾市壱町目１１１')
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111"})
+})
+
 test('埼玉県上尾市1-111', async () => {
   const res = await normalize('埼玉県上尾市1-111')
   expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111"})
