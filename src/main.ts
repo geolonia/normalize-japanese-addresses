@@ -131,7 +131,7 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
         .replace(/大字/g, '(大字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
-          /([一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
+          /([壱一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
           (match: string) => {
             const regexes = []
 
@@ -141,20 +141,27 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
                 .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, ''),
             ) // 漢数字
 
-            const num = match
-              .replace(/([一二三四五六七八九十]+)/g, (match) => {
-                return kan2num(match)
-              })
-              .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
-            regexes.push(num.toString()) // 半角アラビア数字
-            regexes.push(
-              String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0),
-            ) // 全角アラビア数字
+            if (match.match(/^壱/)) {
+              regexes.push('一')
+              regexes.push('1')
+              regexes.push('１')
+            } else {
+              const num = match
+                .replace(/([一二三四五六七八九十]+)/g, (match) => {
+                  return kan2num(match)
+                })
+                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
+
+              regexes.push(num.toString()) // 半角アラビア数字
+              regexes.push(
+                String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0),
+              ) // 全角アラビア数字
+            }
 
             // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
             return `(${regexes.join(
               '|',
-            )})(丁目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+            )})((丁|町)目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
           },
         ),
     )
