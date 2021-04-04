@@ -18,7 +18,7 @@ const tmpdir = path.join(
   )}${numformat(today.getDate())}`,
 )
 const fetch = require('node-fetch-cache')(tmpdir)
-import {toRegex} from './lib/dict'
+import { toRegex } from './lib/dict'
 import NormalizationError from './lib/NormalizationError'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
@@ -135,13 +135,15 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
     .replace(/^大字/, '')
 
   for (let i = 0; i < towns.length; i++) {
-    const regex = toRegex(towns[i]
-      .replace(/字/g, '字?')
-      .replace(/大字/g, '(大字)?')
-      .replace(
-        /(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g,
-        '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])',
-      ))
+    const regex = toRegex(
+      towns[i]
+        .replace(/字/g, '字?')
+        .replace(/大字/g, '(大字)?')
+        .replace(
+          /(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g,
+          '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])',
+        ),
+    )
 
     if (city.match(/^京都市/)) {
       const reg = new RegExp(`.*${regex}`)
