@@ -18,7 +18,7 @@ const tmpdir = path.join(
   )}${numformat(today.getDate())}`,
 )
 const fetch = require('node-fetch-cache')(tmpdir)
-import {jisKanji, toRegex} from './lib/dict'
+import {toRegex} from './lib/dict'
 import NormalizationError from './lib/NormalizationError'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
@@ -89,21 +89,17 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
   let city = '' // 市区町村名
   addr = addr.trim()
   for (let i = 0; i < cities.length; i++) {
-    if (0 === jisKanji(addr).indexOf(jisKanji(cities[i]))) {
-      city = cities[i]
-      addr = addr.substring(cities[i].length) // 市区町村名以降の住所
-      break
+    let regex
+    if (cities[i].match(/(町|村)$/)) {
+      regex = new RegExp(`^${toRegex(cities[i]).replace(/(.+?)郡/, '($1郡)?')}`) // 郡が省略されてるかも
     } else {
-      // 以下 `xxx郡` が省略されているケースに対する対応
-      if (0 < cities[i].indexOf('郡')) {
-        // `郡山市` のように `郡` で始まる地名はスキップ
-        const _city = cities[i].replace(/.+郡/, '')
-        if (0 === jisKanji(addr).indexOf(jisKanji(_city))) {
-          city = cities[i]
-          addr = addr.substring(_city.length) // 市区町村名以降の住所
-          break
-        }
-      }
+      regex = new RegExp(`^${toRegex(cities[i])}`)
+    }
+    const match = addr.match(regex)
+    if (match) {
+      city = cities[i]
+      addr = addr.substring(match[0].length) // 市区町村名以降の住所
+      break
     }
   }
 
