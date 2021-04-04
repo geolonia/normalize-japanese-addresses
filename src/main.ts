@@ -18,7 +18,7 @@ const tmpdir = path.join(
   )}${numformat(today.getDate())}`,
 )
 const fetch = require('node-fetch-cache')(tmpdir)
-import dict from './lib/dict'
+import {toRegex} from './lib/dict'
 import NormalizationError from './lib/NormalizationError'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
@@ -89,21 +89,17 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
   let city = '' // 市区町村名
   addr = addr.trim()
   for (let i = 0; i < cities.length; i++) {
-    if (0 === dict(addr).indexOf(dict(cities[i]))) {
-      city = cities[i]
-      addr = addr.substring(cities[i].length) // 市区町村名以降の住所
-      break
+    let regex
+    if (cities[i].match(/(町|村)$/)) {
+      regex = new RegExp(`^${toRegex(cities[i]).replace(/(.+?)郡/, '($1郡)?')}`) // 郡が省略されてるかも
     } else {
-      // 以下 `xxx郡` が省略されているケースに対する対応
-      if (0 < cities[i].indexOf('郡')) {
-        // `郡山市` のように `郡` で始まる地名はスキップ
-        const _city = cities[i].replace(/.+郡/, '')
-        if (0 === dict(addr).indexOf(dict(_city))) {
-          city = cities[i]
-          addr = addr.substring(_city.length) // 市区町村名以降の住所
-          break
-        }
-      }
+      regex = new RegExp(`^${toRegex(cities[i])}`)
+    }
+    const match = addr.match(regex)
+    if (match) {
+      city = cities[i]
+      addr = addr.substring(match[0].length) // 市区町村名以降の住所
+      break
     }
   }
 
@@ -139,33 +135,13 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
     .replace(/^大字/, '')
 
   for (let i = 0; i < towns.length; i++) {
-    const regex = towns[i]
+    const regex = toRegex(towns[i]
       .replace(/字/g, '字?')
       .replace(/大字/g, '(大字)?')
       .replace(
         /(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g,
         '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])',
-      )
-      .replace(/[之ノの]/g, '[之ノの]')
-      .replace(/[ヶケが]/g, '[ヶケが]')
-      .replace(/[ヵカか力]/g, '[ヵカか力]')
-      .replace(/[ッツつ]/g, '[ッツつ]')
-      .replace(/[ニ二]/g, '[ニ二]')
-      .replace(/[ハ八]/g, '[ハ八]')
-      .replace(/大冝|大宜/g, '(大冝|大宜)')
-      .replace(/穝|さい/g, '(穝|さい)')
-      .replace(/杁|えぶり/g, '(杁|えぶり)')
-      .replace(/薭|稗|ひえ|ヒエ/g, '(薭|稗|ひえ|ヒエ)')
-      .replace(/釜|竈/g, '(釜|竈)')
-      .replace(/條|条/g, '(條|条)')
-      .replace(/狛|拍/g, '(狛|拍)')
-      .replace(/藪|薮/g, '(藪|薮)')
-      .replace(/渕|淵/g, '(渕|淵)')
-      .replace(/エ|ヱ|え/g, '(エ|ヱ|え)')
-      .replace(/曾|曽/g, '(曾|曽)')
-      .replace(/通り|とおり/g, '(通り|とおり)')
-      .replace(/埠頭|ふ頭/g, '(埠頭|ふ頭)')
-      .replace(/鬮野川|くじ野川|くじの川/g, '(鬮野川|くじ野川|くじの川)')
+      ))
 
     if (city.match(/^京都市/)) {
       const reg = new RegExp(`.*${regex}`)

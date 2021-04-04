@@ -87,6 +87,11 @@ test('北海道久遠郡せたな町北檜山区北檜山１９３', async () =>
   expect(res).toStrictEqual({"pref": "北海道", "city": "久遠郡せたな町", "town": "北檜山区北檜山", "addr": "193"})
 })
 
+test('北海道久遠郡せたな町北桧山区北桧山１９３', async () => {
+  const res = await normalize('北海道久遠郡せたな町北桧山区北桧山１９３')
+  expect(res).toStrictEqual({"pref": "北海道", "city": "久遠郡せたな町", "town": "北檜山区北檜山", "addr": "193"})
+})
+
 test('京都府京都市中京区錦小路通大宮東入七軒町466', async () => {
   const res = await normalize('京都府京都市中京区錦小路通大宮東入七軒町466')
   expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "七軒町", "addr": "466"})
@@ -395,4 +400,9 @@ test('岡山県岡山市中区さい33-2', async () => {
 test('岡山県岡山市中区穝33-2', async () => {
   const res = await normalize('岡山県岡山市中区穝33-2')
   expect(res).toStrictEqual({"pref": "岡山県", "city": "岡山市中区", "town": "さい", "addr": "33-2"})
+})
+
+test('千葉県松戸市栄町３丁目１６６－５', async () => {
+  const res = await normalize('千葉県松戸市栄町３丁目１６６－５')
+  expect(res).toStrictEqual({"pref": "千葉県", "city": "松戸市", "town": "栄町三丁目", "addr": "166-5"})
 })
