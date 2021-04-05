@@ -84,6 +84,75 @@ const getCityRegexes = (pref: string, cities: string[]) => {
   return regexes
 }
 
+const cachedTownRegexes: { [key: string]: [string, RegExp][] } = {}
+const getTownRegexes = async (pref: string, city: string) => {
+  const cachedResult = cachedTownRegexes[`${pref}-${city}`]
+  if (typeof cachedResult !== 'undefined') {
+    return cachedResult
+  }
+
+  const responseTowns = await fetch(
+    `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
+  )
+  const towns = (await responseTowns.json()) as string[]
+
+  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
+  towns.sort((a, b) => {
+    return b.length - a.length
+  })
+
+  const regexes = towns.map((town) => {
+    const regex = toRegex(
+      town
+        .replace(/大?字/g, '(大?字)?')
+        // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
+        .replace(
+          /([壱一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
+          (match: string) => {
+            const regexes = []
+
+            regexes.push(
+              match
+                .toString()
+                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, ''),
+            ) // 漢数字
+
+            if (match.match(/^壱/)) {
+              regexes.push('一')
+              regexes.push('1')
+              regexes.push('１')
+            } else {
+              const num = match
+                .replace(/([一二三四五六七八九十]+)/g, (match) => {
+                  return kan2num(match)
+                })
+                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
+
+              regexes.push(num.toString()) // 半角アラビア数字
+              regexes.push(
+                String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0),
+              ) // 全角アラビア数字
+            }
+
+            // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+            return `(${regexes.join(
+              '|',
+            )})((丁|町)目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+          },
+        ),
+    )
+
+    if (city.match(/^京都市/)) {
+      return [town.replace(/^大字/, ''), new RegExp(`.*${regex}`)]
+    } else {
+      return [town.replace(/^大字/, ''), new RegExp(`^${regex}`)]
+    }
+  }) as [string, RegExp][]
+
+  cachedTownRegexes[`${pref}-${city}`] = regexes
+  return regexes
+}
+
 export interface NormalizeResult {
   pref: string
   city: string
@@ -143,78 +212,20 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
 
   // 町丁目以降の正規化
 
-  const responseTowns = await fetch(
-    `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
-  )
-  const towns = await responseTowns.json()
-
-  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
-  towns.sort((a: string, b: string) => {
-    return b.length - a.length
-  })
-
   let town = ''
 
   // `1丁目` 等の文字列を `一丁目` に変換
   addr = addr.trim().replace(/^大字/, '')
 
-  for (let i = 0; i < towns.length; i++) {
-    const regex = toRegex(
-      towns[i]
-        .replace(/大?字/g, '(大?字)?')
-        // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
-        .replace(
-          /([壱一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
-          (match: string) => {
-            const regexes = []
+  const townRegexes = await getTownRegexes(pref, city)
 
-            regexes.push(
-              match
-                .toString()
-                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, ''),
-            ) // 漢数字
-
-            if (match.match(/^壱/)) {
-              regexes.push('一')
-              regexes.push('1')
-              regexes.push('１')
-            } else {
-              const num = match
-                .replace(/([一二三四五六七八九十]+)/g, (match) => {
-                  return kan2num(match)
-                })
-                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
-
-              regexes.push(num.toString()) // 半角アラビア数字
-              regexes.push(
-                String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0),
-              ) // 全角アラビア数字
-            }
-
-            // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
-            return `(${regexes.join(
-              '|',
-            )})((丁|町)目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
-          },
-        ),
-    )
-
-    if (city.match(/^京都市/)) {
-      const reg = new RegExp(`.*${regex}`)
-      const match = addr.match(reg)
-      if (match) {
-        town = towns[i].replace(/^大字/, '')
-        addr = addr.substr(match[0].length)
-        break
-      }
-    } else {
-      const reg = new RegExp(`^${regex}`)
-      const match = addr.match(reg)
-      if (match) {
-        town = towns[i].replace(/^大字/, '')
-        addr = addr.substr(match[0].length)
-        break
-      }
+  for (let i = 0; i < townRegexes.length; i++) {
+    const [_town, reg] = townRegexes[i]
+    const match = addr.match(reg)
+    if (match) {
+      town = _town
+      addr = addr.substr(match[0].length)
+      break
     }
   }
 
