@@ -20,6 +20,7 @@ const tmpdir = path.join(
 const fetch = require('node-fetch-cache')(tmpdir)
 import { toRegex } from './lib/dict'
 import NormalizationError from './lib/NormalizationError'
+import { formatWithOptions } from 'node:util'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
@@ -160,8 +161,15 @@ export interface NormalizeResult {
   addr: string
 }
 
-export const normalize: (input: string) => Promise<NormalizeResult> = async (
-  address,
+export interface Option {
+  depth: number
+}
+const defaultOption: Option = {
+  depth: 4
+}
+
+export const normalize: (input: string, option?: Option) => Promise<NormalizeResult> = async (
+  address, option = defaultOption
 ) => {
   let addr = address
 
@@ -189,87 +197,89 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
   }
 
   // 市区町村名の正規化
-
-  const cities = prefectures[pref]
-
-  const cityRegexes = getCityRegexes(pref, cities)
-
   let city = '' // 市区町村名
-  addr = addr.trim()
-  for (let i = 0; i < cityRegexes.length; i++) {
-    const [_city, regex] = cityRegexes[i]
-    const match = addr.match(regex)
-    if (match) {
-      city = _city
-      addr = addr.substring(match[0].length) // 市区町村名以降の住所
-      break
-    }
-  }
+  if (option?.depth >= 2) {
+    const cities = prefectures[pref]
 
-  if (!city) {
-    throw new NormalizationError("Can't detect the city.", address)
+    const cityRegexes = getCityRegexes(pref, cities)
+
+    addr = addr.trim()
+    for (let i = 0; i < cityRegexes.length; i++) {
+      const [_city, regex] = cityRegexes[i]
+      const match = addr.match(regex)
+      if (match) {
+        city = _city
+        addr = addr.substring(match[0].length) // 市区町村名以降の住所
+        break
+      }
+    }
+
+    if (!city) {
+      throw new NormalizationError("Can't detect the city.", address)
+    }
   }
 
   // 町丁目以降の正規化
-
   let town = ''
+  if (option?.depth >= 3) {
 
-  // `1丁目` 等の文字列を `一丁目` に変換
-  addr = addr.trim().replace(/^大字/, '')
+    // `1丁目` 等の文字列を `一丁目` に変換
+    addr = addr.trim().replace(/^大字/, '')
 
-  const townRegexes = await getTownRegexes(pref, city)
+    const townRegexes = await getTownRegexes(pref, city)
 
-  for (let i = 0; i < townRegexes.length; i++) {
-    const [_town, reg] = townRegexes[i]
-    const match = addr.match(reg)
-    if (match) {
-      town = _town
-      addr = addr.substr(match[0].length)
-      break
+    for (let i = 0; i < townRegexes.length; i++) {
+      const [_town, reg] = townRegexes[i]
+      const match = addr.match(reg)
+      if (match) {
+        town = _town
+        addr = addr.substr(match[0].length)
+        break
+      }
     }
-  }
 
-  addr = addr
-    .replace(/^-/, '')
-    .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => {
-      // 全角のアラビア数字は問答無用で半角にする
-      return zen2han(match)
-    })
-    .replace(/([0-9]+)(丁目)/g, (match) => {
-      return match.replace(/([0-9]+)/g, (num) => {
-        return number2kanji(Number(num))
+    addr = addr
+      .replace(/^-/, '')
+      .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => {
+        // 全角のアラビア数字は問答無用で半角にする
+        return zen2han(match)
       })
-    })
-    .replace(
-      /([0-9〇一二三四五六七八九十百千]+)(番|番地)([(0-9〇一二三四五六七八九十百千]+)号?/,
-      '$1-$3',
-    )
-    .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
-    .replace(/([0-9〇一二三四五六七八九十百千]+)の/g, '$1-')
-    .replace(
-      /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
-      (match) => {
-        return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
-      },
-    )
-    .replace(
-      /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
-      (match) => {
-        return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
-      },
-    )
-    .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
-      // `1-あ2` のようなケース
-      return zen2han(kan2num(s))
-    })
-    .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => {
-      // `あ-1` のようなケース
-      return zen2han(kan2num(s))
-    })
-    .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => {
-      // `串本町串本１２３４` のようなケース
-      return zen2han(kan2num(s))
-    })
+      .replace(/([0-9]+)(丁目)/g, (match) => {
+        return match.replace(/([0-9]+)/g, (num) => {
+          return number2kanji(Number(num))
+        })
+      })
+      .replace(
+        /([0-9〇一二三四五六七八九十百千]+)(番|番地)([(0-9〇一二三四五六七八九十百千]+)号?/,
+        '$1-$3',
+      )
+      .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
+      .replace(/([0-9〇一二三四五六七八九十百千]+)の/g, '$1-')
+      .replace(
+        /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+        (match) => {
+          return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+        },
+      )
+      .replace(
+        /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
+        (match) => {
+          return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+        },
+      )
+      .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
+        // `1-あ2` のようなケース
+        return zen2han(kan2num(s))
+      })
+      .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => {
+        // `あ-1` のようなケース
+        return zen2han(kan2num(s))
+      })
+      .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => {
+        // `串本町串本１２３４` のようなケース
+        return zen2han(kan2num(s))
+      })
+  }
 
   return {
     pref,
