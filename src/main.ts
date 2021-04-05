@@ -43,6 +43,47 @@ const zen2han = (str: string) => {
   })
 }
 
+let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
+const getPrefectureRegexes = (prefs: string[]) => {
+  if (cachedPrefectureRegexes) {
+    return cachedPrefectureRegexes
+  }
+
+  cachedPrefectureRegexes = prefs.map((pref) => {
+    const _pref = pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
+    const reg = new RegExp(`^${_pref}(都|道|府|県)`)
+    return [pref, reg]
+  })
+
+  return cachedPrefectureRegexes
+}
+
+const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
+const getCityRegexes = (pref: string, cities: string[]) => {
+  const cachedResult = cachedCityRegexes[pref]
+  if (typeof cachedResult !== 'undefined') {
+    return cachedResult
+  }
+
+  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
+  cities.sort((a: string, b: string) => {
+    return b.length - a.length
+  })
+
+  const regexes = cities.map((city) => {
+    let regex
+    if (city.match(/(町|村)$/)) {
+      regex = new RegExp(`^${toRegex(city).replace(/(.+?)郡/, '($1郡)?')}`) // 郡が省略されてるかも
+    } else {
+      regex = new RegExp(`^${toRegex(city)}`)
+    }
+    return [city, regex] as [string, RegExp]
+  })
+
+  cachedCityRegexes[pref] = regexes
+  return regexes
+}
+
 export interface NormalizeResult {
   pref: string
   city: string
@@ -63,11 +104,12 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
 
   let pref = '' // 都道府県名
   addr = addr.trim()
-  for (let i = 0; i < prefs.length; i++) {
-    const _pref = prefs[i].replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
-    const reg = new RegExp(`^${_pref}(都|道|府|県)`)
+
+  const prefRegexes = getPrefectureRegexes(prefs)
+  for (let i = 0; i < prefRegexes.length; i++) {
+    const [_pref, reg] = prefRegexes[i]
     if (addr.match(reg)) {
-      pref = prefs[i]
+      pref = _pref
       addr = addr.substring(pref.length) // 都道府県名以降の住所
       break
     }
@@ -81,23 +123,15 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
 
   const cities = prefectures[pref]
 
-  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
-  cities.sort((a: string, b: string) => {
-    return b.length - a.length
-  })
+  const cityRegexes = getCityRegexes(pref, cities)
 
   let city = '' // 市区町村名
   addr = addr.trim()
-  for (let i = 0; i < cities.length; i++) {
-    let regex
-    if (cities[i].match(/(町|村)$/)) {
-      regex = new RegExp(`^${toRegex(cities[i]).replace(/(.+?)郡/, '($1郡)?')}`) // 郡が省略されてるかも
-    } else {
-      regex = new RegExp(`^${toRegex(cities[i])}`)
-    }
+  for (let i = 0; i < cityRegexes.length; i++) {
+    const [_city, regex] = cityRegexes[i]
     const match = addr.match(regex)
     if (match) {
-      city = cities[i]
+      city = _city
       addr = addr.substring(match[0].length) // 市区町村名以降の住所
       break
     }

@@ -3,7 +3,11 @@ import { normalize } from '../src/main'
 import fs from 'fs'
 import path from 'path'
 
-const lines = fs.readFileSync(path.join(path.dirname(__filename), '/addresses.csv'), {encoding: 'utf-8'}).split(/\n/)
+const lines = fs
+  .readFileSync(path.join(path.dirname(__filename), '/addresses.csv'), {
+    encoding: 'utf-8',
+  })
+  .split(/\n/)
 lines.shift() // 見出し行
 
 lines.forEach((line) => {
