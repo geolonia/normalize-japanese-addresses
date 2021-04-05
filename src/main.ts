@@ -122,26 +122,46 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
   let town = ''
 
   // `1丁目` 等の文字列を `一丁目` に変換
-  addr = addr
-    .trim()
-    .replace(
-      /([0-9０-９]+)(丁目|丁|番町|条|軒|線|の町|号|地割|の|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g,
-      (match) => {
-        return match.replace(/([0-9０-９]+)/g, (num) => {
-          return number2kanji(Number(zen2han(num)))
-        })
-      },
-    )
-    .replace(/^大字/, '')
+  addr = addr.trim().replace(/^大字/, '')
 
   for (let i = 0; i < towns.length; i++) {
     const regex = toRegex(
       towns[i]
-        .replace(/字/g, '字?')
-        .replace(/大字/g, '(大字)?')
+        .replace(/大?字/g, '(大?字)?')
+        // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
-          /(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])/g,
-          '(丁目?|番町?|条|軒|線|の町?|号|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])',
+          /([壱一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
+          (match: string) => {
+            const regexes = []
+
+            regexes.push(
+              match
+                .toString()
+                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, ''),
+            ) // 漢数字
+
+            if (match.match(/^壱/)) {
+              regexes.push('一')
+              regexes.push('1')
+              regexes.push('１')
+            } else {
+              const num = match
+                .replace(/([一二三四五六七八九十]+)/g, (match) => {
+                  return kan2num(match)
+                })
+                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
+
+              regexes.push(num.toString()) // 半角アラビア数字
+              regexes.push(
+                String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0),
+              ) // 全角アラビア数字
+            }
+
+            // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+            return `(${regexes.join(
+              '|',
+            )})((丁|町)目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+          },
         ),
     )
 
@@ -170,8 +190,13 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
       // 全角のアラビア数字は問答無用で半角にする
       return zen2han(match)
     })
+    .replace(/([0-9]+)(丁目)/g, (match) => {
+      return match.replace(/([0-9]+)/g, (num) => {
+        return number2kanji(Number(num))
+      })
+    })
     .replace(
-      /([(0-9〇一二三四五六七八九十百千]+)(番|番地)([(0-9〇一二三四五六七八九十百千]+)号?/,
+      /([0-9〇一二三四五六七八九十百千]+)(番|番地)([(0-9〇一二三四五六七八九十百千]+)号?/,
       '$1-$3',
     )
     .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
