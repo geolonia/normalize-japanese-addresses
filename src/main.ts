@@ -20,7 +20,6 @@ const tmpdir = path.join(
 const fetch = require('node-fetch-cache')(tmpdir)
 import { toRegex } from './lib/dict'
 import NormalizationError from './lib/NormalizationError'
-import { formatWithOptions } from 'node:util'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
