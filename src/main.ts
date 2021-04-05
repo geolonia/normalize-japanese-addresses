@@ -43,90 +43,67 @@ const zen2han = (str: string) => {
   })
 }
 
-export interface NormalizeResult {
-  pref: string
-  city: string
-  town: string
-  addr: string
+let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
+const getPrefectureRegexes = (prefs: string[]) => {
+  if (cachedPrefectureRegexes) {
+    return cachedPrefectureRegexes
+  }
+
+  cachedPrefectureRegexes = prefs.map((pref) => {
+    const _pref = pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
+    const reg = new RegExp(`^${_pref}(都|道|府|県)`)
+    return [pref, reg]
+  })
+
+  return cachedPrefectureRegexes
 }
 
-export const normalize: (input: string) => Promise<NormalizeResult> = async (
-  address,
-) => {
-  let addr = address
-
-  // 都道府県名の正規化
-
-  const responsePrefs = await fetch(`${endpoint}.json`)
-  const prefectures = await responsePrefs.json()
-  const prefs = Object.keys(prefectures)
-
-  let pref = '' // 都道府県名
-  addr = addr.trim()
-  for (let i = 0; i < prefs.length; i++) {
-    const _pref = prefs[i].replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
-    const reg = new RegExp(`^${_pref}(都|道|府|県)`)
-    if (addr.match(reg)) {
-      pref = prefs[i]
-      addr = addr.substring(pref.length) // 都道府県名以降の住所
-      break
-    }
+const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
+const getCityRegexes = (pref: string, cities: string[]) => {
+  const cachedResult = cachedCityRegexes[pref]
+  if (typeof cachedResult !== 'undefined') {
+    return cachedResult
   }
-
-  if (!pref) {
-    throw new NormalizationError("Can't detect the prefecture.", address)
-  }
-
-  // 市区町村名の正規化
-
-  const cities = prefectures[pref]
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   cities.sort((a: string, b: string) => {
     return b.length - a.length
   })
 
-  let city = '' // 市区町村名
-  addr = addr.trim()
-  for (let i = 0; i < cities.length; i++) {
+  const regexes = cities.map((city) => {
     let regex
-    if (cities[i].match(/(町|村)$/)) {
-      regex = new RegExp(`^${toRegex(cities[i]).replace(/(.+?)郡/, '($1郡)?')}`) // 郡が省略されてるかも
+    if (city.match(/(町|村)$/)) {
+      regex = new RegExp(`^${toRegex(city).replace(/(.+?)郡/, '($1郡)?')}`) // 郡が省略されてるかも
     } else {
-      regex = new RegExp(`^${toRegex(cities[i])}`)
+      regex = new RegExp(`^${toRegex(city)}`)
     }
-    const match = addr.match(regex)
-    if (match) {
-      city = cities[i]
-      addr = addr.substring(match[0].length) // 市区町村名以降の住所
-      break
-    }
-  }
+    return [city, regex] as [string, RegExp]
+  })
 
-  if (!city) {
-    throw new NormalizationError("Can't detect the city.", address)
-  }
+  cachedCityRegexes[pref] = regexes
+  return regexes
+}
 
-  // 町丁目以降の正規化
+const cachedTownRegexes: { [key: string]: [string, RegExp][] } = {}
+const getTownRegexes = async (pref: string, city: string) => {
+  const cachedResult = cachedTownRegexes[`${pref}-${city}`]
+  if (typeof cachedResult !== 'undefined') {
+    return cachedResult
+  }
 
   const responseTowns = await fetch(
     `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
   )
-  const towns = await responseTowns.json()
+  const towns = (await responseTowns.json()) as string[]
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
-  towns.sort((a: string, b: string) => {
+  towns.sort((a, b) => {
     return b.length - a.length
   })
 
-  let town = ''
-
-  // `1丁目` 等の文字列を `一丁目` に変換
-  addr = addr.trim().replace(/^大字/, '')
-
-  for (let i = 0; i < towns.length; i++) {
+  const regexes = towns.map((town) => {
     const regex = toRegex(
-      towns[i]
+      town
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
@@ -166,21 +143,89 @@ export const normalize: (input: string) => Promise<NormalizeResult> = async (
     )
 
     if (city.match(/^京都市/)) {
-      const reg = new RegExp(`.*${regex}`)
-      const match = addr.match(reg)
-      if (match) {
-        town = towns[i].replace(/^大字/, '')
-        addr = addr.substr(match[0].length)
-        break
-      }
+      return [town.replace(/^大字/, ''), new RegExp(`.*${regex}`)]
     } else {
-      const reg = new RegExp(`^${regex}`)
-      const match = addr.match(reg)
-      if (match) {
-        town = towns[i].replace(/^大字/, '')
-        addr = addr.substr(match[0].length)
-        break
-      }
+      return [town.replace(/^大字/, ''), new RegExp(`^${regex}`)]
+    }
+  }) as [string, RegExp][]
+
+  cachedTownRegexes[`${pref}-${city}`] = regexes
+  return regexes
+}
+
+export interface NormalizeResult {
+  pref: string
+  city: string
+  town: string
+  addr: string
+}
+
+export const normalize: (input: string) => Promise<NormalizeResult> = async (
+  address,
+) => {
+  let addr = address
+
+  // 都道府県名の正規化
+
+  const responsePrefs = await fetch(`${endpoint}.json`)
+  const prefectures = await responsePrefs.json()
+  const prefs = Object.keys(prefectures)
+
+  let pref = '' // 都道府県名
+  addr = addr.trim()
+
+  const prefRegexes = getPrefectureRegexes(prefs)
+  for (let i = 0; i < prefRegexes.length; i++) {
+    const [_pref, reg] = prefRegexes[i]
+    if (addr.match(reg)) {
+      pref = _pref
+      addr = addr.substring(pref.length) // 都道府県名以降の住所
+      break
+    }
+  }
+
+  if (!pref) {
+    throw new NormalizationError("Can't detect the prefecture.", address)
+  }
+
+  // 市区町村名の正規化
+
+  const cities = prefectures[pref]
+
+  const cityRegexes = getCityRegexes(pref, cities)
+
+  let city = '' // 市区町村名
+  addr = addr.trim()
+  for (let i = 0; i < cityRegexes.length; i++) {
+    const [_city, regex] = cityRegexes[i]
+    const match = addr.match(regex)
+    if (match) {
+      city = _city
+      addr = addr.substring(match[0].length) // 市区町村名以降の住所
+      break
+    }
+  }
+
+  if (!city) {
+    throw new NormalizationError("Can't detect the city.", address)
+  }
+
+  // 町丁目以降の正規化
+
+  let town = ''
+
+  // `1丁目` 等の文字列を `一丁目` に変換
+  addr = addr.trim().replace(/^大字/, '')
+
+  const townRegexes = await getTownRegexes(pref, city)
+
+  for (let i = 0; i < townRegexes.length; i++) {
+    const [_town, reg] = townRegexes[i]
+    const match = addr.match(reg)
+    if (match) {
+      town = _town
+      addr = addr.substr(match[0].length)
+      break
     }
   }
 
