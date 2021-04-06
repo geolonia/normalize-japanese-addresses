@@ -22,9 +22,16 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3').then(result => {
-  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3"}
+  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3", "level"; 3}
 })
 ```
+
+住所の正規化結果として戻されるオブジェクトには、`level` プロパティが含まれます。`level` には、住所文字列のどこまでを判別できたかを以下の数値で格納しています。
+
+* `0` - 都道府県も判別できなかった。
+* `1` - 都道府県まで判別できた。
+* `2` - 市区町村まで判別できた。
+* `3` - 町丁目まで判別できた。
 
 ## 正規化の内容
 
