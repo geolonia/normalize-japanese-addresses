@@ -498,3 +498,24 @@ test('It should get the level `1` with `神奈川県`', async () => {
   })
   expect(res).toStrictEqual({ "pref": "神奈川県", "city": "", "town": "", "addr": "", "level": 1})
 })
+
+test('It should get the level `1` with `神奈川県あいうえお市`', async () => {
+  const res = await normalize('神奈川県あいうえお市')
+  expect(res).toStrictEqual({ "pref": "神奈川県", "city": "", "town": "", "addr": "あいうえお市", "level": 1})
+})
+
+test('It should get the level `2` with `東京都港区あいうえお`', async () => {
+  const res = await normalize('東京都港区あいうえお')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "港区", "town": "", "addr": "あいうえお", "level": 2})
+})
+
+test('It should get the level `0` with `あいうえお`', async () => {
+  const res = await normalize('あいうえお')
+  expect(res).toStrictEqual({ "pref": "", "city": "", "town": "", "addr": "あいうえお", "level": 0})
+})
+
+test.skip('It should get the level `0` with `東京府東京市小石川区`', async () => {
+  // 現在、「^東京」という正規表現で一致しているので、「東京府」を「東京都」とご認識されてしまう。そもそもこのケースをカバーするか確認中
+  const res = await normalize('東京府東京市小石川区')
+  expect(res).toStrictEqual({ "pref": "", "city": "", "town": "", "addr": "", "level": 0})
+})
