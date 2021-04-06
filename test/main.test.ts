@@ -481,3 +481,24 @@ test('神奈川県横浜市港北区大豆戸町１７番地１１', async () =>
   const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１')
   expect(res).toStrictEqual({"pref": "神奈川県", "city": "横浜市港北区", "town": "大豆戸町", "addr": "17-11"})
 })
+
+test('神奈川県横浜市港北区大豆戸町１７番地１１', async () => {
+  const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
+    depth: 1
+  })
+  expect(res).toStrictEqual({ "pref": "神奈川県", "city": "", "town": "", "addr": "横浜市港北区大豆戸町１７番地１１" })
+})
+
+test('神奈川県横浜市港北区大豆戸町１７番地１１', async () => {
+  const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
+    depth: 2
+  })
+  expect(res).toStrictEqual({ "pref": "神奈川県", "city": "横浜市港北区", "town": "", "addr": "大豆戸町１７番地１１" })
+})
+
+test('神奈川県横浜市港北区大豆戸町１７番地１１', async () => {
+  const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
+    depth: 3
+  })
+  expect(res).toStrictEqual({ "pref": "神奈川県", "city": "横浜市港北区", "town": "大豆戸町", "addr": "17-11" })
+})
