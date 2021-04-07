@@ -513,9 +513,3 @@ test('It should get the level `0` with `あいうえお`', async () => {
   const res = await normalize('あいうえお')
   expect(res).toStrictEqual({ "pref": "", "city": "", "town": "", "addr": "あいうえお", "level": 0})
 })
-
-test.skip('It should get the level `0` with `東京府東京市小石川区`', async () => {
-  // 現在、「^東京」という正規表現で一致しているので、「東京府」を「東京都」とご認識されてしまう。そもそもこのケースをカバーするか確認中
-  const res = await normalize('東京府東京市小石川区')
-  expect(res).toStrictEqual({ "pref": "", "city": "", "town": "", "addr": "", "level": 0})
-})
