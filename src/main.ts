@@ -6,20 +6,11 @@ import {
   findKanjiNumbers,
 } from '@geolonia/japanese-numeral'
 
-const numformat = (number: number) => {
-  return ('0' + number).slice(-2)
-}
+const today = new Date().toISOString().slice(0, 10)
+const tmpdir = path.join(os.tmpdir(), `normalize-japanese-addresses-${today}`)
 
-const today = new Date()
-const tmpdir = path.join(
-  os.tmpdir(),
-  `normalize-japanese-addresses-${today.getFullYear()}${numformat(
-    today.getMonth() + 1,
-  )}${numformat(today.getDate())}`,
-)
 const fetch = require('node-fetch-cache')(tmpdir)
 import { toRegex } from './lib/dict'
-import NormalizationError from './lib/NormalizationError'
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
@@ -158,19 +149,25 @@ export interface NormalizeResult {
   city: string
   town: string
   addr: string
+  level: number
 }
 
 export interface Option {
-  depth: number
+  level: number
 }
+
 const defaultOption: Option = {
-  depth: 4
+  level: 3
 }
 
 export const normalize: (input: string, option?: Option) => Promise<NormalizeResult> = async (
   address, option = defaultOption
 ) => {
   let addr = address
+  let pref = ''
+  let city = ''
+  let town = ''
+  let level = 0
 
   // 都道府県名の正規化
 
@@ -178,7 +175,6 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
   const prefectures = await responsePrefs.json()
   const prefs = Object.keys(prefectures)
 
-  let pref = '' // 都道府県名
   addr = addr.trim()
 
   const prefRegexes = getPrefectureRegexes(prefs)
@@ -191,13 +187,8 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
     }
   }
 
-  if (!pref) {
-    throw new NormalizationError("Can't detect the prefecture.", address)
-  }
-
   // 市区町村名の正規化
-  let city = '' // 市区町村名
-  if (option?.depth >= 2) {
+  if (pref && option.level >= 2) {
     const cities = prefectures[pref]
 
     const cityRegexes = getCityRegexes(pref, cities)
@@ -212,15 +203,10 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
         break
       }
     }
-
-    if (!city) {
-      throw new NormalizationError("Can't detect the city.", address)
-    }
   }
 
-  // 町丁目以降の正規化
-  let town = ''
-  if (option?.depth >= 3) {
+  // 町丁目以降の正規化'
+  if (city && option.level >= 3) {
 
     // `1丁目` 等の文字列を `一丁目` に変換
     addr = addr.trim().replace(/^大字/, '')
@@ -280,10 +266,15 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
       })
   }
 
+  if (pref) level = level + 1
+  if (city) level = level + 1
+  if (town) level = level + 1
+
   return {
     pref,
     city,
     town,
     addr,
+    level,
   }
 }
