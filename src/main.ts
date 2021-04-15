@@ -163,7 +163,7 @@ const defaultOption: Option = {
 export const normalize: (input: string, option?: Option) => Promise<NormalizeResult> = async (
   address, option = defaultOption
 ) => {
-  let addr = address
+  let addr = address.trim()
   let pref = ''
   let city = ''
   let town = ''
@@ -174,8 +174,6 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
   const responsePrefs = await fetch(`${endpoint}.json`)
   const prefectures = await responsePrefs.json()
   const prefs = Object.keys(prefectures)
-
-  addr = addr.trim()
 
   const prefRegexes = getPrefectureRegexes(prefs)
   for (let i = 0; i < prefRegexes.length; i++) {
@@ -264,6 +262,7 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
         // `串本町串本１２３４` のようなケース
         return zen2han(kan2num(s))
       })
+      .trim()
   }
 
   if (pref) level = level + 1
