@@ -528,3 +528,8 @@ test('東京都江東区豊洲 1-2-27', async () => {
   const res = await normalize('東京都江東区豊洲 1-2-27')
   expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
 })
+
+test('東京都江東区豊洲 １ー２ー２７', async () => {
+  const res = await normalize('東京都江東区豊洲 １ー２ー２７')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
+})

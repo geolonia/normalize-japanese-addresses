@@ -167,10 +167,16 @@ export const normalize: (
   let addr = address
     .replace(/　/g, ' ')
     .replace(/ +/g, ' ')
+    .replace(
+      /([0-9０-９][-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])|([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])[0-9０-９]/g,
+      (match) => {
+        return zen2han(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+      },
+    )
     .replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
       return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
     })
-    .replace(/.+?[0-9]/, (match) => {
+    .replace(/.+?[0-9]-/, (match) => {
       return match.replace(/ /g, '') // 1番はじめに出てくるアラビア数字以前のスペースを削除
     })
 
