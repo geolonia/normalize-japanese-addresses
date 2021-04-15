@@ -157,16 +157,22 @@ export interface Option {
 }
 
 const defaultOption: Option = {
-  level: 3
+  level: 3,
 }
 
-export const normalize: (input: string, option?: Option) => Promise<NormalizeResult> = async (address, option = defaultOption) => {
-
-  let addr = address.replace(/　/g, ' ').replace(/ +/g, ' ').replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
-    return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
-  }).replace(/.+?[0-9]/, (match) => {
-    return match.replace(/ /g, '') // 1番はじめに出てくるアラビア数字以前のスペースを削除
-  })
+export const normalize: (
+  input: string,
+  option?: Option,
+) => Promise<NormalizeResult> = async (address, option = defaultOption) => {
+  let addr = address
+    .replace(/　/g, ' ')
+    .replace(/ +/g, ' ')
+    .replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
+      return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
+    })
+    .replace(/.+?[0-9]/, (match) => {
+      return match.replace(/ /g, '') // 1番はじめに出てくるアラビア数字以前のスペースを削除
+    })
 
   let pref = ''
   let city = ''
@@ -209,7 +215,6 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
 
   // 町丁目以降の正規化'
   if (city && option.level >= 3) {
-
     addr = addr.trim().replace(/^大字/, '')
 
     const townRegexes = await getTownRegexes(pref, city)
@@ -244,13 +249,19 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
       .replace(
         /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
         (match) => {
-          return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+          return zen2han(kan2num(match)).replace(
+            /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+            '-',
+          )
         },
       )
       .replace(
         /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
         (match) => {
-          return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+          return zen2han(kan2num(match)).replace(
+            /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+            '-',
+          )
         },
       )
       .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
