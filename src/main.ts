@@ -160,10 +160,14 @@ const defaultOption: Option = {
   level: 3
 }
 
-export const normalize: (input: string, option?: Option) => Promise<NormalizeResult> = async (
-  address, option = defaultOption
-) => {
-  let addr = address.trim()
+export const normalize: (input: string, option?: Option) => Promise<NormalizeResult> = async (address, option = defaultOption) => {
+
+  let addr = address.replace(/　/g, ' ').replace(/ +/g, ' ').replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
+    return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
+  }).replace(/.+?[0-9]/, (match) => {
+    return match.replace(/ /g, '') // 1番はじめに出てくるアラビア数字以前のスペースを削除
+  })
+
   let pref = ''
   let city = ''
   let town = ''
@@ -206,7 +210,6 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
   // 町丁目以降の正規化'
   if (city && option.level >= 3) {
 
-    // `1丁目` 等の文字列を `一丁目` に変換
     addr = addr.trim().replace(/^大字/, '')
 
     const townRegexes = await getTownRegexes(pref, city)
