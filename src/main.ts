@@ -157,13 +157,29 @@ export interface Option {
 }
 
 const defaultOption: Option = {
-  level: 3
+  level: 3,
 }
 
-export const normalize: (input: string, option?: Option) => Promise<NormalizeResult> = async (
-  address, option = defaultOption
-) => {
+export const normalize: (
+  input: string,
+  option?: Option,
+) => Promise<NormalizeResult> = async (address, option = defaultOption) => {
   let addr = address
+    .replace(/　/g, ' ')
+    .replace(/ +/g, ' ')
+    .replace(
+      /([0-9０-９][-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])|([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])[0-9０-９]/g,
+      (match) => {
+        return zen2han(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+      },
+    )
+    .replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
+      return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
+    })
+    .replace(/.+?[0-9]-/, (match) => {
+      return match.replace(/ /g, '') // 1番はじめに出てくるアラビア数字以前のスペースを削除
+    })
+
   let pref = ''
   let city = ''
   let town = ''
@@ -174,8 +190,6 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
   const responsePrefs = await fetch(`${endpoint}.json`)
   const prefectures = await responsePrefs.json()
   const prefs = Object.keys(prefectures)
-
-  addr = addr.trim()
 
   const prefRegexes = getPrefectureRegexes(prefs)
   for (let i = 0; i < prefRegexes.length; i++) {
@@ -207,8 +221,6 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
 
   // 町丁目以降の正規化'
   if (city && option.level >= 3) {
-
-    // `1丁目` 等の文字列を `一丁目` に変換
     addr = addr.trim().replace(/^大字/, '')
 
     const townRegexes = await getTownRegexes(pref, city)
@@ -243,13 +255,19 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
       .replace(
         /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
         (match) => {
-          return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+          return zen2han(kan2num(match)).replace(
+            /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+            '-',
+          )
         },
       )
       .replace(
         /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
         (match) => {
-          return zen2han(kan2num(match)).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+          return zen2han(kan2num(match)).replace(
+            /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+            '-',
+          )
         },
       )
       .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
@@ -264,6 +282,7 @@ export const normalize: (input: string, option?: Option) => Promise<NormalizeRes
         // `串本町串本１２３４` のようなケース
         return zen2han(kan2num(s))
       })
+      .trim()
   }
 
   if (pref) level = level + 1

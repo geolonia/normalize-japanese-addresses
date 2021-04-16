@@ -186,12 +186,12 @@ test('東京都文京区千石4-15-7 ', async () => {
 
 test('和歌山県東牟婁郡串本町串本 833', async () => {
   const res = await normalize('和歌山県東牟婁郡串本町串本 833')
-  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": " 833", "level": 3})
+  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "833", "level": 3})
 })
 
 test('和歌山県東牟婁郡串本町串本　833', async () => {
   const res = await normalize('和歌山県東牟婁郡串本町串本　833')
-  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "　833", "level": 3})
+  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "833", "level": 3})
 })
 
 test('東京都世田谷区上北沢４の９の２', async () => {
@@ -512,4 +512,29 @@ test('It should get the level `2` with `東京都港区あいうえお`', async 
 test('It should get the level `0` with `あいうえお`', async () => {
   const res = await normalize('あいうえお')
   expect(res).toStrictEqual({ "pref": "", "city": "", "town": "", "addr": "あいうえお", "level": 0})
+})
+
+test('東京都江東区豊洲1丁目2-27', async () => {
+  const res = await normalize('東京都江東区豊洲1丁目2-27')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
+})
+
+test('東京都江東区豊洲 1丁目2-27', async () => {
+  const res = await normalize('東京都江東区豊洲 1丁目2-27')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
+})
+
+test('東京都江東区豊洲 1-2-27', async () => {
+  const res = await normalize('東京都江東区豊洲 1-2-27')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
+})
+
+test('東京都 江東区 豊洲 1-2-27', async () => {
+  const res = await normalize('東京都 江東区 豊洲 1-2-27')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
+})
+
+test('東京都江東区豊洲 １ー２ー２７', async () => {
+  const res = await normalize('東京都江東区豊洲 １ー２ー２７')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
 })
