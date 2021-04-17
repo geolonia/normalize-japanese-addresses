@@ -181,7 +181,7 @@ export const normalize: (
         return zen2han(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
       },
     )
-    .replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
+    .replace(/(.+)(丁目?|番(町|地)|条|軒|線|(の|ノ)町|地割)/, (match) => {
       return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
     })
     .replace(/.+?[0-9一二三四五六七八九〇十百千]-/, (match) => {
