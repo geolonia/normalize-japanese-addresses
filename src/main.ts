@@ -164,11 +164,19 @@ export const normalize: (
   input: string,
   option?: Option,
 ) => Promise<NormalizeResult> = async (address, option = defaultOption) => {
+
+  /**
+   * 入力された住所に対して以下の正規化を予め行う。
+   *
+   * 1. `1-2-3` や `四-五-六` のようなフォーマットのハイフンを半角に統一。
+   * 2. 町丁目以前にあるスペースをすべて削除。
+   * 3. 最初に出てくる `1-` や `五-` のような文字列を町丁目とみなして、それ以前のスペースをすべて削除する。
+   */
   let addr = address
     .replace(/　/g, ' ')
     .replace(/ +/g, ' ')
     .replace(
-      /([0-9０-９][-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])|([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])[0-9０-９]/g,
+      /([0-9０-９一二三四五六七八九〇十百千][-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])|([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])[0-9０-９一二三四五六七八九〇十]/g,
       (match) => {
         return zen2han(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
       },
@@ -176,7 +184,7 @@ export const normalize: (
     .replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
       return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
     })
-    .replace(/.+?[0-9]-/, (match) => {
+    .replace(/.+?[0-9一二三四五六七八九〇十百千]-/, (match) => {
       return match.replace(/ /g, '') // 1番はじめに出てくるアラビア数字以前のスペースを削除
     })
 
@@ -255,7 +263,7 @@ export const normalize: (
       .replace(
         /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
         (match) => {
-          return zen2han(kan2num(match)).replace(
+          return kan2num(match).replace(
             /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
             '-',
           )
@@ -264,23 +272,27 @@ export const normalize: (
       .replace(
         /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
         (match) => {
-          return zen2han(kan2num(match)).replace(
+          return kan2num(match).replace(
             /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
             '-',
           )
         },
       )
       .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
-        // `1-あ2` のようなケース
-        return zen2han(kan2num(s))
+        // `1-` のようなケース
+        return kan2num(s)
       })
       .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => {
-        // `あ-1` のようなケース
-        return zen2han(kan2num(s))
+        // `-1` のようなケース
+        return kan2num(s)
+      })
+      .replace(/-[^0-9]+([0-9〇一二三四五六七八九十百千]+)/, (s) => {
+        // `-あ1` のようなケース
+        return kan2num(zen2han(s))
       })
       .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => {
         // `串本町串本１２３４` のようなケース
-        return zen2han(kan2num(s))
+        return kan2num(s)
       })
       .trim()
   }
