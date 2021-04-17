@@ -538,3 +538,28 @@ test('東京都江東区豊洲 １ー２ー２７', async () => {
   const res = await normalize('東京都江東区豊洲 １ー２ー２７')
   expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
 })
+
+test('東京都町田市木曽東4丁目14-イ２２ ジオロニアマンション', async () => {
+  const res = await normalize('東京都町田市木曽東四丁目１４ーイ２２ ジオロニアマンション')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22 ジオロニアマンション", "level": 3})
+})
+
+test('東京都町田市木曽東4丁目14-Ａ２２ ジオロニアマンション', async () => {
+  const res = await normalize('東京都町田市木曽東四丁目１４ーＡ２２ ジオロニアマンション')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-A22 ジオロニアマンション", "level": 3})
+})
+
+test('東京都町田市木曽東4丁目一四━Ａ二二 ジオロニアマンション', async () => {
+  const res = await normalize('東京都町田市木曽東四丁目一四━Ａ二二 ジオロニアマンション')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-A22 ジオロニアマンション", "level": 3})
+})
+
+test('東京都江東区豊洲 一丁目2-27', async () => {
+  const res = await normalize('東京都江東区豊洲 一丁目2-27')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "level": 3})
+})
+
+test('東京都江東区豊洲 四-2-27', async () => {
+  const res = await normalize('東京都江東区豊洲 四-2-27')
+  expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲四丁目", "addr": "2-27", "level": 3})
+})
