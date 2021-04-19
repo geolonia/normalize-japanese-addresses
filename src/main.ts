@@ -98,14 +98,14 @@ const getTownRegexes = async (pref: string, city: string) => {
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
-          /([壱一二三四五六七八九十]+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/g,
+          /([壱一二三四五六七八九十]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/g,
           (match: string) => {
             const regexes = []
 
             regexes.push(
               match
                 .toString()
-                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, ''),
+                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, ''),
             ) // 漢数字
 
             if (match.match(/^壱/)) {
@@ -117,7 +117,7 @@ const getTownRegexes = async (pref: string, city: string) => {
                 .replace(/([一二三四五六七八九十]+)/g, (match) => {
                   return kan2num(match)
                 })
-                .replace(/(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, '')
+                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, '')
 
               regexes.push(num.toString()) // 半角アラビア数字
               regexes.push(
@@ -128,7 +128,7 @@ const getTownRegexes = async (pref: string, city: string) => {
             // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
             return `(${regexes.join(
               '|',
-            )})((丁|町)目?|番町|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+            )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
           },
         ),
     )
@@ -181,7 +181,7 @@ export const normalize: (
         return zen2han(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
       },
     )
-    .replace(/(.+)(丁目?|番町|条|軒|線|(の|ノ)町|地割)/, (match) => {
+    .replace(/(.+)(丁目?|番(町|地|丁)|条|軒|線|(の|ノ)町|地割)/, (match) => {
       return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
     })
     .replace(/.+?[0-9一二三四五六七八九〇十百千]-/, (match) => {

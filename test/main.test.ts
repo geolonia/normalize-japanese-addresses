@@ -563,3 +563,33 @@ test('東京都江東区豊洲 四-2-27', async () => {
   const res = await normalize('東京都江東区豊洲 四-2-27')
   expect(res).toStrictEqual({ "pref": "東京都", "city": "江東区", "town": "豊洲四丁目", "addr": "2-27", "level": 3})
 })
+
+test('石川県七尾市藤橋町亥45番地1', async () => {
+  const res = await normalize('石川県七尾市藤橋町亥45番地1')
+  expect(res).toStrictEqual({ "pref": "石川県", "city": "七尾市", "town": "藤橋町", "addr": "亥45-1", "level": 3})
+})
+
+test('石川県七尾市藤橋町亥四十五番地1', async () => {
+  const res = await normalize('石川県七尾市藤橋町亥四十五番地1')
+  expect(res).toStrictEqual({ "pref": "石川県", "city": "七尾市", "town": "藤橋町", "addr": "亥45-1", "level": 3})
+})
+
+test('石川県七尾市藤橋町 亥 四十五番地1', async () => {
+  const res = await normalize('石川県七尾市藤橋町 亥 四十五番地1')
+  expect(res).toStrictEqual({ "pref": "石川県", "city": "七尾市", "town": "藤橋町", "addr": "亥45-1", "level": 3})
+})
+
+test('石川県七尾市藤橋町 亥 45-1', async () => {
+  const res = await normalize('石川県七尾市藤橋町 亥 45-1')
+  expect(res).toStrictEqual({ "pref": "石川県", "city": "七尾市", "town": "藤橋町", "addr": "亥45-1", "level": 3})
+})
+
+test('和歌山県和歌山市 七番丁19', async () => {
+  const res = await normalize('和歌山県和歌山市 七番丁 19')
+  expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "level": 3})
+})
+
+test('和歌山県和歌山市7番町19', async () => {
+  const res = await normalize('和歌山県和歌山市7番町19')
+  expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "level": 3})
+})
