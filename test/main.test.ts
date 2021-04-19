@@ -593,3 +593,18 @@ test('和歌山県和歌山市7番町19', async () => {
   const res = await normalize('和歌山県和歌山市7番町19')
   expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "level": 3})
 })
+
+test('和歌山県和歌山市十二番丁45', async () => {
+  const res = await normalize('和歌山県和歌山市十二番丁45')
+  expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "level": 3})
+})
+
+test('和歌山県和歌山市12番丁45', async () => {
+  const res = await normalize('和歌山県和歌山市12番丁45')
+  expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "level": 3})
+})
+
+test('和歌山県和歌山市12-45', async () => {
+  const res = await normalize('和歌山県和歌山市12-45')
+  expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "level": 3})
+})
