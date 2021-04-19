@@ -583,3 +583,13 @@ test('石川県七尾市藤橋町 亥 45-1', async () => {
   const res = await normalize('石川県七尾市藤橋町 亥 45-1')
   expect(res).toStrictEqual({ "pref": "石川県", "city": "七尾市", "town": "藤橋町", "addr": "亥45-1", "level": 3})
 })
+
+test('和歌山県和歌山市 七番丁19', async () => {
+  const res = await normalize('和歌山県和歌山市 七番丁 19')
+  expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "level": 3})
+})
+
+test('和歌山県和歌山市7番町19', async () => {
+  const res = await normalize('和歌山県和歌山市7番町19')
+  expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "level": 3})
+})
