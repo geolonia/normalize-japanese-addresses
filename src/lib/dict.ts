@@ -48,6 +48,7 @@ export const toRegex = (string: string) => {
     .replace(/渕|淵/g, '(渕|淵)')
     .replace(/エ|ヱ|え/g, '(エ|ヱ|え)')
     .replace(/曾|曽/g, '(曾|曽)')
+    .replace(/番町|番丁/g, '(番町|番丁)')
 
   _str = jisKanji(_str)
 
