@@ -608,3 +608,13 @@ test('和歌山県和歌山市12-45', async () => {
   const res = await normalize('和歌山県和歌山市12-45')
   expect(res).toStrictEqual({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "level": 3})
 })
+
+test('兵庫県宝塚市東洋町1番1号', async () => {
+  const res = await normalize('兵庫県宝塚市東洋町1番1号')
+  expect(res).toStrictEqual({ "pref": "兵庫県", "city": "宝塚市", "town": "東洋町", "addr": "1-1", "level": 3})
+})
+
+test('兵庫県宝塚市東洋町1番1号', async () => {
+  const res = await normalize('兵庫県宝塚市東洋町1番1号')
+  expect(res).toStrictEqual({ "pref": "兵庫県", "city": "宝塚市", "town": "東洋町", "addr": "1-1", "level": 3})
+})
