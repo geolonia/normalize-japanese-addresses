@@ -27,6 +27,7 @@ export const toRegex = (string: string) => {
 
   // 以下なるべく文字数が多いものほど上にすること
   _str = _str
+    .replace(/塚|塚/g, '(塚|塚)')
     .replace(/三栄町|四谷三栄町/g, '(三栄町|四谷三栄町)')
     .replace(/通り|とおり/g, '(通り|とおり)')
     .replace(/埠頭|ふ頭/g, '(埠頭|ふ頭)')
