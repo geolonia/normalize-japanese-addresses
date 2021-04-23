@@ -16,7 +16,6 @@
   "devDependencies": {
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.37",
-    "@types/node-fetch": "^2.5.8",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",
@@ -44,7 +43,7 @@
   },
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.11",
-    "node-fetch": "^2.6.1",
-    "node-fetch-cache": "^1.0.6"
+    "axios": "^0.21.1",
+    "axios-cache-adapter": "^2.7.3"
   }
 }
