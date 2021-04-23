@@ -11,7 +11,7 @@ import { setupCache } from 'axios-cache-adapter'
 
 const apiCache = setupCache({
   maxAge: 24 * 60 * 60 * 1000, // 1日間キャッシュ
-  limit: 1000,
+  limit: 10000,
 })
 
 const apiFetch = axios.create({
