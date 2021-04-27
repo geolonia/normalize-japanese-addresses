@@ -9,14 +9,16 @@
     "test:addresses": "jest test/addresses.test.ts",
     "test:generate-test-data": "npx ts-node test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" --fix",
-    "build": "tsc"
+    "build": "rm -rf ./dist && rollup -c ./rollup.config.ts"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^11.2.1",
+    "@rollup/plugin-typescript": "^8.2.1",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.37",
-    "@types/node-fetch": "^2.5.8",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",
@@ -24,6 +26,7 @@
     "eslint-plugin-prettier": "^3.3.1",
     "jest": "^26.6.3",
     "prettier": "^2.2.1",
+    "rollup": "^2.45.2",
     "ts-jest": "^26.5.3",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"
@@ -44,7 +47,12 @@
   },
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.11",
-    "node-fetch": "^2.6.1",
-    "node-fetch-cache": "^1.0.6"
+    "axios": "^0.21.1",
+    "axios-cache-adapter": "^2.7.3",
+    "follow-redirects": "^1.13.3"
+  },
+  "peerDependencies": {
+    "axios": "^0.21.1",
+    "axios-cache-adapter": "^2.7.3"
   }
 }
