@@ -31,7 +31,7 @@ const kan2num = (string: string) => {
 }
 
 const zen2han = (str: string) => {
-  return str.replace(/[Ａ-Ｚａ-ｚ０-９ー−]/g, (s) => {
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => {
     if ('ー' === s || '−' === s) {
       return '-'
     } else {
@@ -82,6 +82,7 @@ const getCityRegexes = (pref: string, cities: string[]) => {
 }
 
 const cachedTownRegexes: { [key: string]: [string, RegExp][] } = {}
+
 const getTownRegexes = async (pref: string, city: string) => {
   const cachedResult = cachedTownRegexes[`${pref}-${city}`]
   if (typeof cachedResult !== 'undefined') {
@@ -126,17 +127,14 @@ const getTownRegexes = async (pref: string, city: string) => {
                 .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, '')
 
               regexes.push(num.toString()) // 半角アラビア数字
-              regexes.push( // 全角アラビア数字
-                num.replace(/[0-9]/, (match) => {
-                  return String.fromCharCode(match[0].toString().charCodeAt(0) + 0xfee0)
-                })
-              )
             }
 
             // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
-            return `(${regexes.join(
+            const _regex = `(${regexes.join(
               '|',
             )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+
+            return _regex // デバッグのときにめんどくさいので変数に入れる。
           },
         ),
     )
@@ -172,7 +170,6 @@ export const normalize: (
   input: string,
   option?: Option,
 ) => Promise<NormalizeResult> = async (address, option = defaultOption) => {
-
   /**
    * 入力された住所に対して以下の正規化を予め行う。
    *
@@ -183,10 +180,14 @@ export const normalize: (
   let addr = address
     .replace(/　/g, ' ')
     .replace(/ +/g, ' ')
+    .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => {
+      // 全角のアラビア数字は問答無用で半角にする
+      return zen2han(match)
+    })
     .replace(
       /([0-9０-９一二三四五六七八九〇十百千][-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])|([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])[0-9０-９一二三四五六七八九〇十]/g,
       (match) => {
-        return zen2han(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+        return match.replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
       },
     )
     .replace(/(.+)(丁目?|番(町|地|丁)|条|軒|線|(の|ノ)町|地割)/, (match) => {
@@ -244,6 +245,7 @@ export const normalize: (
     for (let i = 0; i < townRegexes.length; i++) {
       const [_town, reg] = townRegexes[i]
       const match = addr.match(reg)
+
       if (match) {
         town = _town
         addr = addr.substr(match[0].length)
@@ -253,10 +255,6 @@ export const normalize: (
 
     addr = addr
       .replace(/^-/, '')
-      .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => {
-        // 全角のアラビア数字は問答無用で半角にする
-        return zen2han(match)
-      })
       .replace(/([0-9]+)(丁目)/g, (match) => {
         return match.replace(/([0-9]+)/g, (num) => {
           return number2kanji(Number(num))
@@ -271,19 +269,13 @@ export const normalize: (
       .replace(
         /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
         (match) => {
-          return kan2num(match).replace(
-            /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
-            '-',
-          )
+          return kan2num(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
         },
       )
       .replace(
         /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
         (match) => {
-          return kan2num(match).replace(
-            /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
-            '-',
-          )
+          return kan2num(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
         },
       )
       .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
