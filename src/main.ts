@@ -126,9 +126,11 @@ const getTownRegexes = async (pref: string, city: string) => {
                 .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, '')
 
               regexes.push(num.toString()) // 半角アラビア数字
-              regexes.push(
-                String.fromCharCode(num.toString().charCodeAt(0) + 0xfee0),
-              ) // 全角アラビア数字
+              regexes.push( // 全角アラビア数字
+                num.replace(/[0-9]/, (match) => {
+                  return String.fromCharCode(match[0].toString().charCodeAt(0) + 0xfee0)
+                })
+              )
             }
 
             // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
