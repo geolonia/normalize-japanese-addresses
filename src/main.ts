@@ -1,16 +1,22 @@
-import os from 'os'
-import path from 'path'
 import {
   kanji2number,
   number2kanji,
   findKanjiNumbers,
 } from '@geolonia/japanese-numeral'
 
-const today = new Date().toISOString().slice(0, 10)
-const tmpdir = path.join(os.tmpdir(), `normalize-japanese-addresses-${today}`)
-
-const fetch = require('node-fetch-cache')(tmpdir)
 import { toRegex } from './lib/dict'
+
+import axios from 'axios'
+import { setupCache } from 'axios-cache-adapter'
+
+const apiCache = setupCache({
+  maxAge: 24 * 60 * 60 * 1000, // 1日間キャッシュ
+  limit: 10000,
+})
+
+const apiFetch = axios.create({
+  adapter: apiCache.adapter,
+})
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
@@ -82,10 +88,10 @@ const getTownRegexes = async (pref: string, city: string) => {
     return cachedResult
   }
 
-  const responseTowns = await fetch(
+  const responseTowns = await apiFetch(
     `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
   )
-  const towns = (await responseTowns.json()) as string[]
+  const towns = responseTowns.data as string[]
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
@@ -197,8 +203,8 @@ export const normalize: (
 
   // 都道府県名の正規化
 
-  const responsePrefs = await fetch(`${endpoint}.json`)
-  const prefectures = await responsePrefs.json()
+  const responsePrefs = await apiFetch(`${endpoint}.json`)
+  const prefectures = responsePrefs.data as { [key: string]: string[] }
   const prefs = Object.keys(prefectures)
 
   const prefRegexes = getPrefectureRegexes(prefs)
