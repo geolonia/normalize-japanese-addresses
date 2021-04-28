@@ -32,11 +32,7 @@ const kan2num = (string: string) => {
 
 const zen2han = (str: string) => {
   return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => {
-    if ('ー' === s || '−' === s) {
-      return '-'
-    } else {
-      return String.fromCharCode(s.charCodeAt(0) - 0xfee0)
-    }
+    return String.fromCharCode(s.charCodeAt(0) - 0xfee0)
   })
 }
 
@@ -174,7 +170,7 @@ export const normalize: (
    * 入力された住所に対して以下の正規化を予め行う。
    *
    * 1. `1-2-3` や `四-五-六` のようなフォーマットのハイフンを半角に統一。
-   * 2. 町丁目以前にあるスペースをすべて削除。
+   * 2. すべてのアルファベットと数字を半角に変換する
    * 3. 最初に出てくる `1-` や `五-` のような文字列を町丁目とみなして、それ以前のスペースをすべて削除する。
    */
   let addr = address
