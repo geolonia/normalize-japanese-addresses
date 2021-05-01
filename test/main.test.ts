@@ -111,7 +111,7 @@ test('京都府京都市東山区大和大路通三条下る東入若松町393',
 
 test('長野県長野市長野東之門町2462', async () => {
   const res = await normalize('長野県長野市長野東之門町2462')
-  expect(res).toStrictEqual({"pref": "長野県", "city": "長野市", "town": "長野", "addr": "東之門町2462", "level": 3})
+  expect(res).toStrictEqual({"pref": "長野県", "city": "長野市", "town": "大字長野", "addr": "東之門町2462", "level": 3})
 })
 
 test('岩手県下閉伊郡普代村第１地割上村４３−２５', async () => {
@@ -266,12 +266,12 @@ test('千葉県鎌ケ谷市中佐津間２丁目１５－１４－９', async ()
 
 test('岐阜県不破郡関ケ原町関ヶ原１７０１−６', async () => {
   const res = await normalize('岐阜県不破郡関ケ原町関ヶ原１７０１−６')
-  expect(res).toStrictEqual({"pref": "岐阜県", "city": "不破郡関ケ原町", "town": "関ケ原", "addr": "1701-6", "level": 3})
+  expect(res).toStrictEqual({"pref": "岐阜県", "city": "不破郡関ケ原町", "town": "大字関ケ原", "addr": "1701-6", "level": 3})
 })
 
 test('岐阜県関ケ原町関ヶ原１７０１−６', async () => {
   const res = await normalize('岐阜県関ケ原町関ヶ原１７０１−６')
-  expect(res).toStrictEqual({"pref": "岐阜県", "city": "不破郡関ケ原町", "town": "関ケ原", "addr": "1701-6", "level": 3})
+  expect(res).toStrictEqual({"pref": "岐阜県", "city": "不破郡関ケ原町", "town": "大字関ケ原", "addr": "1701-6", "level": 3})
 })
 
 test('東京都町田市木曽東4丁目14-イ22', async () => {
@@ -341,12 +341,12 @@ test('富山県富山市中央通り3-1-23', async () => {
 
 test('埼玉県南埼玉郡宮代町大字国納３０9－１', async () => {
   const res = await normalize('埼玉県南埼玉郡宮代町大字国納３０9－１')
-  expect(res).toStrictEqual({"pref": "埼玉県", "city": "南埼玉郡宮代町", "town": "国納", "addr": "309-1", "level": 3})
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "南埼玉郡宮代町", "town": "大字国納", "addr": "309-1", "level": 3})
 })
 
 test('埼玉県南埼玉郡宮代町国納３０9－１', async () => {
   const res = await normalize('埼玉県南埼玉郡宮代町国納３０9－１')
-  expect(res).toStrictEqual({"pref": "埼玉県", "city": "南埼玉郡宮代町", "town": "国納", "addr": "309-1", "level": 3})
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "南埼玉郡宮代町", "town": "大字国納", "addr": "309-1", "level": 3})
 })
 
 test('大阪府高槻市奈佐原２丁目１－２ メゾンエトワール', async () => {
@@ -436,27 +436,27 @@ test('新潟県新潟市中央区上大川前通十一番町1881-2', async () =>
 
 test('埼玉県上尾市壱丁目１１１', async () => {
   const res = await normalize('埼玉県上尾市壱丁目１１１')
-  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111", "level": 3})
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "大字壱丁目", "addr": "111", "level": 3})
 })
 
 test('埼玉県上尾市一丁目１１１', async () => {
   const res = await normalize('埼玉県上尾市一丁目１１１')
-  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111", "level": 3})
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "大字壱丁目", "addr": "111", "level": 3})
 })
 
 test('埼玉県上尾市一町目１１１', async () => {
   const res = await normalize('埼玉県上尾市一町目１１１')
-  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111", "level": 3})
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "大字壱丁目", "addr": "111", "level": 3})
 })
 
 test('埼玉県上尾市壱町目１１１', async () => {
   const res = await normalize('埼玉県上尾市壱町目１１１')
-  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111", "level": 3})
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "大字壱丁目", "addr": "111", "level": 3})
 })
 
 test('埼玉県上尾市1-111', async () => {
   const res = await normalize('埼玉県上尾市1-111')
-  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "壱丁目", "addr": "111", "level": 3})
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "上尾市", "town": "大字壱丁目", "addr": "111", "level": 3})
 })
 
 test('神奈川県横浜市港北区大豆戸町１７番地１１', async () => {
@@ -652,4 +652,24 @@ test('府中市府川町315', async () => {
 test('府中市宮西町2丁目24番地', async () => {
   const res = await normalize('府中市宮西町2丁目24番地')
   expect(res).toStrictEqual({"pref": "東京都", "city": "府中市", "town": "宮西町二丁目", "addr": "24", "level": 3})
+})
+
+test('三重県三重郡菰野町大字大強原2796', async () => {
+  const res = await normalize('三重県三重郡菰野町大字大強原2796')
+  expect(res).toStrictEqual({"pref": "三重県", "city": "三重郡菰野町", "town": "大字大強原", "addr": "2796", "level": 3})
+})
+
+test('三重県三重郡菰野町大強原2796', async () => {
+  const res = await normalize('三重県三重郡菰野町大強原2796')
+  expect(res).toStrictEqual({"pref": "三重県", "city": "三重郡菰野町", "town": "大字大強原", "addr": "2796", "level": 3})
+})
+
+test('福岡県北九州市小倉南区大字井手浦874', async () => {
+  const res = await normalize('福岡県北九州市小倉南区大字井手浦874')
+  expect(res).toStrictEqual({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "level": 3})
+})
+
+test('福岡県北九州市小倉南区井手浦874', async () => {
+  const res = await normalize('福岡県北九州市小倉南区井手浦874')
+  expect(res).toStrictEqual({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "level": 3})
 })

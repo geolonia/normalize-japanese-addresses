@@ -120,9 +120,9 @@ export const getTownRegexes = async (pref: string, city: string) => {
     )
 
     if (city.match(/^京都市/)) {
-      return [town.replace(/^大字/, ''), new RegExp(`.*${regex}`)]
+      return [town, new RegExp(`.*${regex}`)]
     } else {
-      return [town.replace(/^大字/, ''), new RegExp(`^${regex}`)]
+      return [town, new RegExp(`^${regex}`)]
     }
   }) as [string, RegExp][]
 

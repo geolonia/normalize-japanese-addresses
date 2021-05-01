@@ -24,7 +24,6 @@ const defaultOption: Option = {
 
 const normalizeTownName = async (addr: string, pref: string, city: string) => {
   addr = addr.trim().replace(/^大字/, '')
-
   const townRegexes = await getTownRegexes(pref, city)
 
   for (let i = 0; i < townRegexes.length; i++) {
