@@ -22,6 +22,21 @@ const defaultOption: Option = {
   level: 3,
 }
 
+const normalizeTownName = async (addr: string, pref: string, city: string) => {
+  addr = addr.trim().replace(/^大字/, '')
+
+  const townRegexes = await getTownRegexes(pref, city)
+
+  for (let i = 0; i < townRegexes.length; i++) {
+    const [_town, reg] = townRegexes[i]
+    const match = addr.match(reg)
+
+    if (match) {
+      return {town: _town, addr: addr.substr(match[0].length)}
+    }
+  }
+}
+
 export const normalize: (
   input: string,
   option?: Option,
@@ -74,10 +89,41 @@ export const normalize: (
     }
   }
 
-  // 市区町村名の正規化
+  if (!pref) { // 都道府県名が省略されている
+    const matched = []
+    for (const _pref in prefectures) {
+      const cities = prefectures[_pref]
+      const cityRegexes = getCityRegexes(_pref, cities)
+
+      addr = addr.trim()
+      for (let i = 0; i < cityRegexes.length; i++) {
+        const [_city, regex] = cityRegexes[i]
+        const match = addr.match(regex)
+        if (match) {
+          matched.push({
+            pref: _pref,
+            city: _city,
+            addr: addr.substring(match[0].length)
+          })
+        }
+      }
+    }
+
+    // マッチする都道府県が複数ある場合は町名まで正規化して都道府県名を判別する。（例: 東京都府中市と広島県府中市など）
+    if (1 === matched.length) {
+      pref = matched[0].pref
+    } else {
+      for (let i = 0; i < matched.length; i++) {
+        const normalized = await normalizeTownName(matched[i].addr, matched[i].pref, matched[i].city)
+        if (normalized) {
+          pref = matched[i].pref
+        }
+      }
+    }
+  }
+
   if (pref && option.level >= 2) {
     const cities = prefectures[pref]
-
     const cityRegexes = getCityRegexes(pref, cities)
 
     addr = addr.trim()
@@ -94,19 +140,10 @@ export const normalize: (
 
   // 町丁目以降の正規化'
   if (city && option.level >= 3) {
-    addr = addr.trim().replace(/^大字/, '')
-
-    const townRegexes = await getTownRegexes(pref, city)
-
-    for (let i = 0; i < townRegexes.length; i++) {
-      const [_town, reg] = townRegexes[i]
-      const match = addr.match(reg)
-
-      if (match) {
-        town = _town
-        addr = addr.substr(match[0].length)
-        break
-      }
+    const normalized = await normalizeTownName(addr, pref, city)
+    if (normalized) {
+      town = normalized.town
+      addr = normalized.addr
     }
 
     addr = addr

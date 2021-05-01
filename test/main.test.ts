@@ -628,3 +628,28 @@ test('北海道札幌市北区北２４条西６丁目１−１', async () => {
   const res = await normalize('北海道札幌市北区北２４条西６丁目１−１')
   expect(res).toStrictEqual({ "pref": "北海道", "city": "札幌市北区", "town": "北二十四条西六丁目", "addr": "1-1", "level": 3})
 })
+
+test('堺市北区新金岡町4丁1−8', async () => {
+  const res = await normalize('堺市北区新金岡町4丁1−8')
+  expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町四丁", "addr": "1-8", "level": 3})
+})
+
+test('串本町串本1234', async () => {
+  const res = await normalize('串本町串本1234')
+  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "level": 3})
+})
+
+test('広島県府中市府川町315', async () => {
+  const res = await normalize('広島県府中市府川町315')
+  expect(res).toStrictEqual({"pref": "広島県", "city": "府中市", "town": "府川町", "addr": "315", "level": 3})
+})
+
+test('府中市府川町315', async () => {
+  const res = await normalize('府中市府川町315')
+  expect(res).toStrictEqual({"pref": "広島県", "city": "府中市", "town": "府川町", "addr": "315", "level": 3})
+})
+
+test('府中市宮西町2丁目24番地', async () => {
+  const res = await normalize('府中市宮西町2丁目24番地')
+  expect(res).toStrictEqual({"pref": "東京都", "city": "府中市", "town": "宮西町二丁目", "addr": "24", "level": 3})
+})
