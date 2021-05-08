@@ -14,7 +14,6 @@ const apiFetch = axios.create({
 
 const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
 
-
 let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
 const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
 const cachedTownRegexes: { [key: string]: [string, RegExp][] } = {}
@@ -36,7 +35,6 @@ export const getPrefectureRegexes = (prefs: string[]) => {
 
   return cachedPrefectureRegexes
 }
-
 
 export const getCityRegexes = (pref: string, cities: string[]) => {
   const cachedResult = cachedCityRegexes[pref]
