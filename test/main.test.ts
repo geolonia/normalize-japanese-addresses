@@ -673,3 +673,8 @@ test('福岡県北九州市小倉南区井手浦874', async () => {
   const res = await normalize('福岡県北九州市小倉南区井手浦874')
   expect(res).toStrictEqual({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "level": 3})
 })
+
+test('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１', async () => {
+  const res = await normalize('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１')
+  expect(res).toStrictEqual({"pref": "沖縄県", "city": "那覇市", "town": "小禄一丁目", "addr": "5-23 一丁目マンション301", "level": 3})
+})
