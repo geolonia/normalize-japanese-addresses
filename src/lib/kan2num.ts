@@ -1,7 +1,4 @@
-import {
-  kanji2number,
-  findKanjiNumbers,
-} from '@geolonia/japanese-numeral'
+import { kanji2number, findKanjiNumbers } from '@geolonia/japanese-numeral'
 
 export const kan2num = (string: string) => {
   const kanjiNumbers = findKanjiNumbers(string)

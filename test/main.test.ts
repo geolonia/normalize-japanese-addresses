@@ -673,3 +673,28 @@ test('福岡県北九州市小倉南区井手浦874', async () => {
   const res = await normalize('福岡県北九州市小倉南区井手浦874')
   expect(res).toStrictEqual({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "level": 3})
 })
+
+test('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１', async () => {
+  const res = await normalize('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１')
+  expect(res).toStrictEqual({"pref": "沖縄県", "city": "那覇市", "town": "小禄一丁目", "addr": "5-23 一丁目マンション301", "level": 3})
+})
+
+test('香川県仲多度郡まんのう町勝浦字家六２０９４番地１', async () => {
+  const res = await normalize('香川県仲多度郡まんのう町勝浦字家六２０９４番地１')
+  expect(res).toStrictEqual({"pref": "香川県", "city": "仲多度郡まんのう町", "town": "勝浦", "addr": "家六2094-1", "level": 3})
+})
+
+test('香川県仲多度郡まんのう町勝浦家六２０９４番地１', async () => {
+  const res = await normalize('香川県仲多度郡まんのう町勝浦家六２０９４番地１')
+  expect(res).toStrictEqual({"pref": "香川県", "city": "仲多度郡まんのう町", "town": "勝浦", "addr": "家六2094-1", "level": 3})
+})
+
+test('愛知県あま市西今宿梶村一３８番地４', async () => {
+  const res = await normalize('愛知県あま市西今宿梶村一３８番地４')
+  expect(res).toStrictEqual({"pref": "愛知県", "city": "あま市", "town": "西今宿", "addr": "梶村一38-4", "level": 3})
+})
+
+test('香川県丸亀市原田町字東三分一１９２６番地１', async () => {
+  const res = await normalize('香川県丸亀市原田町字東三分一１９２６番地１')
+  expect(res).toStrictEqual({"pref": "香川県", "city": "丸亀市", "town": "原田町", "addr": "東三分一1926-1", "level": 3})
+})

@@ -1,10 +1,14 @@
-import {
-  number2kanji,
-} from '@geolonia/japanese-numeral'
+import { number2kanji } from '@geolonia/japanese-numeral'
 
 import { kan2num } from './lib/kan2num'
 import { zen2han } from './lib/zen2han'
-import { getPrefectures, getPrefectureRegexes, getCityRegexes, getTownRegexes } from './lib/cacheRegexes'
+import { patchAddr } from './lib/patchAddr'
+import {
+  getPrefectures,
+  getPrefectureRegexes,
+  getCityRegexes,
+  getTownRegexes,
+} from './lib/cacheRegexes'
 
 export interface NormalizeResult {
   pref: string
@@ -31,7 +35,7 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
     const match = addr.match(reg)
 
     if (match) {
-      return {town: _town, addr: addr.substr(match[0].length)}
+      return { town: _town, addr: addr.substr(match[0].length) }
     }
   }
 }
@@ -88,7 +92,8 @@ export const normalize: (
     }
   }
 
-  if (!pref) { // 都道府県名が省略されている
+  if (!pref) {
+    // 都道府県名が省略されている
     const matched = []
     for (const _pref in prefectures) {
       const cities = prefectures[_pref]
@@ -102,7 +107,7 @@ export const normalize: (
           matched.push({
             pref: _pref,
             city: _city,
-            addr: addr.substring(match[0].length)
+            addr: addr.substring(match[0].length),
           })
         }
       }
@@ -113,7 +118,11 @@ export const normalize: (
       pref = matched[0].pref
     } else {
       for (let i = 0; i < matched.length; i++) {
-        const normalized = await normalizeTownName(matched[i].addr, matched[i].pref, matched[i].city)
+        const normalized = await normalizeTownName(
+          matched[i].addr,
+          matched[i].pref,
+          matched[i].city,
+        )
         if (normalized) {
           pref = matched[i].pref
         }
@@ -153,7 +162,11 @@ export const normalize: (
         })
       })
       .replace(
-        /([0-9〇一二三四五六七八九十百千]+)(番|番地)([(0-9〇一二三四五六七八九十百千]+)号?/,
+        /(([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号)(.+)/,
+        '$1 $5',
+      )
+      .replace(
+        /([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号?/,
         '$1-$3',
       )
       .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
@@ -188,6 +201,8 @@ export const normalize: (
       })
       .trim()
   }
+
+  addr = patchAddr(pref, city, town, addr)
 
   if (pref) level = level + 1
   if (city) level = level + 1
