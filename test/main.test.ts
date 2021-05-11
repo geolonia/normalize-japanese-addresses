@@ -154,6 +154,11 @@ test('岩手県盛岡市盛岡駅西通２の９の１', async () => {
   expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通二丁目", "addr": "9-1", "level": 3})
 })
 
+test('岩手県盛岡市盛岡駅西通２丁目９番地１号', async () => {
+  const res = await normalize('岩手県盛岡市盛岡駅西通２丁目９番地１号 マリオス10F')
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "盛岡市", "town": "盛岡駅西通二丁目", "addr": "9-1 マリオス10F", "level": 3})
+})
+
 test('東京都文京区千石4丁目15－7', async () => {
   const res = await normalize('東京都文京区千石4丁目15-7')
   expect(res).toStrictEqual({"pref": "東京都", "city": "文京区", "town": "千石四丁目", "addr": "15-7", "level": 3})

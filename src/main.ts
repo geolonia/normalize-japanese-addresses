@@ -81,7 +81,7 @@ export const normalize: (
   const responsePrefs = await getPrefectures()
   const prefectures = responsePrefs.data as { [key: string]: string[] }
   const prefs = Object.keys(prefectures)
-  const prefRegexes = await getPrefectureRegexes(prefs)
+  const prefRegexes = getPrefectureRegexes(prefs)
 
   for (let i = 0; i < prefRegexes.length; i++) {
     const [_pref, reg] = prefRegexes[i]
@@ -162,7 +162,7 @@ export const normalize: (
         })
       })
       .replace(
-        /(([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号)(.+)/,
+        /(([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号)\s*(.+)/,
         '$1 $5',
       )
       .replace(
