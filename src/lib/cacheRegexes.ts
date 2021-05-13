@@ -12,7 +12,7 @@ const apiFetch = axios.create({
   adapter: apiCache.adapter,
 })
 
-const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
+const endpoint = 'https://japanese-addresses.geolonia.com/v0.0.2/ja'
 
 let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
 const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}

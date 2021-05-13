@@ -43,7 +43,8 @@
       "ts-jest": {
         "tsconfig": "tsconfig.json"
       }
-    }
+    },
+    "testEnvironment": "node"
   },
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.11",
