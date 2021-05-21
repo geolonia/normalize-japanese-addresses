@@ -1,25 +1,26 @@
 import axios from 'axios'
-import { setupCache } from 'axios-cache-adapter'
 import { toRegex } from './dict'
 import { kan2num } from './kan2num'
+import { currentConfig } from '../config'
 
-const apiCache = setupCache({
-  maxAge: 24 * 60 * 60 * 1000, // 1日間キャッシュ
-  limit: 10000,
-})
-
-const apiFetch = axios.create({
-  adapter: apiCache.adapter,
-})
-
-const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
+type PrefectureList = { [key: string]: string[] }
+type TownList = string[]
 
 let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
 const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
 const cachedTownRegexes: { [key: string]: [string, RegExp][] } = {}
+let cachedPrefectures: PrefectureList | undefined = undefined
+const cachedTowns: { [key: string]: TownList } = {}
 
 export const getPrefectures = async () => {
-  return await apiFetch(`${endpoint}.json`)
+  if (typeof cachedPrefectures !== 'undefined') {
+    return cachedPrefectures
+  }
+
+  const resp = await axios.get<PrefectureList>(
+    `${currentConfig.japaneseAddressesApi}.json`,
+  )
+  return (cachedPrefectures = resp.data)
 }
 
 export const getPrefectureRegexes = (prefs: string[]) => {
@@ -61,16 +62,31 @@ export const getCityRegexes = (pref: string, cities: string[]) => {
   return regexes
 }
 
+export const getTowns = async (pref: string, city: string) => {
+  const cacheKey = `${pref}-${city}`
+  const cachedTown = cachedTowns[cacheKey]
+  if (typeof cachedTown !== 'undefined') {
+    return cachedTown
+  }
+
+  const responseTowns = await axios.get<TownList>(
+    [
+      currentConfig.japaneseAddressesApi,
+      encodeURI(pref),
+      encodeURI(city) + '.json',
+    ].join('/'),
+  )
+  const towns = responseTowns.data as string[]
+  return (cachedTowns[cacheKey] = towns)
+}
+
 export const getTownRegexes = async (pref: string, city: string) => {
   const cachedResult = cachedTownRegexes[`${pref}-${city}`]
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
   }
 
-  const responseTowns = await apiFetch(
-    `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
-  )
-  const towns = responseTowns.data as string[]
+  const towns = await getTowns(pref, city)
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {

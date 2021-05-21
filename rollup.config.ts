@@ -9,5 +9,5 @@ export default {
     format: 'cjs',
   },
   plugins: [typescript(), resolve(), commonjs()],
-  external: ['axios', 'axios-cache-adapter'],
+  external: ['axios'],
 }
