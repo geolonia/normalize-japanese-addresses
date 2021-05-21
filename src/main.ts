@@ -81,8 +81,7 @@ export const normalize: (
 
   // 都道府県名の正規化
 
-  const responsePrefs = await getPrefectures()
-  const prefectures = responsePrefs.data as { [key: string]: string[] }
+  const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
   const prefRegexes = getPrefectureRegexes(prefs)
 

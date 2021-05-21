@@ -48,11 +48,9 @@
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.11",
     "axios": "^0.21.1",
-    "axios-cache-adapter": "^2.7.3",
     "follow-redirects": "^1.13.3"
   },
   "peerDependencies": {
-    "axios": "^0.21.1",
-    "axios-cache-adapter": "^2.7.3"
+    "axios": "^0.21.1"
   }
 }
