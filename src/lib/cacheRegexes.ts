@@ -12,7 +12,7 @@ const apiFetch = axios.create({
   adapter: apiCache.adapter,
 })
 
-const endpoint = 'https://japanese-addresses.geolonia.com/v0.0.2/ja'
+const endpoint = 'https://japanese-addresses.geolonia.com/v0.1.0/ja'
 
 let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
 const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
@@ -70,7 +70,12 @@ export const getTownRegexes = async (pref: string, city: string) => {
   const responseTowns = await apiFetch(
     `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
   )
-  const towns = responseTowns.data as string[]
+  const townsResp = responseTowns.data as {
+    town: string
+    lat: string
+    lng: string
+  }[]
+  const towns = townsResp.map(({ town }) => town)
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
