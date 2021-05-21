@@ -9,6 +9,7 @@ import {
   getCityRegexes,
   getTownRegexes,
 } from './lib/cacheRegexes'
+import { currentConfig } from './config'
 
 export interface NormalizeResult {
   pref: string
@@ -21,6 +22,8 @@ export interface NormalizeResult {
 export interface Option {
   level: number
 }
+
+export const config = currentConfig
 
 const defaultOption: Option = {
   level: 3,

@@ -2,6 +2,7 @@ import axios from 'axios'
 import { setupCache } from 'axios-cache-adapter'
 import { toRegex } from './dict'
 import { kan2num } from './kan2num'
+import { currentConfig } from '../config'
 
 const apiCache = setupCache({
   maxAge: 24 * 60 * 60 * 1000, // 1日間キャッシュ
@@ -12,14 +13,12 @@ const apiFetch = axios.create({
   adapter: apiCache.adapter,
 })
 
-const endpoint = 'https://geolonia.github.io/japanese-addresses/api/ja'
-
 let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
 const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
 const cachedTownRegexes: { [key: string]: [string, RegExp][] } = {}
 
 export const getPrefectures = async () => {
-  return await apiFetch(`${endpoint}.json`)
+  return await apiFetch(`${currentConfig.japaneseAddressesApi}.json`)
 }
 
 export const getPrefectureRegexes = (prefs: string[]) => {
@@ -68,7 +67,11 @@ export const getTownRegexes = async (pref: string, city: string) => {
   }
 
   const responseTowns = await apiFetch(
-    `${endpoint}/${encodeURI(pref)}/${encodeURI(city)}.json`,
+    [
+      currentConfig.japaneseAddressesApi,
+      encodeURI(pref),
+      encodeURI(city) + '.json',
+    ].join('/'),
   )
   const towns = responseTowns.data as string[]
 
