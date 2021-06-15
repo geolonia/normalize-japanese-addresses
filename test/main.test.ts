@@ -703,3 +703,13 @@ test('香川県丸亀市原田町字東三分一１９２６番地１', async ()
   const res = await normalize('香川県丸亀市原田町字東三分一１９２６番地１')
   expect(res).toStrictEqual({"pref": "香川県", "city": "丸亀市", "town": "原田町", "addr": "東三分一1926-1", "level": 3})
 })
+
+test('串本町串本千二百三十四 (都道府県無し, 郡無し)', async () => {
+  const res = await normalize('串本町串本千二百三十四')
+  expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "level": 3})
+})
+
+test('せたな町北檜山区北檜山１９３ (都道府県無し, 郡無し)', async () => {
+  const res = await normalize('せたな町北檜山区北檜山１９３')
+  expect(res).toStrictEqual({"pref": "北海道", "city": "久遠郡せたな町", "town": "北檜山区北檜山", "addr": "193", "level": 3})
+})
