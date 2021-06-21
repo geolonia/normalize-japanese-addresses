@@ -1,4 +1,4 @@
-import axios from 'axios'
+import unfetch from 'isomorphic-unfetch'
 import { toRegex } from './dict'
 import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
@@ -17,10 +17,9 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const resp = await axios.get<PrefectureList>(
-    `${currentConfig.japaneseAddressesApi}.json`,
-  )
-  return (cachedPrefectures = resp.data)
+  const resp = await unfetch(`${currentConfig.japaneseAddressesApi}.json`)
+  const data = (await resp.json()) as PrefectureList
+  return (cachedPrefectures = data)
 }
 
 export const getPrefectureRegexes = (prefs: string[]) => {
@@ -69,14 +68,14 @@ export const getTowns = async (pref: string, city: string) => {
     return cachedTown
   }
 
-  const responseTowns = await axios.get<TownList>(
+  const responseTownsResp = await unfetch(
     [
       currentConfig.japaneseAddressesApi,
       encodeURI(pref),
       encodeURI(city) + '.json',
     ].join('/'),
   )
-  const towns = responseTowns.data as string[]
+  const towns = (await responseTownsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
 }
 
