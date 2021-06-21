@@ -5,10 +5,12 @@ name: build
 
 on:
   push:
-    branches: ['*']
+    branches:
+      - master
     tags: ['*']
   pull_request:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
   build:
@@ -16,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x]
+        node-version: [12.x, 14.x, 16.x]
 
     steps:
       - uses: actions/checkout@v2
