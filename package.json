@@ -46,11 +46,7 @@
     }
   },
   "dependencies": {
-    "@geolonia/japanese-numeral": "^0.1.11",
-    "axios": "^0.21.1",
-    "follow-redirects": "^1.13.3"
-  },
-  "peerDependencies": {
-    "axios": "^0.21.1"
+    "@geolonia/japanese-numeral": "^0.1.15",
+    "isomorphic-unfetch": "^3.1.0"
   }
 }
