@@ -713,3 +713,18 @@ test('せたな町北檜山区北檜山１９３ (都道府県無し, 郡無し)
   const res = await normalize('せたな町北檜山区北檜山１９３')
   expect(res).toStrictEqual({"pref": "北海道", "city": "久遠郡せたな町", "town": "北檜山区北檜山", "addr": "193", "level": 3})
 })
+
+test('岩手県花巻市十二丁目７０４', async () => {
+  const res = await normalize('岩手県花巻市十二丁目７０４')
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "level": 3})
+})
+
+test('岩手県花巻市12丁目７０４', async () => {
+  const res = await normalize('岩手県花巻市12丁目７０４')
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "level": 3})
+})
+
+test('岩手県花巻市１２丁目７０４', async () => {
+  const res = await normalize('岩手県花巻市１２丁目７０４')
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "level": 3})
+})
