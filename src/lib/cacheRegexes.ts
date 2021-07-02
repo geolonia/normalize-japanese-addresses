@@ -4,11 +4,17 @@ import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
 
 type PrefectureList = { [key: string]: string[] }
-type TownList = string[]
+interface SingleTown {
+  town: string
+  koaza: string
+  lat: string
+  lng: string
+}
+type TownList = SingleTown[]
 
 let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
 const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
-const cachedTownRegexes: { [key: string]: [string, RegExp][] } = {}
+const cachedTownRegexes: { [key: string]: [SingleTown, RegExp][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
 
@@ -76,7 +82,7 @@ export const getTowns = async (pref: string, city: string) => {
       encodeURI(city) + '.json',
     ].join('/'),
   )
-  const towns = responseTowns.data as string[]
+  const towns = responseTowns.data
   return (cachedTowns[cacheKey] = towns)
 }
 
@@ -90,12 +96,12 @@ export const getTownRegexes = async (pref: string, city: string) => {
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
-    return b.length - a.length
+    return b.town.length - a.town.length
   })
 
   const regexes = towns.map((town) => {
     const regex = toRegex(
-      town
+      town.town
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
@@ -138,7 +144,7 @@ export const getTownRegexes = async (pref: string, city: string) => {
     } else {
       return [town, new RegExp(`^${regex}`)]
     }
-  }) as [string, RegExp][]
+  }) as [SingleTown, RegExp][]
 
   cachedTownRegexes[`${pref}-${city}`] = regexes
   return regexes
