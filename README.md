@@ -74,6 +74,29 @@ $ cd normalize-japanese-addresses
 $ npm install
 ```
 
+次に、以下を実行してコンパイルをおこないます。
+
+```shell
+$ npm run build
+```
+
+dist フォルダ以下に main.js など必要なファイルが生成されるので、
+
+```
+const { normalize } = require('./dist/main.js')
+normalize('北海道札幌市西区24-2-2-3-3', {level: 3}).then(result => {
+  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level"; 1}
+})
+```
+
+という内容で sample.js を用意したら、
+
+```shell
+$ node sample.js
+```
+
+でサンプルファイルを実行することができます。
+
 ## 注意
 
 * この正規化エンジンは、住所の「名寄せ」を目的としており、たとえば京都の「通り名」は削除します。
