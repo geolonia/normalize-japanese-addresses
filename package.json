@@ -18,6 +18,7 @@
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@rollup/plugin-typescript": "^8.2.1",
     "@types/jest": "^26.0.20",
+    "@types/lru-cache": "^5.1.1",
     "@types/node": "^14.14.37",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
@@ -47,6 +48,7 @@
   },
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.15",
-    "isomorphic-unfetch": "^3.1.0"
+    "isomorphic-unfetch": "^3.1.0",
+    "lru-cache": "^6.0.0"
   }
 }

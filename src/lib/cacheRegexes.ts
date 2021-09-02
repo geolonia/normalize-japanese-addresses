@@ -2,6 +2,7 @@ import unfetch from 'isomorphic-unfetch'
 import { toRegex } from './dict'
 import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
+import LRU from 'lru-cache'
 
 type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
@@ -12,9 +13,13 @@ interface SingleTown {
 }
 type TownList = SingleTown[]
 
+const cachedTownRegexes = new LRU<string, [SingleTown, RegExp][]>({
+  max: 300,
+  maxAge: 60 * 60 * 24 * 7, // 7日間
+})
+
 let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
 const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
-const cachedTownRegexes: { [key: string]: [SingleTown, RegExp][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
 
@@ -86,7 +91,7 @@ export const getTowns = async (pref: string, city: string) => {
 }
 
 export const getTownRegexes = async (pref: string, city: string) => {
-  const cachedResult = cachedTownRegexes[`${pref}-${city}`]
+  const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
   }
@@ -145,6 +150,6 @@ export const getTownRegexes = async (pref: string, city: string) => {
     }
   }) as [SingleTown, RegExp][]
 
-  cachedTownRegexes[`${pref}-${city}`] = regexes
+  cachedTownRegexes.set(`${pref}-${city}`, regexes)
   return regexes
 }
