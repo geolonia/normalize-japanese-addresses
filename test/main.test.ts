@@ -728,3 +728,23 @@ test('岩手県花巻市１２丁目７０４', async () => {
   const res = await normalize('岩手県花巻市１２丁目７０４')
   expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "level": 3})
 })
+
+test('京都府京都市中京区河原町二条下ル一之船入町537-50', async () => {
+  const res = await normalize('京都府京都市中京区河原町二条下ル一之船入町537-50')
+  expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3})
+})
+
+test('京都府宇治市莵道森本8−10', async () => {
+  const res = await normalize('京都府宇治市莵道森本8−10')
+  expect(res).toStrictEqual({"pref": "京都府", "city": "宇治市", "town": "莵道", "addr": "森本8-10", "level": 3})
+})
+
+test('京都府京都市中京区河原町二条下ル一之舟入町537-50（船と舟のゆらぎ）', async () => {
+  const res = await normalize('京都府京都市中京区河原町二条下ル一之船入町537-50')
+  expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3})
+})
+
+test('京都府宇治市莵道森本8−10（莵と菟のゆらぎ）', async () => {
+  const res = await normalize('京都府宇治市菟道森本8−10')
+  expect(res).toStrictEqual({"pref": "京都府", "city": "宇治市", "town": "莵道", "addr": "森本8-10", "level": 3})
+})
