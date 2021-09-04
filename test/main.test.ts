@@ -746,3 +746,9 @@ test('京都府宇治市莵道森本8−10（莵と菟のゆらぎ）', async ()
   const res = await normalize('京都府宇治市菟道森本8−10')
   expect(res).toStrictEqual({"pref": "京都府", "city": "宇治市", "town": "莵道", "addr": "森本8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
 })
+  
+// 「都道府県」の文字列を省略した場合
+test('岩手花巻市１２丁目７０４', async () => {
+  const res = await normalize('岩手花巻市１２丁目７０４')
+  expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
+})
