@@ -16,6 +16,8 @@ export interface NormalizeResult {
   city: string
   town: string
   addr: string
+  lat: number | null
+  lng: number | null
   level: number
 }
 
@@ -38,7 +40,7 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
     const match = addr.match(reg)
 
     if (match) {
-      return { town: _town.town, addr: addr.substr(match[0].length) }
+      return { town: _town.town, addr: addr.substr(match[0].length), lat: _town.lat, lng: _town.lng }
     }
   }
 }
@@ -77,6 +79,8 @@ export const normalize: (
   let pref = ''
   let city = ''
   let town = ''
+  let lat = null
+  let lng = null
   let level = 0
 
   // 都道府県名の正規化
@@ -154,6 +158,8 @@ export const normalize: (
     if (normalized) {
       town = normalized.town
       addr = normalized.addr
+      lat = parseFloat(normalized.lat)
+      lng = parseFloat(normalized.lng)
     }
 
     addr = addr
@@ -215,6 +221,8 @@ export const normalize: (
     city,
     town,
     addr,
+    lat,
+    lng,
     level,
   }
 }

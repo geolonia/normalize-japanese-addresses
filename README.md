@@ -26,7 +26,7 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3').then(result => {
-  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3", "level"; 3}
+  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3", "lat": 43.074273, "lng": 141.315099, "level"; 3}
 })
 ```
 
@@ -42,7 +42,7 @@ normalize('北海道札幌市西区24-2-2-3-3').then(result => {
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
-  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level"; 1}
+  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "lat": null, "lng": null, "level"; 1}
 })
 ```
 
@@ -73,6 +73,29 @@ $ git clone git@github.com:geolonia/normalize-japanese-addresses.git
 $ cd normalize-japanese-addresses
 $ npm install
 ```
+
+次に、以下を実行してコンパイルをおこないます。
+
+```shell
+$ npm run build
+```
+
+dist フォルダ以下に main.js など必要なファイルが生成されるので、
+
+```
+const { normalize } = require('./dist/main.js')
+normalize('北海道札幌市西区24-2-2-3-3', {level: 3}).then(result => {
+  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level"; 1}
+})
+```
+
+という内容で sample.js を用意したら、
+
+```shell
+$ node sample.js
+```
+
+でサンプルファイルを実行することができます。
 
 ## 注意
 
