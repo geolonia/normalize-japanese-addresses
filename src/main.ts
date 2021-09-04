@@ -96,9 +96,10 @@ export const normalize: (
 
   for (let i = 0; i < prefRegexes.length; i++) {
     const [_pref, reg] = prefRegexes[i]
-    if (addr.match(reg)) {
+    const match = addr.match(reg)
+    if (match) {
       pref = _pref
-      addr = addr.substring(pref.length) // 都道府県名以降の住所
+      addr = addr.substring(match[0].length) // 都道府県名以降の住所
       break
     }
   }

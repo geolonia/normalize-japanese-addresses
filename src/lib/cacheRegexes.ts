@@ -40,7 +40,7 @@ export const getPrefectureRegexes = (prefs: string[]) => {
 
   cachedPrefectureRegexes = prefs.map((pref) => {
     const _pref = pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
-    const reg = new RegExp(`^${_pref}(都|道|府|県)`)
+    const reg = new RegExp(`^${_pref}(都|道|府|県)?`)
     return [pref, reg]
   })
 
