@@ -748,7 +748,7 @@ test('岩手花巻市１２丁目７０４', async () => {
 })
 
 // パラメタが都道府県・市区町村のみであった場合
-test('It should get the level `3` with `埼玉県熊谷市` because town is null', async () => {
+test('It should get the level `2` with `埼玉県熊谷市` because town is null', async () => {
   const res = await normalize('埼玉県熊谷市')
   const expectTown = await getTowns("埼玉県", "熊谷市")
   expect(res).toStrictEqual({"pref": "埼玉県", "city": "熊谷市", "town": "", "addr": "", "lat": expectTown[0].lat, "lng": expectTown[0].lng, "level": 2})
