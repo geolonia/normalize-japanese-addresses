@@ -51,11 +51,21 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
       const match = _addr.match(reg)
 
       if (match) {
-        return {
-          town: _town.town,
-          addr: _addr.substr(match[0].length),
-          lat: _town.lat,
-          lng: _town.lng,
+        switch (tryCount) {
+          case 0:
+            return {
+              town: _town.town,
+              addr: _addr.substr(match[0].length),
+              lat: _town.lat,
+              lng: _town.lng,
+            }
+          case 1:
+            return {
+              town: '',
+              addr: '',
+              lat: _town.lat,
+              lng: _town.lng,
+            }
         }
       }
     }
