@@ -36,40 +36,47 @@ const defaultOption: Option = {
  * pref city を元に、町丁目リストを取得し、addr に match する町丁目JSON値を返却する
  * addr が pref + city に完全一致する場合、getTowns で得られる最初のエントリを代表番地と仮定して返却する
  *
- * @param addr 住所文字列全体
+ * @param addr 町丁目文字列
  * @param pref 都道府県文字列
  * @param city 市区町村文字列
- * @returns 町丁目JSON (返却値 addr は、引数 addr を元に、町丁目のみを抽出した文字列)
+ * @returns 町丁目JSON
  */
 const normalizeTownName = async (addr: string, pref: string, city: string) => {
-  addr = addr.trim().replace(/^大字/, '')
+  let _addr = addr.trim().replace(/^大字/, '')
   const townRegexes = await getTownRegexes(pref, city)
 
-  for (let i = 0; i < townRegexes.length; i++) {
-    const [_town, reg] = townRegexes[i]
-    const match = addr.match(reg)
+  for (let tryCount = 0; tryCount < 2; tryCount++) {
+    for (let i = 0; i < townRegexes.length; i++) {
+      const [_town, reg] = townRegexes[i]
+      const match = _addr.match(reg)
 
-    if (match) {
-      return {
-        town: _town.town,
-        addr: addr.substr(match[0].length),
-        lat: _town.lat,
-        lng: _town.lng,
+      if (match) {
+        return {
+          town: _town.town,
+          addr: _addr.substr(match[0].length),
+          lat: _town.lat,
+          lng: _town.lng,
+        }
       }
     }
-  }
 
-  // addr が pref + city に完全一致する場合、getTowns で得られる最初のエントリを代表番地と仮定して返却する
-  const townListForRecursive = await getTowns(pref, city);
-  if(townListForRecursive){
-    let recursiveParamAddr = null;
-    for(const entity of townListForRecursive){
-      recursiveParamAddr = entity;
-      break;
+    // addr が pref + city に完全一致する場合、getTowns で得られる最初のエントリを代表番地と仮定して返却する
+    if (_addr) {
+      return
     }
-    if(recursiveParamAddr){
-      return await normalizeTownName(`${pref}${city}${recursiveParamAddr.town}`, pref, city);
+    const townListForRecursive = await getTowns(pref, city)
+    if (!townListForRecursive) {
+      return
     }
+    let retryAddr = null
+    for (const entity of townListForRecursive) {
+      retryAddr = entity
+      break
+    }
+    if (!retryAddr) {
+      return
+    }
+    _addr = retryAddr.town
   }
 }
 

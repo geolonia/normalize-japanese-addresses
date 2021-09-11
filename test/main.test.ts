@@ -1,3 +1,4 @@
+import { getTowns } from '../src/lib/cacheRegexes'
 import { normalize } from '../src/main'
 
 test('大阪府堺市北区新金岡町4丁1−8', async () => {
@@ -488,13 +489,6 @@ test('It should get the level `3` with `神奈川県横浜市港北区大豆戸�
   expect(res).toStrictEqual({ "pref": "神奈川県", "city": "横浜市港北区", "town": "大豆戸町", "addr": "17-11", "lat": 35.513492, "lng": 139.625651, "level": 3})
 })
 
-test('It should get the level `2` with `神奈川県横浜市港北区`', async () => {
-  const res = await normalize('神奈川県横浜市港北区', {
-    level: 3
-  })
-  expect(res).toStrictEqual({ "pref": "神奈川県", "city": "横浜市港北区", "town": "", "addr": "", "lat": null, "lng": null, "level": 2})
-})
-
 test('It should get the level `1` with `神奈川県`', async () => {
   const res = await normalize('神奈川県', {
     level: 3
@@ -746,9 +740,16 @@ test('京都府宇治市莵道森本8−10（莵と菟のゆらぎ）', async ()
   const res = await normalize('京都府宇治市菟道森本8−10')
   expect(res).toStrictEqual({"pref": "京都府", "city": "宇治市", "town": "莵道", "addr": "森本8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
 })
-  
+
 // 「都道府県」の文字列を省略した場合
 test('岩手花巻市１２丁目７０４', async () => {
   const res = await normalize('岩手花巻市１２丁目７０４')
   expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
+})
+
+// パラメタが都道府県・市区町村のみであった場合
+test('It should get the level `3` with `埼玉県熊谷市` because town is null', async () => {
+  const res = await normalize('埼玉県熊谷市')
+  const expectTown = await getTowns("埼玉県", "熊谷市")
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "熊谷市", "town": expectTown[0].town, "addr": "", "lat": expectTown[0].lat, "lng": expectTown[0].lng, "level": 3})
 })
