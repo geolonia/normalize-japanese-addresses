@@ -8,6 +8,7 @@ import {
   getPrefectureRegexes,
   getCityRegexes,
   getTownRegexes,
+  getTowns,
 } from './lib/cacheRegexes'
 import { currentConfig } from './config'
 
@@ -31,6 +32,15 @@ const defaultOption: Option = {
   level: 3,
 }
 
+/**
+ * pref city を元に、町丁目リストを取得し、addr に match する町丁目JSON値を返却する
+ * addr が pref + city に完全一致する場合、getTowns で得られる最初のエントリを代表番地と仮定して返却する
+ *
+ * @param addr 住所文字列全体
+ * @param pref 都道府県文字列
+ * @param city 市区町村文字列
+ * @returns 町丁目JSON (返却値 addr は、引数 addr を元に、町丁目のみを抽出した文字列)
+ */
 const normalizeTownName = async (addr: string, pref: string, city: string) => {
   addr = addr.trim().replace(/^大字/, '')
   const townRegexes = await getTownRegexes(pref, city)
@@ -46,6 +56,19 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
         lat: _town.lat,
         lng: _town.lng,
       }
+    }
+  }
+
+  // addr が pref + city に完全一致する場合、getTowns で得られる最初のエントリを代表番地と仮定して返却する
+  const townListForRecursive = await getTowns(pref, city);
+  if(townListForRecursive){
+    let recursiveParamAddr = null;
+    for(const entity of townListForRecursive){
+      recursiveParamAddr = entity;
+      break;
+    }
+    if(recursiveParamAddr){
+      return await normalizeTownName(recursiveParamAddr.town, pref, city);
     }
   }
 }
