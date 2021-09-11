@@ -68,7 +68,7 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
       break;
     }
     if(recursiveParamAddr){
-      return await normalizeTownName(recursiveParamAddr.town, pref, city);
+      return await normalizeTownName(`${pref}${city}${recursiveParamAddr.town}`, pref, city);
     }
   }
 }
