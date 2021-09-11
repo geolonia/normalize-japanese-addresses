@@ -34,7 +34,7 @@ const defaultOption: Option = {
 
 /**
  * pref city を元に、町丁目リストを取得し、addr に match する町丁目JSON値を返却する
- * addr が pref + city に完全一致する場合、getTowns で得られる最初のエントリを代表番地と仮定して返却する
+ * addr が empty の場合、getTowns で得られる最初のエントリを代表地点と仮定して返却する
  *
  * @param addr 町丁目文字列
  * @param pref 都道府県文字列
@@ -60,6 +60,7 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
               lng: _town.lng,
             }
           case 1:
+            // 2度目の処理のため、地点のみ返却
             return {
               town: '',
               addr: '',
@@ -70,7 +71,7 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
       }
     }
 
-    // addr が pref + city に完全一致する場合、getTowns で得られる最初のエントリを代表番地と仮定して返却する
+    // addr が empty の場合、getTowns で得られる最初のエントリを代表地点と仮定して返却するため、再度処理を促す
     if (_addr) {
       return
     }
