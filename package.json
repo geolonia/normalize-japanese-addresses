@@ -4,6 +4,7 @@
   "description": "",
   "browser": "./dist/main.js",
   "main": "./dist/main-node.js",
+  "types": "./dist/main.d.ts",
   "scripts": {
     "test": "npm run test:main && npm run test:addresses",
     "test:main": "jest test/main.test.ts",
