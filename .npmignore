@@ -1,2 +1,4 @@
 /cache
-src/addresses/test.*
+/.github
+/src/addresses/test.*
+/test
