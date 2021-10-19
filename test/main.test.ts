@@ -752,3 +752,8 @@ test('岩手花巻市１２丁目７０４', async () => {
   const res = await normalize('岩手花巻市１２丁目７０４')
   expect(res).toStrictEqual({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
 })
+
+test('千葉県巿川巿巿川1丁目（市(し、いち)と巿(ふつ)のゆらぎ）', async () => {
+  const res = await normalize('千葉県巿川巿巿川1丁目')
+  expect(res).toStrictEqual({"pref": "千葉県", "city": "市川市", "town": "市川一丁目", "addr": "", "level": 3, "lat": 35.731849, "lng": 139.909029})
+})
