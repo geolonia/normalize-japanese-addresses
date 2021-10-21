@@ -40,9 +40,12 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
     const match = addr.match(reg)
 
     if (match) {
+      if (_town.town !== '（大字なし）') {
+        addr = addr.substr(match[0].length)
+      }
       return {
         town: _town.town,
-        addr: addr.substr(match[0].length),
+        addr: addr,
         lat: _town.lat,
         lng: _town.lng,
       }

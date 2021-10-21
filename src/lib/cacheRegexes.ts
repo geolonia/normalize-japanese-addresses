@@ -143,6 +143,11 @@ export const getTownRegexes = async (pref: string, city: string) => {
         ),
     )
 
+    // 「茨城県猿島郡境町391番地1」のような大字なしの住所に対応
+    if (pref === '茨城県' && city === '猿島郡境町' && town.town === '（大字なし）') {
+      return [town, /^\d+番地/]
+    }
+
     if (city.match(/^京都市/)) {
       return [town, new RegExp(`.*${regex}`)]
     } else {
