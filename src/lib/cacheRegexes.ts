@@ -13,8 +13,8 @@ interface SingleTown {
 }
 type TownList = SingleTown[]
 
-const cachedTownRegexes = new LRU<string, [SingleTown, RegExp][]>({
-  max: 300,
+const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
+  max: currentConfig.townCacheSize,
   maxAge: 60 * 60 * 24 * 7, // 7日間
 })
 
@@ -144,11 +144,11 @@ export const getTownRegexes = async (pref: string, city: string) => {
     )
 
     if (city.match(/^京都市/)) {
-      return [town, new RegExp(`.*${regex}`)]
+      return [town, `.*${regex}`]
     } else {
-      return [town, new RegExp(`^${regex}`)]
+      return [town, `^${regex}`]
     }
-  }) as [SingleTown, RegExp][]
+  }) as [SingleTown, string][]
 
   cachedTownRegexes.set(`${pref}-${city}`, regexes)
   return regexes

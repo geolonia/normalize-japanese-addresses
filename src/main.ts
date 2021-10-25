@@ -37,7 +37,7 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
 
   for (let i = 0; i < townRegexes.length; i++) {
     const [_town, reg] = townRegexes[i]
-    const match = addr.match(reg)
+    const match = addr.match(new RegExp(reg))
 
     if (match) {
       return {
