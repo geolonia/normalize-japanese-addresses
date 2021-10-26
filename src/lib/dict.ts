@@ -7,7 +7,7 @@ const JIS_NEW_KANJI = '亜,囲,壱,栄,駅,応,桜,仮,会,懐,覚,楽,陥,歓,�
 )
 
 const JIS_KANJI_REGEXES = JIS_OLD_KANJI.map((old, i) => {
-  const regex = new RegExp(`${old}|${JIS_NEW_KANJI[i]}`, 'g')
+  const regex = `${old}|${JIS_NEW_KANJI[i]}`
   return [regex, old, JIS_NEW_KANJI[i]]
 })
 
@@ -16,7 +16,7 @@ export const jisKanji = (str: string) => {
 
   for (let i = 0; i < JIS_KANJI_REGEXES.length; i++) {
     const [regex, oldKanji, newKanji] = JIS_KANJI_REGEXES[i]
-    _str = _str.replace(regex, `(${oldKanji}|${newKanji})`)
+    _str = _str.replace(new RegExp(regex, 'g'), `(${oldKanji}|${newKanji})`)
   }
 
   return _str

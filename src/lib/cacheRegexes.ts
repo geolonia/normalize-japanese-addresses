@@ -18,8 +18,8 @@ const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   maxAge: 60 * 60 * 24 * 7, // 7日間
 })
 
-let cachedPrefectureRegexes: [string, RegExp][] | undefined = undefined
-const cachedCityRegexes: { [key: string]: [string, RegExp][] } = {}
+let cachedPrefectureRegexes: [string, string][] | undefined = undefined
+const cachedCityRegexes: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
 
@@ -40,7 +40,7 @@ export const getPrefectureRegexes = (prefs: string[]) => {
 
   cachedPrefectureRegexes = prefs.map((pref) => {
     const _pref = pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
-    const reg = new RegExp(`^${_pref}(都|道|府|県)?`)
+    const reg = `^${_pref}(都|道|府|県)?`
     return [pref, reg]
   })
 
@@ -61,11 +61,11 @@ export const getCityRegexes = (pref: string, cities: string[]) => {
   const regexes = cities.map((city) => {
     let regex
     if (city.match(/(町|村)$/)) {
-      regex = new RegExp(`^${toRegex(city).replace(/(.+?)郡/, '($1郡)?')}`) // 郡が省略されてるかも
+      regex = `^${toRegex(city).replace(/(.+?)郡/, '($1郡)?')}` // 郡が省略されてるかも
     } else {
-      regex = new RegExp(`^${toRegex(city)}`)
+      regex = `^${toRegex(city)}`
     }
-    return [city, regex] as [string, RegExp]
+    return [city, regex] as [string, string]
   })
 
   cachedCityRegexes[pref] = regexes
