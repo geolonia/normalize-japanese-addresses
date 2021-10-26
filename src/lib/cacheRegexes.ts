@@ -1,5 +1,5 @@
 import unfetch from 'isomorphic-unfetch'
-import { toRegex } from './dict'
+import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
 import LRU from 'lru-cache'
@@ -18,8 +18,8 @@ const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   maxAge: 60 * 60 * 24 * 7, // 7日間
 })
 
-let cachedPrefectureRegexes: [string, string][] | undefined = undefined
-const cachedCityRegexes: { [key: string]: [string, string][] } = {}
+let cachedPrefecturePatterns: [string, string][] | undefined = undefined
+const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
 
@@ -33,22 +33,22 @@ export const getPrefectures = async () => {
   return (cachedPrefectures = data)
 }
 
-export const getPrefectureRegexes = (prefs: string[]) => {
-  if (cachedPrefectureRegexes) {
-    return cachedPrefectureRegexes
+export const getPrefectureRegexPatterns = (prefs: string[]) => {
+  if (cachedPrefecturePatterns) {
+    return cachedPrefecturePatterns
   }
 
-  cachedPrefectureRegexes = prefs.map((pref) => {
+  cachedPrefecturePatterns = prefs.map((pref) => {
     const _pref = pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
-    const reg = `^${_pref}(都|道|府|県)?`
-    return [pref, reg]
+    const pattern = `^${_pref}(都|道|府|県)?`
+    return [pref, pattern]
   })
 
-  return cachedPrefectureRegexes
+  return cachedPrefecturePatterns
 }
 
-export const getCityRegexes = (pref: string, cities: string[]) => {
-  const cachedResult = cachedCityRegexes[pref]
+export const getCityRegexPatterns = (pref: string, cities: string[]) => {
+  const cachedResult = cachedCityPatterns[pref]
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
   }
@@ -58,18 +58,16 @@ export const getCityRegexes = (pref: string, cities: string[]) => {
     return b.length - a.length
   })
 
-  const regexes = cities.map((city) => {
-    let regex
+  const patterns = cities.map((city) => {
+    let pattern = `^${toRegexPattern(city)}`
     if (city.match(/(町|村)$/)) {
-      regex = `^${toRegex(city).replace(/(.+?)郡/, '($1郡)?')}` // 郡が省略されてるかも
-    } else {
-      regex = `^${toRegex(city)}`
+      pattern = `^${toRegexPattern(city).replace(/(.+?)郡/, '($1郡)?')}` // 郡が省略されてるかも
     }
-    return [city, regex] as [string, string]
+    return [city, pattern] as [string, string]
   })
 
-  cachedCityRegexes[pref] = regexes
-  return regexes
+  cachedCityPatterns[pref] = patterns
+  return patterns
 }
 
 export const getTowns = async (pref: string, city: string) => {
@@ -90,7 +88,7 @@ export const getTowns = async (pref: string, city: string) => {
   return (cachedTowns[cacheKey] = towns)
 }
 
-export const getTownRegexes = async (pref: string, city: string) => {
+export const getTownRegexPatterns = async (pref: string, city: string) => {
   const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
@@ -103,26 +101,26 @@ export const getTownRegexes = async (pref: string, city: string) => {
     return b.town.length - a.town.length
   })
 
-  const regexes = towns.map((town) => {
-    const regex = toRegex(
+  const patterns = towns.map((town) => {
+    const pattern = toRegexPattern(
       town.town
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
           /([壱一二三四五六七八九十]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/g,
           (match: string) => {
-            const regexes = []
+            const patterns = []
 
-            regexes.push(
+            patterns.push(
               match
                 .toString()
                 .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, ''),
             ) // 漢数字
 
             if (match.match(/^壱/)) {
-              regexes.push('一')
-              regexes.push('1')
-              regexes.push('１')
+              patterns.push('一')
+              patterns.push('1')
+              patterns.push('１')
             } else {
               const num = match
                 .replace(/([一二三四五六七八九十]+)/g, (match) => {
@@ -130,26 +128,26 @@ export const getTownRegexes = async (pref: string, city: string) => {
                 })
                 .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, '')
 
-              regexes.push(num.toString()) // 半角アラビア数字
+              patterns.push(num.toString()) // 半角アラビア数字
             }
 
             // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
-            const _regex = `(${regexes.join(
+            const _pattern = `(${patterns.join(
               '|',
             )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
 
-            return _regex // デバッグのときにめんどくさいので変数に入れる。
+            return _pattern // デバッグのときにめんどくさいので変数に入れる。
           },
         ),
     )
 
     if (city.match(/^京都市/)) {
-      return [town, `.*${regex}`]
+      return [town, `.*${pattern}`]
     } else {
-      return [town, `^${regex}`]
+      return [town, `^${pattern}`]
     }
   }) as [SingleTown, string][]
 
-  cachedTownRegexes.set(`${pref}-${city}`, regexes)
-  return regexes
+  cachedTownRegexes.set(`${pref}-${city}`, patterns)
+  return patterns
 }

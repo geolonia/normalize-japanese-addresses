@@ -6,23 +6,23 @@ const JIS_NEW_KANJI = '亜,囲,壱,栄,駅,応,桜,仮,会,懐,覚,楽,陥,歓,�
   /,/,
 )
 
-const JIS_KANJI_REGEXES = JIS_OLD_KANJI.map((old, i) => {
-  const regex = `${old}|${JIS_NEW_KANJI[i]}`
-  return [regex, old, JIS_NEW_KANJI[i]]
+const JIS_KANJI_REGEX_PATTERNS = JIS_OLD_KANJI.map((old, i) => {
+  const pattern = `${old}|${JIS_NEW_KANJI[i]}`
+  return [pattern, old, JIS_NEW_KANJI[i]]
 })
 
 export const jisKanji = (str: string) => {
   let _str = str
 
-  for (let i = 0; i < JIS_KANJI_REGEXES.length; i++) {
-    const [regex, oldKanji, newKanji] = JIS_KANJI_REGEXES[i]
-    _str = _str.replace(new RegExp(regex, 'g'), `(${oldKanji}|${newKanji})`)
+  for (let i = 0; i < JIS_KANJI_REGEX_PATTERNS.length; i++) {
+    const [pattern, oldKanji, newKanji] = JIS_KANJI_REGEX_PATTERNS[i]
+    _str = _str.replace(new RegExp(pattern, 'g'), `(${oldKanji}|${newKanji})`)
   }
 
   return _str
 }
 
-export const toRegex = (string: string) => {
+export const toRegexPattern = (string: string) => {
   let _str = string
 
   // 以下なるべく文字数が多いものほど上にすること

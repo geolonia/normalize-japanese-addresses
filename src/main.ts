@@ -5,9 +5,9 @@ import { zen2han } from './lib/zen2han'
 import { patchAddr } from './lib/patchAddr'
 import {
   getPrefectures,
-  getPrefectureRegexes,
-  getCityRegexes,
-  getTownRegexes,
+  getPrefectureRegexPatterns,
+  getCityRegexPatterns,
+  getTownRegexPatterns,
 } from './lib/cacheRegexes'
 import { currentConfig } from './config'
 
@@ -33,11 +33,11 @@ const defaultOption: Option = {
 
 const normalizeTownName = async (addr: string, pref: string, city: string) => {
   addr = addr.trim().replace(/^大字/, '')
-  const townRegexes = await getTownRegexes(pref, city)
+  const townPatterns = await getTownRegexPatterns(pref, city)
 
-  for (let i = 0; i < townRegexes.length; i++) {
-    const [_town, reg] = townRegexes[i]
-    const match = addr.match(reg)
+  for (let i = 0; i < townPatterns.length; i++) {
+    const [_town, pattern] = townPatterns[i]
+    const match = addr.match(pattern)
 
     if (match) {
       return {
@@ -92,11 +92,11 @@ export const normalize: (
 
   const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
-  const prefRegexes = getPrefectureRegexes(prefs)
+  const prefPatterns = getPrefectureRegexPatterns(prefs)
 
-  for (let i = 0; i < prefRegexes.length; i++) {
-    const [_pref, reg] = prefRegexes[i]
-    const match = addr.match(reg)
+  for (let i = 0; i < prefPatterns.length; i++) {
+    const [_pref, pattern] = prefPatterns[i]
+    const match = addr.match(pattern)
     if (match) {
       pref = _pref
       addr = addr.substring(match[0].length) // 都道府県名以降の住所
@@ -109,12 +109,12 @@ export const normalize: (
     const matched = []
     for (const _pref in prefectures) {
       const cities = prefectures[_pref]
-      const cityRegexes = getCityRegexes(_pref, cities)
+      const cityPatterns = getCityRegexPatterns(_pref, cities)
 
       addr = addr.trim()
-      for (let i = 0; i < cityRegexes.length; i++) {
-        const [_city, regex] = cityRegexes[i]
-        const match = addr.match(regex)
+      for (let i = 0; i < cityPatterns.length; i++) {
+        const [_city, pattern] = cityPatterns[i]
+        const match = addr.match(pattern)
         if (match) {
           matched.push({
             pref: _pref,
@@ -144,12 +144,12 @@ export const normalize: (
 
   if (pref && option.level >= 2) {
     const cities = prefectures[pref]
-    const cityRegexes = getCityRegexes(pref, cities)
+    const cityPatterns = getCityRegexPatterns(pref, cities)
 
     addr = addr.trim()
-    for (let i = 0; i < cityRegexes.length; i++) {
-      const [_city, regex] = cityRegexes[i]
-      const match = addr.match(regex)
+    for (let i = 0; i < cityPatterns.length; i++) {
+      const [_city, pattern] = cityPatterns[i]
+      const match = addr.match(pattern)
       if (match) {
         city = _city
         addr = addr.substring(match[0].length) // 市区町村名以降の住所
