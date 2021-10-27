@@ -757,3 +757,8 @@ test('千葉県巿川巿巿川1丁目（市(し、いち)と巿(ふつ)のゆら
   const res = await normalize('千葉県巿川巿巿川1丁目')
   expect(res).toStrictEqual({"pref": "千葉県", "city": "市川市", "town": "市川一丁目", "addr": "", "level": 3, "lat": 35.731849, "lng": 139.909029})
 })
+
+test('茨城県猿島郡境町391番地1（茨城県猿島郡境町の大字なしの住所）', async () => {
+  const res = await normalize('茨城県猿島郡境町391番地1')
+  expect(res).toStrictEqual({"pref": "茨城県", "city": "猿島郡境町", "town": "（大字なし）", "addr": "391-1", "level": 3, "lat": 36.100302, "lng": 139.79574})
+})
