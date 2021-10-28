@@ -757,3 +757,33 @@ test('千葉県巿川巿巿川1丁目（市(し、いち)と巿(ふつ)のゆら
   const res = await normalize('千葉県巿川巿巿川1丁目')
   expect(res).toStrictEqual({"pref": "千葉県", "city": "市川市", "town": "市川一丁目", "addr": "", "level": 3, "lat": 35.731849, "lng": 139.909029})
 })
+
+test('京都市北区紫野東御所田町', async () => {
+  const res = await normalize('京都市北区紫野東御所田町')
+  expect(res).toStrictEqual({"pref": "京都府", "city": "京都市北区", "town": "紫野東御所田町", "addr": "", "level": 3, "lat": 35.039861, "lng": 135.753474})
+})
+
+test('鹿児島市山下町', async () => {
+  const res = await normalize('鹿児島市山下町')
+  expect(res).toStrictEqual({"pref": "鹿児島県", "city": "鹿児島市", "town": "山下町", "addr": "", "level": 3, "lat": 31.596716, "lng": 130.55643})
+})
+
+test('市川市八幡1丁目1番1号', async () => {
+  const res = await normalize('市川市八幡1丁目1番1号')
+  expect(res).toStrictEqual({"pref": "千葉県", "city": "市川市", "town": "八幡一丁目", "addr": "1-1", "level": 3, "lat": 35.720285, "lng": 139.932528})
+})
+
+test('千葉市川市八幡1丁目1番1号', async () => {
+  const res = await normalize('千葉市川市八幡1丁目1番1号')
+  expect(res).toStrictEqual({"pref": "千葉県", "city": "市川市", "town": "八幡一丁目", "addr": "1-1", "level": 3, "lat": 35.720285, "lng": 139.932528})
+})
+
+test('石川郡石川町字長久保185-4', async () => {
+  const res = await normalize('石川郡石川町字長久保185-4')
+  expect(res).toStrictEqual({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
+})
+
+test('福島石川郡石川町字長久保185-4', async () => {
+  const res = await normalize('福島石川郡石川町字長久保185-4')
+  expect(res).toStrictEqual({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
+})
