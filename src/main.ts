@@ -8,7 +8,7 @@ import {
   getPrefectureRegexPatterns,
   getCityRegexPatterns,
   getTownRegexPatterns,
-  getSameNamedPrefectureCityRegexes
+  getSameNamedPrefectureCityRegexPatterns,
 } from './lib/cacheRegexes'
 import { currentConfig } from './config'
 
@@ -94,15 +94,15 @@ export const normalize: (
   const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
   const prefPatterns = getPrefectureRegexPatterns(prefs)
-  const sameNamedPrefectureCityRegexes = getSameNamedPrefectureCityRegexes(prefs, prefectures)
+  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(prefs, prefectures)
 
-  // 県名が省略されており、市の名前がどこかの都道府県名と同じ場合、
-  // あらかじめ県名を補完しておく。(例.「千葉市中央区」->「千葉県千葉市中央区」)
-  for (let i = 0; i < sameNamedPrefectureCityRegexes.length; i++) {
-    const [prefectureCity, reg] = sameNamedPrefectureCityRegexes[i]
+  // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
+  // あらかじめ県名を補完しておく。
+  for (let i = 0; i < sameNamedPrefectureCityRegexPatterns.length; i++) {
+    const [prefectureCity, reg] = sameNamedPrefectureCityRegexPatterns[i]
     const match = addr.match(reg)
     if (match) {
-      addr = addr.replace(reg, prefectureCity)
+      addr = addr.replace(new RegExp(reg), prefectureCity)
       break
     }
   }

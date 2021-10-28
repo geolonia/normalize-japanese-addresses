@@ -22,7 +22,7 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-let cachedSameNamedPrefectureCityRegexes: [string, RegExp][] | undefined = undefined
+let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined = undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
@@ -153,16 +153,16 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   return patterns
 }
 
-export const getSameNamedPrefectureCityRegexes = (prefs: string[], prefList: PrefectureList) => {
-  if (typeof cachedSameNamedPrefectureCityRegexes !== 'undefined') {
-    return cachedSameNamedPrefectureCityRegexes
+export const getSameNamedPrefectureCityRegexPatterns = (prefs: string[], prefList: PrefectureList) => {
+  if (typeof cachedSameNamedPrefectureCityRegexPatterns !== 'undefined') {
+    return cachedSameNamedPrefectureCityRegexPatterns
   }
 
   const _prefs = prefs.map((pref) => {
     return pref.replace(/[都|道|府|県]$/, '')
   })
 
-  cachedSameNamedPrefectureCityRegexes = []
+  cachedSameNamedPrefectureCityRegexPatterns = []
   for (const pref in prefList) {
     for (let i = 0; i < prefList[pref].length; i++) {
       const city = prefList[pref][i]
@@ -170,11 +170,11 @@ export const getSameNamedPrefectureCityRegexes = (prefs: string[], prefList: Pre
       // 「福島県石川郡石川町」のように、市の名前が別の都道府県名から始まっているケースも考慮する。
       for (let j = 0; j < _prefs.length; j++) {
         if (city.indexOf(_prefs[j]) === 0) {
-          cachedSameNamedPrefectureCityRegexes.push([`${pref}${city}`, new RegExp(`^${city}`)])
+          cachedSameNamedPrefectureCityRegexPatterns.push([`${pref}${city}`, `^${city}`])
         }
       }
     }
   }
 
-  return cachedSameNamedPrefectureCityRegexes
+  return cachedSameNamedPrefectureCityRegexPatterns
 }
