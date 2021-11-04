@@ -746,7 +746,7 @@ test('京都府宇治市莵道森本8−10（莵と菟のゆらぎ）', async ()
   const res = await normalize('京都府宇治市菟道森本8−10')
   expect(res).toStrictEqual({"pref": "京都府", "city": "宇治市", "town": "莵道", "addr": "森本8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
 })
-  
+
 // 「都道府県」の文字列を省略した場合
 test('岩手花巻市１２丁目７０４', async () => {
   const res = await normalize('岩手花巻市１２丁目７０４')
@@ -786,4 +786,29 @@ test('石川郡石川町字長久保185-4', async () => {
 test('福島石川郡石川町字長久保185-4', async () => {
   const res = await normalize('福島石川郡石川町字長久保185-4')
   expect(res).toStrictEqual({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
+})
+
+test('広島市西区商工センター六丁目9番39号 (町丁目に長音符(ー)が入る場合で、丁目の数字がその後に続く場合)', async () => {
+  const res = await normalize('広島市西区商工センター六丁目9番39号')
+  expect(res).toStrictEqual({"pref": "広島県", "city": "広島市西区", "town": "商工センター六丁目", "addr": "9-39", "level": 3, "lat": 34.36812, "lng": 132.388293})
+})
+
+test('新潟県新潟市西区流通センター一丁目1-1 (町丁目に長音符(ー)が入る場合で、丁目の数字が 1 の場合)', async () => {
+  const res = await normalize('新潟県新潟市西区流通センター一丁目1-1')
+  expect(res).toStrictEqual({"pref": "新潟県", "city": "新潟市西区", "town": "流通センター一丁目", "addr": "1-1", "level": 3, "lat": 37.866158, "lng": 138.998185})
+})
+
+test('青森県八戸市北インター工業団地4丁目1-1 (町丁目に長音符(ー)が入る場合)', async () => {
+  const res = await normalize('青森県八戸市北インター工業団地4丁目1-1')
+  expect(res).toStrictEqual({"pref": "青森県", "city": "八戸市", "town": "北インター工業団地四丁目", "addr": "1-1", "level": 3, "lat": 40.556931, "lng": 141.426763})
+})
+
+test('富山県高岡市オフィスパーク1-1', async () => {
+  const res = await normalize('富山県高岡市オフィスパーク1-1')
+  expect(res).toStrictEqual({"pref": "富山県", "city": "高岡市", "town": "オフィスパーク", "addr": "1-1", "level": 3, "lat": 36.670088, "lng": 136.998867})
+})
+
+test('福井県三方上中郡若狭町若狭テクノバレー1-1', async () => {
+  const res = await normalize('福井県三方上中郡若狭町若狭テクノバレー1-1')
+  expect(res).toStrictEqual({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー", "addr": "1-1", "level": 3, "lat": 35.477349, "lng": 135.859423})
 })
