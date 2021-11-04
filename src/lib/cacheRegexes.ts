@@ -106,9 +106,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
     const pattern = toRegexPattern(
       town.town
         // 横棒を含む場合（流通センター、など）に対応
-        .replace(
-          /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]'
-        )
+        .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
