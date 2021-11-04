@@ -105,8 +105,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   const patterns = towns.map((town) => {
     const pattern = toRegexPattern(
       town.town
-        // カタカナが横棒の前に来る場合（流通センター、など）ハイフンに統一したパターンを使う。
-        //「流通センター6丁目」などの場合はハイフンに変換されているので、これは打ち消す。
+        // 横棒を含む場合（流通センター、など）に対応
         .replace(
           /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]'
         )
