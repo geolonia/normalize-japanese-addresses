@@ -788,7 +788,12 @@ test('福島石川郡石川町字長久保185-4', async () => {
   expect(res).toStrictEqual({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
 })
 
-test('広島市西区商工センター六丁目9番39号 (町丁目に長音符(ー)が入る場合)', async () => {
+test.only('広島市西区商工センター六丁目9番39号 (町丁目に長音符(ー)が入る場合で、丁目の数字がその後に続く場合)', async () => {
   const res = await normalize('広島市西区商工センター六丁目9番39号')
   expect(res).toStrictEqual({"pref": "広島県", "city": "広島市西区", "town": "商工センター六丁目", "addr": "9-39", "level": 3, "lat": 34.36812, "lng": 132.388293})
+})
+
+test.only('青森県八戸市北インター工業団地4丁目1-1 (町丁目に長音符(ー)が入る場合)', async () => {
+  const res = await normalize('青森県八戸市北インター工業団地4丁目1-1')
+  expect(res).toStrictEqual({"pref": "青森県", "city": "八戸市", "town": "北インター工業団地4丁目", "addr": "1-1", "level": 3, "lat": 40.556931, "lng": 141.426763})
 })
