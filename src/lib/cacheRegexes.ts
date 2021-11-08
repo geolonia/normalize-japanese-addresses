@@ -11,7 +11,7 @@ interface SingleTown {
   lat: string
   lng: string
 }
-type TownList = SingleTown[]
+export type TownList = SingleTown[]
 
 const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
@@ -22,7 +22,9 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined = undefined
+let cachedSameNamedPrefectureCityRegexPatterns:
+  | [string, string][]
+  | undefined = undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
@@ -97,9 +99,16 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
 
   const towns = await getTowns(pref, city)
 
-  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
-    return b.town.length - a.town.length
+    let aLen = a.town.length
+    let bLen = b.town.length
+
+    // 大字で始まる場合、優先度を低く設定する。
+    // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
+    if (a.town.startsWith('大字')) aLen -= 2
+    if (b.town.startsWith('大字')) bLen -= 2
+
+    return bLen - aLen
   })
 
   const patterns = towns.map((town) => {
@@ -109,7 +118,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
         .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
         // 「埼玉県越谷市蒲生茜町」のように住居表示の先頭が大字(この場合は「蒲生」)と同じ場合、
         // 大字の方が誤ってマッチングしないようにする
-        .replace(/^大?字(.+)$/, '(大?字)?$1(?=[\\d字])')
+        .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
           /([壱一二三四五六七八九十]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/g,
@@ -157,7 +166,10 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   return patterns
 }
 
-export const getSameNamedPrefectureCityRegexPatterns = (prefs: string[], prefList: PrefectureList) => {
+export const getSameNamedPrefectureCityRegexPatterns = (
+  prefs: string[],
+  prefList: PrefectureList,
+) => {
   if (typeof cachedSameNamedPrefectureCityRegexPatterns !== 'undefined') {
     return cachedSameNamedPrefectureCityRegexPatterns
   }
@@ -174,7 +186,10 @@ export const getSameNamedPrefectureCityRegexPatterns = (prefs: string[], prefLis
       // 「福島県石川郡石川町」のように、市の名前が別の都道府県名から始まっているケースも考慮する。
       for (let j = 0; j < _prefs.length; j++) {
         if (city.indexOf(_prefs[j]) === 0) {
-          cachedSameNamedPrefectureCityRegexPatterns.push([`${pref}${city}`, `^${city}`])
+          cachedSameNamedPrefectureCityRegexPatterns.push([
+            `${pref}${city}`,
+            `^${city}`,
+          ])
         }
       }
     }

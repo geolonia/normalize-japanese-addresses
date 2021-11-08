@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 import { normalize } from '../src/main'
 
 test('大阪府堺市北区新金岡町4丁1−8', async () => {
