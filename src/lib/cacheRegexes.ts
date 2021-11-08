@@ -22,7 +22,9 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined = undefined
+let cachedSameNamedPrefectureCityRegexPatterns:
+  | [string, string][]
+  | undefined = undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
@@ -99,7 +101,15 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
-    return b.town.length - a.town.length
+    let aLen = a.town.length
+    let bLen = b.town.length
+
+    // 大字で始まる場合、優先度を低く設定する。
+    // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
+    if (a.town.startsWith('大字')) aLen -= 2
+    if (b.town.startsWith('大字')) bLen -= 2
+
+    return bLen - aLen
   })
 
   const patterns = towns.map((town) => {
@@ -155,7 +165,10 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   return patterns
 }
 
-export const getSameNamedPrefectureCityRegexPatterns = (prefs: string[], prefList: PrefectureList) => {
+export const getSameNamedPrefectureCityRegexPatterns = (
+  prefs: string[],
+  prefList: PrefectureList,
+) => {
   if (typeof cachedSameNamedPrefectureCityRegexPatterns !== 'undefined') {
     return cachedSameNamedPrefectureCityRegexPatterns
   }
@@ -172,7 +185,10 @@ export const getSameNamedPrefectureCityRegexPatterns = (prefs: string[], prefLis
       // 「福島県石川郡石川町」のように、市の名前が別の都道府県名から始まっているケースも考慮する。
       for (let j = 0; j < _prefs.length; j++) {
         if (city.indexOf(_prefs[j]) === 0) {
-          cachedSameNamedPrefectureCityRegexPatterns.push([`${pref}${city}`, `^${city}`])
+          cachedSameNamedPrefectureCityRegexPatterns.push([
+            `${pref}${city}`,
+            `^${city}`,
+          ])
         }
       }
     }

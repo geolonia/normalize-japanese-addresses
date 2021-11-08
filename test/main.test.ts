@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 import { normalize } from '../src/main'
 
 test('大阪府堺市北区新金岡町4丁1−8', async () => {
@@ -811,4 +813,19 @@ test('富山県高岡市オフィスパーク1-1', async () => {
 test('福井県三方上中郡若狭町若狭テクノバレー1-1', async () => {
   const res = await normalize('福井県三方上中郡若狭町若狭テクノバレー1-1')
   expect(res).toStrictEqual({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー", "addr": "1-1", "level": 3, "lat": 35.477349, "lng": 135.859423})
+})
+
+test('埼玉県越谷市大字蒲生3795-1', async () => {
+  const res = await normalize('埼玉県越谷市大字蒲生3795-1')
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "越谷市", "town": "大字蒲生", "addr": "3795-1", "level": 3, "lat": 35.860429, "lng": 139.790945})
+})
+
+test('埼玉県越谷市蒲生茜町9-3', async () => {
+  const res = await normalize('埼玉県越谷市蒲生茜町9-3')
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "越谷市", "town": "蒲生茜町", "addr": "9-3", "level": 3, "lat": 35.866741, "lng": 139.7888})
+})
+
+test('埼玉県川口市大字芝字宮根3938-5', async () => {
+  const res = await normalize('埼玉県川口市大字芝字宮根3938-5')
+  expect(res).toStrictEqual({"pref": "埼玉県", "city": "川口市", "town": "大字芝", "addr": "字宮根3938-5", "level": 3, "lat": 35.843399, "lng": 139.690803})
 })
