@@ -99,6 +99,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
 
   const towns = await getTowns(pref, city)
 
+  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
     let aLen = a.town.length
     let bLen = b.town.length
@@ -116,8 +117,6 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
       town.town
         // 横棒を含む場合（流通センター、など）に対応
         .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
-        // 「埼玉県越谷市蒲生茜町」のように住居表示の先頭が大字(この場合は「蒲生」)と同じ場合、
-        // 大字の方が誤ってマッチングしないようにする
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
