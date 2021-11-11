@@ -120,14 +120,14 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
         .replace(
-          /([壱一二三四五六七八九十]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/g,
+          /([壱一二三四五六七八九十]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
           (match: string) => {
             const patterns = []
 
             patterns.push(
               match
                 .toString()
-                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, ''),
+                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, ''),
             ) // 漢数字
 
             if (match.match(/^壱/)) {
@@ -139,7 +139,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
                 .replace(/([一二三四五六七八九十]+)/g, (match) => {
                   return kan2num(match)
                 })
-                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割)/, '')
+                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
 
               patterns.push(num.toString()) // 半角アラビア数字
             }
@@ -147,7 +147,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
             // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
             const _pattern = `(${patterns.join(
               '|',
-            )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+            )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
 
             return _pattern // デバッグのときにめんどくさいので変数に入れる。
           },
