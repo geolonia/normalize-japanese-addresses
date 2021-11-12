@@ -26,7 +26,7 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3').then(result => {
-  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3", "lat": 43.074273, "lng": 141.315099, "level"; 3}
+  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3", "lat": 43.074273, "lng": 141.315099, "level": 8}
 })
 ```
 
@@ -36,13 +36,16 @@ normalize('北海道札幌市西区24-2-2-3-3').then(result => {
 * `1` - 都道府県まで判別できた。
 * `2` - 市区町村まで判別できた。
 * `3` - 町丁目まで判別できた。
+* `5` - 番地まで判別できた。
+* `7` - 番地まで判別できた(号が存在しない場合)。
+* `8` - 番地・号まで判別できた。
 
 例えば都道府県名のみを正規化したい場合、`level` オプションで指定することで処理を早くすることができます。
 
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
-  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "lat": null, "lng": null, "level"; 1}
+  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "lat": null, "lng": null, "level": 1}
 })
 ```
 
@@ -85,7 +88,7 @@ dist フォルダ以下に main.js など必要なファイルが生成される
 ```
 const { normalize } = require('./dist/main-node.js')
 normalize('北海道札幌市西区24-2-2-3-3', {level: 3}).then(result => {
-  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level"; 1}
+  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3", "level": 3}
 })
 ```
 
