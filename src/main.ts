@@ -12,17 +12,41 @@ import {
 } from './lib/cacheRegexes'
 import { currentConfig } from './config'
 
+/**
+ * 住所の正規化結果として戻されるオブジェクト
+ */
 export interface NormalizeResult {
+  /** 都道府県 */
   pref: string
+  /** 市区町村 */
   city: string
+  /** 町丁目 */
   town: string
+  /** 正規化後の住所文字列 */
   addr: string
+  /** 緯度。データが存在しない場合は null */
   lat: number | null
+  /** 軽度。データが存在しない場合は null */
   lng: number | null
+  /**
+   * 住所文字列をどこまで判別できたかを表す正規化レベル
+   * - 0 - 都道府県も判別できなかった。
+   * - 1 - 都道府県まで判別できた。
+   * - 2 - 市区町村まで判別できた。
+   * - 3 - 町丁目まで判別できた。
+   */
   level: number
 }
 
+/**
+ * 正規化関数の {@link normalize} のオプション
+ */
 export interface Option {
+  /**
+   * 正規化を行うレベルを指定します。{@link Option.level}
+   *
+   * @see https://github.com/geolonia/normalize-japanese-addresses#normalizeaddress-string
+   */
   level: number
 }
 
@@ -51,6 +75,16 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
   }
 }
 
+/**
+ * 住所を正規化します。
+ *
+ * @param input - 住所文字列
+ * @param option -  正規化のオプション {@link Option}
+ *
+ * @returns 正規化結果のオブジェクト {@link NormalizeResult}
+ *
+ * @see https://github.com/geolonia/normalize-japanese-addresses#normalizeaddress-string
+ */
 export const normalize: (
   input: string,
   option?: Option,
@@ -95,7 +129,10 @@ export const normalize: (
   const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
   const prefPatterns = getPrefectureRegexPatterns(prefs)
-  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(prefs, prefectures)
+  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(
+    prefs,
+    prefectures,
+  )
 
   // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
   // あらかじめ県名を補完しておく。
