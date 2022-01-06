@@ -22,6 +22,7 @@
     "@types/jest": "^26.0.20",
     "@types/lru-cache": "^5.1.1",
     "@types/node": "^14.14.37",
+    "@types/unzipper": "^0.10.5",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",
@@ -52,6 +53,7 @@
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.15",
     "isomorphic-unfetch": "^3.1.0",
-    "lru-cache": "^6.0.0"
+    "lru-cache": "^6.0.0",
+    "unzipper": "^0.10.11"
   }
 }
