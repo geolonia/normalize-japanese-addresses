@@ -1,4 +1,4 @@
-import { fetchSim } from './fetch-sim'
+import { fetchShim } from './fetch-sim'
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
@@ -31,7 +31,7 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const resp = await fetchSim('.json') // directory "ja" will be prepended
+  const resp = await fetchShim('.json') // directory "ja" will be prepended
   const data = (await resp.json()) as PrefectureList
   return (cachedPrefectures = data)
 }
@@ -80,7 +80,7 @@ export const getTowns = async (pref: string, city: string) => {
     return cachedTown
   }
 
-  const responseTownsResp = await fetchSim(['', pref, city + '.json'].join('/'))
+  const responseTownsResp = await fetchShim(['', pref, city + '.json'].join('/'))
   const towns = (await responseTownsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
 }

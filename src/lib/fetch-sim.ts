@@ -4,7 +4,7 @@ import path from 'path'
 
 let preloadedDir: string | false = false
 
-export const fetchSim = async (url: string) => {
+export const fetchShim = async (url: string) => {
   if (currentConfig.preloadTownCache) {
     const fs = require('fs')
     if (!preloadedDir) preloadedDir = await preloadCache()
