@@ -14,7 +14,7 @@ export default [
     plugins: [typescript(), resolve({ browser: true }), commonjs()],
   },
   {
-    input: 'src/main.ts',
+    input: 'src/main-node.ts',
     external: ['@geolonia/japanese-numeral', 'isomorphic-unfetch', 'lru-cache'],
     output: { file: pkg.main, format: 'cjs' },
     plugins: [typescript()],

@@ -1,8 +1,10 @@
-import { fetchShim } from './fetch-sim'
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
 import LRU from 'lru-cache'
+import { DataFetcher } from '../normalize'
+
+type DependencyInjectionOptions = { fetch: DataFetcher }
 
 type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
@@ -26,12 +28,12 @@ let cachedSameNamedPrefectureCityRegexPatterns:
   | [string, string][]
   | undefined = undefined
 
-export const getPrefectures = async () => {
+export const getPrefectures = async ({ fetch }: DependencyInjectionOptions) => {
   if (typeof cachedPrefectures !== 'undefined') {
     return cachedPrefectures
   }
 
-  const resp = await fetchShim('.json') // directory "ja" will be prepended
+  const resp = await fetch('.json')
   const data = (await resp.json()) as PrefectureList
   return (cachedPrefectures = data)
 }
@@ -73,25 +75,33 @@ export const getCityRegexPatterns = (pref: string, cities: string[]) => {
   return patterns
 }
 
-export const getTowns = async (pref: string, city: string) => {
+export const getTowns = async (
+  pref: string,
+  city: string,
+  { fetch }: DependencyInjectionOptions,
+) => {
   const cacheKey = `${pref}-${city}`
   const cachedTown = cachedTowns[cacheKey]
   if (typeof cachedTown !== 'undefined') {
     return cachedTown
   }
 
-  const responseTownsResp = await fetchShim(['', pref, city + '.json'].join('/'))
+  const responseTownsResp = await fetch(['', pref, city + '.json'].join('/'))
   const towns = (await responseTownsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
 }
 
-export const getTownRegexPatterns = async (pref: string, city: string) => {
+export const getTownRegexPatterns = async (
+  pref: string,
+  city: string,
+  { fetch }: DependencyInjectionOptions,
+) => {
   const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
   }
 
-  const towns = await getTowns(pref, city)
+  const towns = await getTowns(pref, city, { fetch })
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {

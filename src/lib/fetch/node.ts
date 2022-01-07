@@ -1,26 +1,31 @@
-import { currentConfig } from '../config'
+import { currentConfig } from '../../config'
 import unfetch from 'isomorphic-unfetch'
 import path from 'path'
+import fs from 'fs'
+import unzipper from 'unzipper'
+import { DataFetcher } from '../../normalize'
+import { fetchData } from './browser'
 
 let preloadedDir: string | false = false
 
-export const fetchShim = async (url: string) => {
-  if (currentConfig.preloadTownCache) {
-    const fs = require('fs')
-    if (!preloadedDir) preloadedDir = await preloadCache()
-
+export const fetchLocalData: DataFetcher = async (url: string) => {
+  if (currentConfig.preloadCache) {
+    if (!preloadedDir) {
+      preloadedDir = await preloadJapaneseAddresses(
+        currentConfig.preloadedCacheExpiresIn,
+      )
+    }
     const data = fs.readFileSync(`${preloadedDir}${url}`).toString('utf-8')
     return { json: async () => JSON.parse(data) }
   } else {
-    return unfetch(`${currentConfig.japaneseAddressesApi}${encodeURI(url)}`)
+    return fetchData(url)
   }
 }
 
-export const preloadCache = async (): Promise<string> => {
-  const fs = require('fs')
-  const unzipper = require('unzipper')
-
-  const pathToExtract = path.resolve(__dirname, '..', '..', 'tmp')
+export const preloadJapaneseAddresses = async (
+  expiresIn: number,
+): Promise<string> => {
+  const pathToExtract = path.resolve(__dirname, '..', 'tmp') // resolved with only in bundled file
   const pathOfExpirationNote = path.resolve(pathToExtract, 'expires_at')
   const extractedPath = path.resolve(
     pathToExtract,
@@ -45,8 +50,7 @@ export const preloadCache = async (): Promise<string> => {
   fs.rmSync(pathToExtract, { recursive: true, force: true })
   fs.mkdirSync(pathToExtract, { recursive: true })
 
-  const expiresAt =
-    new Date().getTime() + currentConfig.preloadedTownCacheExpiresIn
+  const expiresAt = new Date().getTime() + expiresIn
   fs.writeFileSync(pathOfExpirationNote, expiresAt.toString())
 
   const resp = await unfetch(

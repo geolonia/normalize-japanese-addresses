@@ -6,6 +6,7 @@
   "main": "./dist/main-node.js",
   "types": "./dist/main.d.ts",
   "scripts": {
+    "postinstall": "npm run build && node -e \"require('./dist/main-node.js').preload(86_400_000)\"",
     "test": "npm run test:main && npm run test:addresses",
     "test:main": "jest test/main.test.ts",
     "test:addresses": "jest test/addresses.test.ts",
