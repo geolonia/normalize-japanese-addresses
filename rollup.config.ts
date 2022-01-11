@@ -15,7 +15,7 @@ export default [
   },
   {
     input: 'src/main-node.ts',
-    external: ['@geolonia/japanese-numeral', 'isomorphic-unfetch', 'lru-cache', 'fs', 'path', 'unzipper', 'util', 'rimraf'],
+    external: ['@geolonia/japanese-numeral', '@geolonia/japanese-addresses', 'isomorphic-unfetch', 'lru-cache', 'fs', 'path',],
     output: { file: pkg.main, format: 'cjs' },
     plugins: [typescript()],
   },
