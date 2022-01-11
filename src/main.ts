@@ -1,4 +1,6 @@
-import { createNormalizer } from './normalize'
+import * as Normalize from './normalize'
 import { fetchData } from './lib/fetch/web'
+import { currentConfig } from './config'
 
-export const normalize = createNormalizer(fetchData)
+export const config = currentConfig
+export const normalize = Normalize.createNormalizer(fetchData)

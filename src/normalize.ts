@@ -10,7 +10,6 @@ import {
   getTownRegexPatterns,
   getSameNamedPrefectureCityRegexPatterns,
 } from './lib/cacheRegexes'
-import { currentConfig } from './config'
 
 /**
  * 住所の正規化結果として戻されるオブジェクト
@@ -81,8 +80,6 @@ export type DataFetcher = (
 const defaultOption: Option = {
   level: 3,
 }
-
-export const config = currentConfig
 
 const normalizeTownName = async (
   addr: string,
