@@ -85,9 +85,10 @@ export interface Config {
 
   /**
    * node_modules に保存された都道府県＋市区町村のデータを利用するかどうか。
-   * Node.js のみで有効。ブラウザのエントリーポイントから実行した場合、このオプションは無視され、常に web API を参照します。
+   * このオプションは、Node.js のみで有効化できます。
    *
-   * {@link DataFetcher}
+   * @default
+   * デフォルト値は true です。
    */
   usePreloadedApi?: boolean | string
 }
