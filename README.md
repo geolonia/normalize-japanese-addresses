@@ -66,12 +66,11 @@ normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
 ## オプション
 
 本ライブラリは [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses) を元に住所文字列の正規化を試みますが、この際 web API から常に最新の Geolonia 住所データを参照します。
-高速化等を目的としてこの挙動を停止しローカル環境に保存された住所データを参照する場合、 以下のエントリポイントを利用してください。
+この挙動を停止しローカル環境に保存された住所データを参照する場合、 以下のエントリポイントを利用してください。
 このエントリポイントは Node.js でのみ利用できます。
 
 ```javascript
-const { normalize, config } = require('@geolonia/normalize-japanese-addresses/dist/local')
-config.usePreloadedApi = false
+const { normalize } = require('@geolonia/normalize-japanese-addresses/dist/local')
 normalize('北海道札幌市西区24-2-2-3-3') // Promise<NormalizeResult>
 ```
 
