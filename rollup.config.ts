@@ -14,9 +14,18 @@ export default [
     plugins: [typescript(), resolve({ browser: true }), commonjs()],
   },
   {
-    input: 'src/main-node.ts',
-    external: ['@geolonia/japanese-numeral', 'isomorphic-unfetch', 'lru-cache', 'fs', 'path'],
+    input: 'src/main.ts',
+    external: ['@geolonia/japanese-numeral', 'isomorphic-unfetch', 'lru-cache'],
     output: { file: pkg.main, format: 'cjs' },
+    plugins: [typescript()],
+  },
+  {
+    input: 'src/main-local.ts',
+    external: ['@geolonia/japanese-numeral', 'isomorphic-unfetch', 'lru-cache', 'fs', 'path'],
+    output: {
+      file: "./dist/local.js",
+      format: 'cjs'
+    },
     plugins: [typescript()],
   },
 ]

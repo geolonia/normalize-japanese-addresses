@@ -77,22 +77,6 @@ export type DataFetcher = (
   url: string,
 ) => Promise<Response | { json: () => Promise<unknown> }>
 
-export interface Config {
-  japaneseAddressesApi: string
-
-  /** 都道府県＋市区町村のデータを何件までキャッシュするか。デフォルト 1,000 */
-  townCacheSize: number
-
-  /**
-   * node_modules に保存された都道府県＋市区町村のデータを利用するかどうか。
-   * このオプションは、Node.js のみで有効化できます。
-   *
-   * @default
-   * デフォルト値は true です。
-   */
-  usePreloadedApi?: boolean | string
-}
-
 const defaultOption: Option = {
   level: 3,
 }
