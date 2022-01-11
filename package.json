@@ -2,7 +2,7 @@
   "name": "@geolonia/normalize-japanese-addresses",
   "version": "2.3.5",
   "description": "",
-  "browser": "./dist/index.js",
+  "browser": "./dist/bundle.js",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "scripts": {
