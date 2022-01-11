@@ -46,6 +46,24 @@ normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
 })
 ```
 
+### ローカルに保存された住所データを利用する
+
+本ライブラリは [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses) を元に住所文字列の正規化を試みますが、この際 web API から常に最新の Geolonia 住所データを参照します。
+この挙動を停止しローカル環境に保存された住所データを参照する場合、以下のエントリポイントを利用してください。
+このエントリポイントは Node.js でのみ利用できます。
+
+```javascript
+const { normalize } = require('@geolonia/normalize-japanese-addresses/dist/node')
+normalize('北海道札幌市西区24-2-2-3-3') // Promise<NormalizeResult>
+```
+
+保存された住所データを最新のものに更新する場合は @geolonia/normalize-japanese-addresses を再インストールしてください。
+
+```shell
+$ npm remove @geolonia/japanese-addresses
+$ npm install @geolonia/japanese-addresses -S
+```
+
 ## 正規化の内容
 
 * `XXX郡` などの郡の名前が省略されている住所に対しては、それを補完します。
@@ -62,24 +80,6 @@ normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
 
 * [ゆらぎを処理している文字列に関しては、ソースコードを御覧ください。](https://github.com/geolonia/normalize-japanese-addresses/blob/master/src/lib/dict.ts)
 * [変換前、変換後の住所の例はテストコードを御覧ください。](https://github.com/geolonia/normalize-japanese-addresses/blob/master/test/main.test.ts)
-
-## オプション
-
-本ライブラリは [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses) を元に住所文字列の正規化を試みますが、この際 web API から常に最新の Geolonia 住所データを参照します。
-この挙動を停止しローカル環境に保存された住所データを参照する場合、 以下のエントリポイントを利用してください。
-このエントリポイントは Node.js でのみ利用できます。
-
-```javascript
-const { normalize } = require('@geolonia/normalize-japanese-addresses/dist/local')
-normalize('北海道札幌市西区24-2-2-3-3') // Promise<NormalizeResult>
-```
-
-保存された住所データを最新のものに更新する場合は @geolonia/normalize-japanese-addresses を再インストールしてください。
-
-```shell
-$ npm remove @geolonia/japanese-addresses
-$ npm install @geolonia/japanese-addresses -S
-```
 
 ## 開発者向け情報
 
@@ -100,7 +100,7 @@ $ npm run build
 dist フォルダ以下に main.js など必要なファイルが生成されるので、
 
 ```
-const { normalize } = require('./dist/main-node.js')
+const { normalize } = require('./dist/main.js')
 normalize('北海道札幌市西区24-2-2-3-3', {level: 3}).then(result => {
   console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level"; 1}
 })
