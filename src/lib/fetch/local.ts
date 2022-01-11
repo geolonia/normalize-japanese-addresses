@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 export const fetchLocalData: DataFetcher = async (url: string) => {
+  console.log('local')
   const pathToApi = path.resolve(
     require.resolve('@geolonia/japanese-addresses'),
     '..',

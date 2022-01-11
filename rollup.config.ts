@@ -20,11 +20,17 @@ export default [
     plugins: [typescript()],
   },
   {
-    input: 'src/index-node.ts',
-    external: ['@geolonia/japanese-numeral', 'isomorphic-unfetch', 'lru-cache', 'fs', 'path'],
+    input: 'src/index-local.ts',
+    external: [
+      '@geolonia/japanese-numeral',
+      'isomorphic-unfetch',
+      'lru-cache',
+      'fs',
+      'path',
+    ],
     output: {
-      file: "./dist/node.js",
-      format: 'cjs'
+      file: './dist/local.js',
+      format: 'cjs',
     },
     plugins: [typescript()],
   },

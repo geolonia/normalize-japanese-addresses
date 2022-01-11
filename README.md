@@ -53,7 +53,7 @@ normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
 このエントリポイントは Node.js でのみ利用できます。
 
 ```javascript
-const { normalize } = require('@geolonia/normalize-japanese-addresses/dist/node')
+const { normalize } = require('@geolonia/normalize-japanese-addresses/dist/local')
 normalize('北海道札幌市西区24-2-2-3-3') // Promise<NormalizeResult>
 ```
 
