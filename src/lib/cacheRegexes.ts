@@ -4,7 +4,7 @@ import { currentConfig } from '../config'
 import LRU from 'lru-cache'
 import { DataFetcher } from '../normalize'
 
-type DependencyInjectionOptions = { fetch: DataFetcher }
+type InteropOptions = { fetch: DataFetcher }
 
 type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
@@ -27,7 +27,7 @@ const cachedTowns: { [key: string]: TownList } = {}
 let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
   undefined
 
-export const getPrefectures = async ({ fetch }: DependencyInjectionOptions) => {
+export const getPrefectures = async ({ fetch }: InteropOptions) => {
   if (typeof cachedPrefectures !== 'undefined') {
     return cachedPrefectures
   }
@@ -77,7 +77,7 @@ export const getCityRegexPatterns = (pref: string, cities: string[]) => {
 export const getTowns = async (
   pref: string,
   city: string,
-  { fetch }: DependencyInjectionOptions,
+  { fetch }: InteropOptions,
 ) => {
   const cacheKey = `${pref}-${city}`
   const cachedTown = cachedTowns[cacheKey]
@@ -93,7 +93,7 @@ export const getTowns = async (
 export const getTownRegexPatterns = async (
   pref: string,
   city: string,
-  { fetch }: DependencyInjectionOptions,
+  { fetch }: InteropOptions,
 ) => {
   const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
