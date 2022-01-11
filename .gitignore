@@ -24,7 +24,6 @@ yarn-error.log*
 
 /cache
 /dist
-/tmp
 
 // Use npm
 yarn.lock
