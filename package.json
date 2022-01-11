@@ -53,8 +53,10 @@
   },
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.15",
+    "@types/rimraf": "^3.0.2",
     "isomorphic-unfetch": "^3.1.0",
     "lru-cache": "^6.0.0",
+    "rimraf": "^3.0.2",
     "unzipper": "^0.10.11"
   }
 }

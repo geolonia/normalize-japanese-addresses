@@ -5,6 +5,8 @@ import fs from 'fs'
 import unzipper from 'unzipper'
 import { DataFetcher } from '../../normalize'
 import { fetchData } from './browser'
+import util from 'util'
+import rimraf from 'rimraf'
 
 let preloadedDir: string | false = false
 
@@ -47,7 +49,8 @@ export const preloadJapaneseAddresses = async (
     return extractedPath
   }
 
-  fs.rmSync(pathToExtract, { recursive: true, force: true })
+  // fs.rmSync(pathToExtract, { recursive: true, force: true }) // for node v14 or later
+  await util.promisify(rimraf)(pathToExtract) // For nodejs v12 only
   fs.mkdirSync(pathToExtract, { recursive: true })
 
   const expiresAt = new Date().getTime() + expiresIn
