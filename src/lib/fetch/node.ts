@@ -25,7 +25,8 @@ export const fetchLocalData: DataFetcher = async (url: string) => {
 export const preloadJapaneseAddresses = async (
   expiresIn: number,
 ): Promise<string> => {
-  const pathToExtract = path.resolve(__dirname, '..', 'tmp') // resolved with only in bundled file
+  const pathToExtract = path.resolve(__dirname, '..', 'tmp') // resolved only in bundled file
+  console.log({pathToExtract})
   const pathOfExpirationNote = path.resolve(pathToExtract, 'expires_at')
   const extractedPath = path.resolve(
     pathToExtract,
