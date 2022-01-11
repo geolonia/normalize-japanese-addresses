@@ -26,7 +26,6 @@ export const preloadJapaneseAddresses = async (
   expiresIn: number,
 ): Promise<string> => {
   const pathToExtract = path.resolve(__dirname, '..', 'tmp') // resolved only in bundled file
-  console.log({pathToExtract}, {cwd: process.cwd()})
   const pathOfExpirationNote = path.resolve(pathToExtract, 'expires_at')
   const extractedPath = path.resolve(
     pathToExtract,
@@ -48,7 +47,7 @@ export const preloadJapaneseAddresses = async (
     return extractedPath
   }
 
-  fs.rmdirSync(pathToExtract, { recursive: true })
+  fs.rmSync(pathToExtract, { recursive: true, force: true })
   fs.mkdirSync(pathToExtract, { recursive: true })
 
   const expiresAt = new Date().getTime() + expiresIn
