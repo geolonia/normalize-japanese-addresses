@@ -173,6 +173,7 @@ export const getTownRegexPatterns = async (
       return [town, `^${pattern}`]
     }
   }) as [SingleTown, string][]
+
   cachedTownRegexes.set(`${pref}-${city}`, patterns)
   return patterns
 }

@@ -6,35 +6,55 @@ import {
 } from './lib/cacheRegexes'
 import unzipper from 'unzipper'
 import * as Normalize from './normalize'
+import fs from 'fs'
+import { currentConfig } from './config'
 
-export const preloader = async () => {
-  console.log('Now preloading..')
+let preloaded = false
+
+/**
+ * あらかじめ市区町村のデータを読み込みキャッシュします。
+ */
+export const preload = async () => {
+  if (preloaded) {
+    return Promise.resolve()
+  } else {
+    preloaded = true
+  }
+
   cachedTownRegexes.max = Infinity
-  const resp = await unfetch(
-    'https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip',
-  )
-  const zipBuffer = Buffer.from(await resp.arrayBuffer())
+  let zipBuffer: Buffer
+
+  // file:// でローカルにダウンロードsひた zip ファイルを参照する。
+  // https://github.com/geolonia/japanese-addresses のリポジトリと同じ構造を持つものを想定
+  if (currentConfig.japaneseAddressesApi.startsWith('file://')) {
+    zipBuffer = fs.readFileSync(currentConfig.japaneseAddressesApi)
+  } else {
+    const resp = await unfetch(
+      'https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip',
+    )
+    zipBuffer = Buffer.from(await resp.arrayBuffer())
+  }
+
   const japaneseAddresses = await unzipper.Open.buffer(zipBuffer)
   for (const file of japaneseAddresses.files) {
     if (
       file.type === 'File' &&
-      file.path.startsWith('japanese-addresses-master/api/ja/') &&
+      // <リポジトリ名>/api/ja
+      file.path.match(/^(.+)\/api\/ja\//) &&
       file.path.endsWith('.json')
     ) {
-      const matches = file.path.match(
-        /japanese-addresses-master\/api\/ja\/(.+)\/(.+)\.json$/,
-      )
+      const matches = file.path.match(/(.+)\/api\/ja\/(.+)\/(.+)\.json$/)
       if (!matches) continue
-      const [, pref, city] = matches
+      const [, , pref, city] = matches
       const townBuffer = await file.buffer()
       const towns = JSON.parse(townBuffer.toString('utf-8')) as TownList
-      getTownRegexPatterns(pref, city, towns) // call and set cache
+      await getTownRegexPatterns(pref, city, towns) // call and set cache
     }
   }
-  console.log(cachedTownRegexes)
-
-  console.log(`${cachedTownRegexes.length} towns have been reloaded.`)
+  return Promise.resolve()
 }
 
-export const normalize = Normalize.createNormalizer(preloader)
-export const config = Normalize.config
+export const config = currentConfig
+export const normalize: Normalize.Normalizer = Normalize.createNormalizer(
+  preload,
+)

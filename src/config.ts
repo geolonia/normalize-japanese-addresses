@@ -4,7 +4,7 @@ export interface Config {
   /** 町丁目のデータを何件までキャッシュするか。デフォルト 1,000 */
   townCacheSize: number
 
-  /** あらかじめ町丁目のデータをキャッシュするかどうか。このオプションを指定した場合、 {@link Config.townCacheSize} の値は無視されます。 */
+  /** あらかじめ町丁目のデータをキャッシュするかどうか。このオプションは Node.js でのみ有効です。指定した場合、 {@link Config.townCacheSize} の値は無視されます。 */
   preloadCache?: boolean
 }
 
