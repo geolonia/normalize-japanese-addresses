@@ -2,13 +2,14 @@
   "name": "@geolonia/normalize-japanese-addresses",
   "version": "2.3.5",
   "description": "",
-  "browser": "./dist/main.js",
+  "browser": "./dist/main-browser.js",
   "main": "./dist/main-node.js",
-  "types": "./dist/main.d.ts",
+  "types": "./dist/main-node.d.ts",
   "scripts": {
-    "test": "npm run test:main && npm run test:addresses",
+    "test": "npm run test:main && npm run test:addresses && npm run test:preload",
     "test:main": "jest test/main.test.ts",
     "test:addresses": "jest test/addresses.test.ts",
+    "test:preload": "jest test/preload.test.ts",
     "test:generate-test-data": "npx ts-node -O '{\"module\":\"commonjs\"}' test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "build": "rm -rf ./dist && rollup -c ./rollup.config.ts"
@@ -22,6 +23,7 @@
     "@types/jest": "^26.0.20",
     "@types/lru-cache": "^5.1.1",
     "@types/node": "^14.14.37",
+    "@types/unzipper": "^0.10.5",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",
@@ -52,6 +54,7 @@
   "dependencies": {
     "@geolonia/japanese-numeral": "^0.1.15",
     "isomorphic-unfetch": "^3.1.0",
-    "lru-cache": "^6.0.0"
+    "lru-cache": "^6.0.0",
+    "unzipper": "^0.10.11"
   }
 }

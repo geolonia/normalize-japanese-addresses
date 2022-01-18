@@ -1,4 +1,4 @@
-import { normalize } from '../src/main'
+import { normalize } from '../src/main-node'
 import fs from 'fs'
 import path from 'path'
 

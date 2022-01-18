@@ -11,9 +11,9 @@ interface SingleTown {
   lat: string
   lng: string
 }
-type TownList = SingleTown[]
+export type TownList = SingleTown[]
 
-const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
+export const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
   maxAge: 60 * 60 * 24 * 7, // 7日間
 })
@@ -25,8 +25,17 @@ const cachedTowns: { [key: string]: TownList } = {}
 let cachedSameNamedPrefectureCityRegexPatterns:
   | [string, string][]
   | undefined = undefined
+let cachePreloaded = false
 
-export const getPrefectures = async () => {
+export const getPrefectures = async (preloader?: () => Promise<void>) => {
+  if (
+    !cachePreloaded &&
+    currentConfig.preloadCache &&
+    typeof preloader === 'function'
+  ) {
+    cachePreloaded = true
+    await preloader()
+  }
   if (typeof cachedPrefectures !== 'undefined') {
     return cachedPrefectures
   }
@@ -91,13 +100,17 @@ export const getTowns = async (pref: string, city: string) => {
   return (cachedTowns[cacheKey] = towns)
 }
 
-export const getTownRegexPatterns = async (pref: string, city: string) => {
+export const getTownRegexPatterns = async (
+  pref: string,
+  city: string,
+  preloadedTownList?: TownList,
+) => {
   const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
   }
 
-  const towns = await getTowns(pref, city)
+  const towns = preloadedTownList || (await getTowns(pref, city))
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {

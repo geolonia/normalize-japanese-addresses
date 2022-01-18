@@ -5,7 +5,7 @@ import pkg from './package.json'
 
 export default [
   {
-    input: 'src/main.ts',
+    input: 'src/main-browser.ts',
     output: {
       dir: 'dist',
       name: 'normalize',
@@ -14,8 +14,14 @@ export default [
     plugins: [typescript(), resolve({ browser: true }), commonjs()],
   },
   {
-    input: 'src/main.ts',
-    external: ['@geolonia/japanese-numeral', 'isomorphic-unfetch', 'lru-cache'],
+    input: 'src/main-node.ts',
+    external: [
+      '@geolonia/japanese-numeral',
+      'isomorphic-unfetch',
+      'lru-cache',
+      'unzipper',
+      'fs',
+    ],
     output: { file: pkg.main, format: 'cjs' },
     plugins: [typescript()],
   },

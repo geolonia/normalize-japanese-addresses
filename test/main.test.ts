@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { normalize } from '../src/main'
+import { normalize } from '../src/main-node'
 
 test('大阪府堺市北区新金岡町4丁1−8', async () => {
   const res = await normalize('大阪府堺市北区新金岡町4丁1−8')
