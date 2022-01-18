@@ -5,7 +5,7 @@ import pkg from './package.json'
 
 export default [
   {
-    input: 'src/main.ts',
+    input: 'src/main-browser.ts',
     output: {
       dir: 'dist',
       name: 'normalize',
@@ -20,6 +20,7 @@ export default [
       'isomorphic-unfetch',
       'lru-cache',
       'unzipper',
+      'fs',
     ],
     output: { file: pkg.main, format: 'cjs' },
     plugins: [typescript()],

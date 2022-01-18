@@ -13,10 +13,11 @@ let preloaded = false
 
 /**
  * あらかじめ市区町村のデータを読み込みキャッシュします。
+ * この関数は Node.js でのみ有効です。
  */
 export const preload = async () => {
   if (preloaded) {
-    return Promise.resolve()
+    return
   } else {
     preloaded = true
   }
@@ -24,7 +25,7 @@ export const preload = async () => {
   cachedTownRegexes.max = Infinity
   let zipBuffer: Buffer
 
-  // file:// でローカルにダウンロードsひた zip ファイルを参照する。
+  // file:// でローカルにダウンロードした zip ファイルを参照する。
   // https://github.com/geolonia/japanese-addresses のリポジトリと同じ構造を持つものを想定
   if (currentConfig.japaneseAddressesApi.startsWith('file://')) {
     zipBuffer = fs.readFileSync(currentConfig.japaneseAddressesApi)
@@ -51,7 +52,8 @@ export const preload = async () => {
       await getTownRegexPatterns(pref, city, towns) // call and set cache
     }
   }
-  return Promise.resolve()
+
+  return
 }
 
 export const config = currentConfig

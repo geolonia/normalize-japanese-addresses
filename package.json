@@ -2,9 +2,9 @@
   "name": "@geolonia/normalize-japanese-addresses",
   "version": "2.3.5",
   "description": "",
-  "browser": "./dist/main.js",
+  "browser": "./dist/main-browser.js",
   "main": "./dist/main-node.js",
-  "types": "./dist/main.d.ts",
+  "types": "./dist/main-node.d.ts",
   "scripts": {
     "test": "npm run test:main && npm run test:addresses && npm run test:preload",
     "test:main": "jest test/main.test.ts",
