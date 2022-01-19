@@ -46,6 +46,42 @@ normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
 })
 ```
 
+### オプション
+
+#### `config.townCacheSize: number`
+
+＠geolonia/normalize-japanese-addresses は市区町村毎の最新の町丁目のデータを web API から取得し住所の正規化を行います。 `townCacheSize` オプションはキャッシュする市区町村の数を変更します。デフォルトは 1,000 件になっています。
+
+#### `config.preloadCache?: boolean`
+
+全ての市区町村の町丁目のキャッシュをプリロードするかどうかを指定します。このオプションは Node.js でのみ有効です。`true` が指定された場合 `townCacheSize` の値を無視して無制限にキャッシュを作成します。キャッシュはプロセスの終了の際に破棄されます。
+
+#### `config.japaneseAddressesApi: string`
+
+町丁目データを配信する web API のエンドポイントを指定します。デフォルトは `https://geolonia.github.io/japanese-addresses/api/ja` です。この API から配信されるデータのディレクトリ構成は [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses/tree/develop/api)を参考にしてください。
+
+`japaneseAddressesApi` オプションを `preloadCache` と同時に使用することで町丁目のキャッシュをローカルファイルから作成できます。この場合は `japaneseAddressesApi` に対して API の zip ファイルのパスを `file://` 形式の URL で指定してください。
+
+
+```shell
+$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip > ./japanese-addresses-master.zip
+```
+
+```javascript
+# preloadCache オプションの使用例
+const { config, normalize } = require('@geolonia/normalize-japanese-addresses')
+config.preloadCache = true
+config.japaneseAddressesApi = 'file://path/to/japanese-addresses-master.zip'
+
+(function(){
+  for (address of addresses) {
+    await normalize(address)
+  }
+})()
+```
+
+
+
 ## 正規化の内容
 
 * `XXX郡` などの郡の名前が省略されている住所に対しては、それを補完します。
@@ -113,4 +149,4 @@ $ node sample.js
 - ソースコードのライセンスは MIT ライセンスです。
 - ご利用に際しましては、できればソーシャルでのシェア、[Geolonia](https://geolonia.com/) へのリンクの設置などをしていただけると、開発者たちのモチベーションが上がると思います。
 
-プルリクや Issue は大歓迎です。住所の正規化を工夫すれば精度があがりそうなので、そのあたりのアイディアを募集しています。
+住所の正規化を工夫すれば精度があがりそうなので、そのあたりのアイディアを募集しています。

@@ -42,6 +42,10 @@ export const getPrefectures = async (preloader?: () => Promise<void>) => {
 
   const resp = await unfetch(`${currentConfig.japaneseAddressesApi}.json`)
   const data = (await resp.json()) as PrefectureList
+  return cachePrefectures(data)
+}
+
+export const cachePrefectures = (data: PrefectureList) => {
   return (cachedPrefectures = data)
 }
 
