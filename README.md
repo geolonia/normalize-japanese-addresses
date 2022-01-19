@@ -62,13 +62,13 @@ normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
 
 `japaneseAddressesApi` オプションを `preloadCache` と同時に使用することで町丁目のキャッシュをローカルファイルから作成できます。この場合は `japaneseAddressesApi` に対して API の zip ファイルのパスを `file://` 形式の URL で指定してください。
 
-
 ```shell
-$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip > ./japanese-addresses-master.zip
+# Geolonia 住所データのダウンロード
+$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip > /path/to/japanese-addresses-master.zip
 ```
 
 ```javascript
-# preloadCache オプションの使用例
+// preloadCache オプションの使用例
 const { config, normalize } = require('@geolonia/normalize-japanese-addresses')
 config.preloadCache = true
 config.japaneseAddressesApi = 'file://path/to/japanese-addresses-master.zip'
