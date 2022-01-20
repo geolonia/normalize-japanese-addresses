@@ -1,5 +1,6 @@
 import unfetch from 'isomorphic-unfetch'
 import {
+  cachePrefectures,
   cachedTownRegexes,
   getTownRegexPatterns,
   TownList,
@@ -28,7 +29,9 @@ export const preload = async () => {
   // file:// でローカルにダウンロードした zip ファイルを参照する。
   // https://github.com/geolonia/japanese-addresses のリポジトリと同じ構造を持つものを想定
   if (currentConfig.japaneseAddressesApi.startsWith('file://')) {
-    zipBuffer = fs.readFileSync(currentConfig.japaneseAddressesApi)
+    zipBuffer = fs.readFileSync(
+      currentConfig.japaneseAddressesApi.replace(/^file:\//, ''),
+    )
   } else {
     const resp = await unfetch(
       'https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip',
@@ -50,6 +53,12 @@ export const preload = async () => {
       const townBuffer = await file.buffer()
       const towns = JSON.parse(townBuffer.toString('utf-8')) as TownList
       await getTownRegexPatterns(pref, city, towns) // call and set cache
+    } else if (
+      file.type === 'File' &&
+      file.path.match(/^(.+)\/api\/ja\.json$/)
+    ) {
+      const prefecturesBuffer = await file.buffer()
+      cachePrefectures(JSON.parse(prefecturesBuffer.toString('utf-8')))
     }
   }
 
@@ -57,6 +66,5 @@ export const preload = async () => {
 }
 
 export const config = currentConfig
-export const normalize: Normalize.Normalizer = Normalize.createNormalizer(
-  preload,
-)
+export const normalize: Normalize.Normalizer =
+  Normalize.createNormalizer(preload)
