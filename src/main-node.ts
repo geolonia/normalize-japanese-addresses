@@ -30,7 +30,7 @@ export const preload = async () => {
   // https://github.com/geolonia/japanese-addresses のリポジトリと同じ構造を持つものを想定
   if (currentConfig.japaneseAddressesApi.startsWith('file://')) {
     zipBuffer = fs.readFileSync(
-      currentConfig.japaneseAddressesApi.replace('file:/', ''),
+      currentConfig.japaneseAddressesApi.replace(/^file:\//, ''),
     )
   } else {
     const resp = await unfetch(
@@ -66,6 +66,5 @@ export const preload = async () => {
 }
 
 export const config = currentConfig
-export const normalize: Normalize.Normalizer = Normalize.createNormalizer(
-  preload,
-)
+export const normalize: Normalize.Normalizer =
+  Normalize.createNormalizer(preload)
