@@ -7,7 +7,6 @@ jest.mock('isomorphic-unfetch') // disable request for testing
 
 jest.setTimeout(3 * 60 * 1000)
 beforeAll(async () => {
-  config.preloadCache = true
   config.japaneseAddressesApi =
     'file:/' + path.resolve(__dirname, 'japanese-addresses-master.zip')
   console.time('preload')

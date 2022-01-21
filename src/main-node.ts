@@ -33,10 +33,7 @@ export const preload = async () => {
       currentConfig.japaneseAddressesApi.replace(/^file:\//, ''),
     )
   } else {
-    const resp = await unfetch(
-      'https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip',
-    )
-    zipBuffer = Buffer.from(await resp.arrayBuffer())
+    return
   }
 
   const japaneseAddresses = await unzipper.Open.buffer(zipBuffer)

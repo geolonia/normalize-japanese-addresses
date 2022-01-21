@@ -22,17 +22,12 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-let cachedSameNamedPrefectureCityRegexPatterns:
-  | [string, string][]
-  | undefined = undefined
+let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
+  undefined
 let cachePreloaded = false
 
 export const getPrefectures = async (preloader?: () => Promise<void>) => {
-  if (
-    !cachePreloaded &&
-    currentConfig.preloadCache &&
-    typeof preloader === 'function'
-  ) {
+  if (!cachePreloaded && typeof preloader === 'function') {
     cachePreloaded = true
     await preloader()
   }
