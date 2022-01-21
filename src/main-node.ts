@@ -24,6 +24,7 @@ export const preload = async () => {
   }
 
   cachedTownRegexes.max = Infinity
+  cachedTownRegexes.maxAge = Infinity
   let zipBuffer: Buffer
 
   // file:// でローカルにダウンロードした zip ファイルを参照する。
