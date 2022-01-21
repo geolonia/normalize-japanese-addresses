@@ -1,4 +1,3 @@
-import unfetch from 'isomorphic-unfetch'
 import {
   cachePrefectures,
   cachedTownRegexes,
