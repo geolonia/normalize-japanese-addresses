@@ -844,3 +844,23 @@ test('広島県府中市栗柄町名字八五十2459', async () => {
   const res = await normalize('広島県府中市栗柄町名字八五十2459')
   expect(res).toStrictEqual({pref: '広島県', city: '府中市', town: '栗柄町', addr: '名字八五十2459', lat: 34.542852, lng: 133.23166, level: 3})
 })
+
+test('広島県府中市栗柄町名字八五十2459こんにちはビルディング', async () => {
+  const res = await normalize('広島県府中市栗柄町名字八五十2459こんにちはビルディング')
+  expect(res).toStrictEqual({pref: '広島県', city: '府中市', town: '栗柄町', addr: '名字八五十2459こんにちはビルディング', lat: 34.542852, lng: 133.23166, level: 3})
+})
+
+test('広島県府中市栗柄町名字八五十2466-2', async () => {
+  const res = await normalize('広島県府中市栗柄町名字八五十2466-2')
+  expect(res).toStrictEqual({pref: '広島県', city: '府中市', town: '栗柄町', addr: '名字八五十2466-2', lat: 34.542852, lng: 133.23166, level: 3})
+})
+
+test('広島県府中市栗柄町名字八五十2466-2こんにちはビルディング', async () => {
+  const res = await normalize('広島県府中市栗柄町名字八五十2466-2')
+  expect(res).toStrictEqual({pref: '広島県', city: '府中市', town: '栗柄町', addr: '名字八五十2466-2こんにちはビルディング', lat: 34.542852, lng: 133.23166, level: 3})
+})
+
+test('広島県府中市栗柄町一二三456七八九', async () => {
+  const res = await normalize('広島県府中市栗柄町一二三456七八九')
+  expect(res).toStrictEqual({pref: '広島県', city: '府中市', town: '栗柄町', addr: '一二三456七八九', lat: 34.542852, lng: 133.23166, level: 3})
+})

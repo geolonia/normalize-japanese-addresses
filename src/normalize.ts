@@ -138,10 +138,8 @@ const normalize: (
   const prefectures = await getPrefectures(preloader)
   const prefs = Object.keys(prefectures)
   const prefPatterns = getPrefectureRegexPatterns(prefs)
-  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(
-    prefs,
-    prefectures,
-  )
+  const sameNamedPrefectureCityRegexPatterns =
+    getSameNamedPrefectureCityRegexPatterns(prefs, prefectures)
 
   // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
   // あらかじめ県名を補完しておく。
@@ -297,6 +295,6 @@ const normalize: (
   }
 }
 
-export const createNormalizer: (preloader?: Preloader) => Normalizer = (
-  preloader,
-) => (input: string, option?: Option) => normalize(input, option, preloader)
+export const createNormalizer: (preloader?: Preloader) => Normalizer =
+  (preloader) => (input: string, option?: Option) =>
+    normalize(input, option, preloader)
