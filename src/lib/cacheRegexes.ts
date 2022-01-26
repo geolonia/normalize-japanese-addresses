@@ -15,7 +15,7 @@ export type TownList = SingleTown[]
 
 const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
-  maxAge: 60 * 60 * 24 * 7, // 7日間
+  maxAge: 60 * 60 * 24 * 7 * 1000, // 7日間
 })
 
 let cachedPrefecturePatterns: [string, string][] | undefined = undefined
