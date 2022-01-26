@@ -1,22 +1,24 @@
 import * as Normalize from './normalize'
 import { currentConfig } from './config'
-import fs from 'fs'
+import fs from 'fs/promises'
 import unfetch from 'isomorphic-unfetch'
 
 const fetchOrReadFile = async (
   input: string,
 ): Promise<Response | { json: () => Promise<unknown> }> => {
-  const fileURL = `${currentConfig.japaneseAddressesApi}${input}`
-  if (fileURL.startsWith('http://') || fileURL.startsWith('https://')) {
-    return unfetch(fileURL)
-  } else if (fileURL.startsWith('file://')) {
-    const filePath = decodeURI(fileURL.replace(/^file:\//, ''))
-    const json = JSON.parse(fs.readFileSync(filePath).toString('utf-8'))
+  const fileURL = new URL(`${currentConfig.japaneseAddressesApi}${input}`)
+  if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
+    return unfetch(fileURL.toString())
+  } else if (fileURL.protocol === 'file:') {
+    const filePath = decodeURI(fileURL.pathname)
     return {
-      json: async () => json,
+      json: async () => {
+        const contents = await fs.readFile(filePath)
+        return JSON.parse(contents.toString('utf-8'))
+      },
     }
   } else {
-    throw new Error(`Unknown URL schema: ${fileURL.startsWith}`)
+    throw new Error(`Unknown URL schema: ${fileURL.protocol}`)
   }
 }
 
