@@ -11,6 +11,7 @@ import {
   getSameNamedPrefectureCityRegexPatterns,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
+import { currentConfig } from './config'
 
 /**
  * 住所の正規化結果として戻されるオブジェクト
@@ -74,7 +75,11 @@ const defaultOption: Option = {
 }
 
 export const __internals: { fetch: FetchLike } = {
-  fetch: unfetch,
+  // default fetch
+  fetch: (input: string) => {
+    const fileURL = new URL(`${currentConfig.japaneseAddressesApi}${input}`)
+    return unfetch(fileURL.toString())
+  },
 }
 
 const normalizeTownName = async (addr: string, pref: string, city: string) => {
