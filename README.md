@@ -65,7 +65,7 @@ $ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/mas
 
 ```javascript
 const { config, normalize } = require('@geolonia/normalize-japanese-addresses')
-config.japaneseAddressesApi = 'file://path/to/japanese-addresses-master/api/ja'
+config.japaneseAddressesApi = 'file:///path/to/japanese-addresses-master/api/ja'
 
 (function(){
   for (address of addresses) {
