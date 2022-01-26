@@ -73,8 +73,8 @@ const defaultOption: Option = {
   level: 3,
 }
 
-export const __fetch: { shim: FetchLike } = {
-  shim: unfetch,
+export const __internals: { fetch: FetchLike } = {
+  fetch: unfetch,
 }
 
 const normalizeTownName = async (addr: string, pref: string, city: string) => {

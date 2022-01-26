@@ -22,6 +22,6 @@ const fetchOrReadFile = async (
   }
 }
 
-Normalize.__fetch.shim = fetchOrReadFile
+Normalize.__internals.fetch = fetchOrReadFile
 export const config = currentConfig
 export const normalize = Normalize.normalize

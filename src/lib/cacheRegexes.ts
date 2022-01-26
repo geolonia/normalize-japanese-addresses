@@ -2,7 +2,7 @@ import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
 import LRU from 'lru-cache'
-import { __fetch } from '../normalize'
+import { __internals } from '../normalize'
 
 type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
@@ -30,7 +30,7 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const resp = await __fetch.shim('.json') // ja.json
+  const resp = await __internals.fetch('.json') // ja.json
   const data = (await resp.json()) as PrefectureList
   return cachePrefectures(data)
 }
@@ -83,7 +83,7 @@ export const getTowns = async (pref: string, city: string) => {
     return cachedTown
   }
 
-  const responseTownsResp = await __fetch.shim(
+  const responseTownsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
   )
   const towns = (await responseTownsResp.json()) as TownList
