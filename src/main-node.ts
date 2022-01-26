@@ -1,6 +1,6 @@
 import * as Normalize from './normalize'
 import { currentConfig } from './config'
-import fs from 'fs/promises'
+import { promises as fs } from 'fs'
 import unfetch from 'isomorphic-unfetch'
 
 const fetchOrReadFile = async (
