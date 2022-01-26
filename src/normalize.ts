@@ -10,6 +10,7 @@ import {
   getTownRegexPatterns,
   getSameNamedPrefectureCityRegexPatterns,
 } from './lib/cacheRegexes'
+import unfetch from 'isomorphic-unfetch'
 
 /**
  * 住所の正規化結果として戻されるオブジェクト
@@ -64,10 +65,16 @@ export type Normalizer = (
   option?: Option,
 ) => Promise<NormalizeResult>
 
-type Preloader = () => Promise<void>
+export type FetchLike = (
+  input: string,
+) => Promise<Response | { json: () => Promise<unknown> }>
 
 const defaultOption: Option = {
   level: 3,
+}
+
+export const __fetch: { shim: FetchLike } = {
+  shim: unfetch,
 }
 
 const normalizeTownName = async (addr: string, pref: string, city: string) => {
@@ -89,14 +96,9 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
   }
 }
 
-const normalize: (
-  input: string,
-  option?: Option,
-  preloader?: () => Promise<void>,
-) => Promise<NormalizeResult> = async (
+export const normalize: Normalizer = async (
   address,
   option = defaultOption,
-  preloader,
 ) => {
   /**
    * 入力された住所に対して以下の正規化を予め行う。
@@ -135,13 +137,11 @@ const normalize: (
 
   // 都道府県名の正規化
 
-  const prefectures = await getPrefectures(preloader)
+  const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
   const prefPatterns = getPrefectureRegexPatterns(prefs)
-  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(
-    prefs,
-    prefectures,
-  )
+  const sameNamedPrefectureCityRegexPatterns =
+    getSameNamedPrefectureCityRegexPatterns(prefs, prefectures)
 
   // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
   // あらかじめ県名を補完しておく。
@@ -292,7 +292,3 @@ const normalize: (
     level,
   }
 }
-
-export const createNormalizer: (preloader?: Preloader) => Normalizer = (
-  preloader,
-) => (input: string, option?: Option) => normalize(input, option, preloader)

@@ -56,16 +56,16 @@ normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
 
 町丁目データを配信する web API のエンドポイントを指定します。デフォルトは `https://geolonia.github.io/japanese-addresses/api/ja` です。この API から配信されるデータのディレクトリ構成は [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses/tree/develop/api)を参考にしてください。
 
-このオプションに対して `file://` 形式の URL を指定することで、ローカルファイルとして保存した zip フォーマットの住所データを参照することができます。
+このオプションに対して `file://` 形式の URL を指定することで、ローカルファイルとして保存したファイルを参照することができます。
 
 ```shell
 # Geolonia 住所データのダウンロード
-$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.zip > /path/to/japanese-addresses-master.zip
+$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvf -
 ```
 
 ```javascript
 const { config, normalize } = require('@geolonia/normalize-japanese-addresses')
-config.japaneseAddressesApi = 'file://path/to/japanese-addresses-master.zip'
+config.japaneseAddressesApi = 'file://path/to/japanese-addresses-master/api/ja'
 
 (function(){
   for (address of addresses) {
@@ -73,8 +73,6 @@ config.japaneseAddressesApi = 'file://path/to/japanese-addresses-master.zip'
   }
 })()
 ```
-
-
 
 ## 正規化の内容
 

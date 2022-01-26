@@ -28,4 +28,4 @@ yarn-error.log*
 // Use npm
 yarn.lock
 
-test/*.zip
+test/japanese-addresses-master

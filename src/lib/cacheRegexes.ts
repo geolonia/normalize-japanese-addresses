@@ -1,8 +1,8 @@
-import unfetch from 'isomorphic-unfetch'
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
 import LRU from 'lru-cache'
+import { __fetch } from '../normalize'
 
 type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
@@ -13,7 +13,7 @@ interface SingleTown {
 }
 export type TownList = SingleTown[]
 
-export const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
+const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
   maxAge: 60 * 60 * 24 * 7, // 7日間
 })
@@ -24,18 +24,13 @@ let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
 let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
   undefined
-let cachePreloaded = false
 
-export const getPrefectures = async (preloader?: () => Promise<void>) => {
-  if (!cachePreloaded && typeof preloader === 'function') {
-    cachePreloaded = true
-    await preloader()
-  }
+export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
     return cachedPrefectures
   }
 
-  const resp = await unfetch(`${currentConfig.japaneseAddressesApi}.json`)
+  const resp = await __fetch.shim('.json') // ja.json
   const data = (await resp.json()) as PrefectureList
   return cachePrefectures(data)
 }
@@ -88,28 +83,20 @@ export const getTowns = async (pref: string, city: string) => {
     return cachedTown
   }
 
-  const responseTownsResp = await unfetch(
-    [
-      currentConfig.japaneseAddressesApi,
-      encodeURI(pref),
-      encodeURI(city) + '.json',
-    ].join('/'),
+  const responseTownsResp = await __fetch.shim(
+    ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
   )
   const towns = (await responseTownsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
 }
 
-export const getTownRegexPatterns = async (
-  pref: string,
-  city: string,
-  preloadedTownList?: TownList,
-) => {
+export const getTownRegexPatterns = async (pref: string, city: string) => {
   const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
   }
 
-  const towns = preloadedTownList || (await getTowns(pref, city))
+  const towns = await getTowns(pref, city)
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
