@@ -11,7 +11,7 @@ interface SingleTown {
   lat: string
   lng: string
 }
-export type TownList = SingleTown[]
+type TownList = SingleTown[]
 
 const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
