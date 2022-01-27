@@ -20,7 +20,7 @@ const cases: [
 ]
 
 for (const [runtime, normalize] of cases) {
-  describe(`test for ${runtime} entrypoint`, () => {
+  describe(`tests for ${runtime} entry point`, () => {
     lines.forEach((line) => {
       if (line) {
         const data = line.trim().split(/,/)

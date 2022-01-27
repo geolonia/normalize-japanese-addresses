@@ -6,7 +6,7 @@ import { normalize as normalizeWithBrowser } from '../src/main-browser'
 const cases: [runtime: string, normalizer: typeof normalizeWithNode | typeof normalizeWithBrowser][] = [['node', normalizeWithNode], ['browser', normalizeWithBrowser]]
 
 for (const [runtime, normalize] of cases) {
-  describe(`test for ${runtime} entrypoint`, () => {
+  describe(`tests for ${runtime} entry point`, () => {
     test('大阪府堺市北区新金岡町4丁1−8', async () => {
       const res = await normalize('大阪府堺市北区新金岡町4丁1−8')
       expect(res).toStrictEqual({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町四丁", "addr": "1-8", "lat": 34.568184, "lng": 135.519409, "level": 3})
