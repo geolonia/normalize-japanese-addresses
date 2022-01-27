@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
 
-import { normalize as normalizeWithNode } from '../src/main-node'
-import { normalize as normalizeWithBrowser } from '../src/main-browser'
+import { normalize as normalizerForNode } from '../src/main-node'
+import { normalize as normalizerForBrowser } from '../src/main-browser'
 
-const cases: [runtime: string, normalizer: typeof normalizeWithNode | typeof normalizeWithBrowser][] = [['node', normalizeWithNode], ['browser', normalizeWithBrowser]]
+const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser][] = [['node', normalizerForNode], ['browser', normalizerForBrowser]]
 
 for (const [runtime, normalize] of cases) {
   describe(`tests for ${runtime} entry point`, () => {

@@ -1,5 +1,5 @@
-import { normalize as normalizeWithNode } from '../src/main-node'
-import { normalize as normalizeWithBrowser } from '../src/main-browser'
+import { normalize as normalizerForNode } from '../src/main-node'
+import { normalize as normalizerForBrowser } from '../src/main-browser'
 
 import fs from 'fs'
 import path from 'path'
@@ -13,10 +13,10 @@ lines.shift() // 見出し行
 
 const cases: [
   runtime: string,
-  normalizer: typeof normalizeWithNode | typeof normalizeWithBrowser,
+  normalizer: typeof normalizerForNode | typeof normalizerForBrowser,
 ][] = [
-  ['node', normalizeWithNode],
-  ['browser', normalizeWithBrowser],
+  ['node', normalizerForNode],
+  ['browser', normalizerForBrowser],
 ]
 
 for (const [runtime, normalize] of cases) {
