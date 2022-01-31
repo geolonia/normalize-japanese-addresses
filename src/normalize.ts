@@ -92,7 +92,7 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
 
     if (match) {
       return {
-        town: _town.town,
+        town: _town.originalTown || _town.town,
         addr: addr.substr(match[0].length),
         lat: _town.lat,
         lng: _town.lng,

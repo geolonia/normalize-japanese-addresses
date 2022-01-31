@@ -7,6 +7,7 @@ import { __internals } from '../normalize'
 type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
   town: string
+  originalTown?: string
   koaza: string
   lat: string
   lng: string
@@ -97,6 +98,16 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   }
 
   const towns = await getTowns(pref, city)
+
+  // 町丁目が「町」で終わるケースへの対応
+  const townsEndWithCho = towns.filter((town) => town.town.endsWith('町'))
+  towns.push(
+    ...townsEndWithCho.map((town) => ({
+      ...town,
+      originalTown: town.town,
+      town: town.town.replace(/町$/, ''),
+    })),
+  )
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {

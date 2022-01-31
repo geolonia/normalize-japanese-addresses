@@ -835,15 +835,20 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "埼玉県", "city": "川口市", "town": "大字芝", "addr": "字宮根3938-5", "level": 3, "lat": 35.843399, "lng": 139.690803})
     })
 
-    test('北海道上川郡東神楽町14号北1番地',  async () => {
+    test('北海道上川郡東神楽町14号北1番地', async () => {
       const res = await normalize('北海道上川郡東神楽町14号北1番地')
       expect(res).toStrictEqual({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
     })
 
-    test('北海道上川郡東神楽町十四号北1番地',  async () => {
+    test('北海道上川郡東神楽町十四号北1番地', async () => {
       const res = await normalize('北海道上川郡東神楽町十四号北1番地')
       expect(res).toStrictEqual({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
     })
 
+      // 町丁目の末尾の町を省略したケース
+      test('東京都江戸川区西小松川12-345', async () => {
+      const res = await normalize('東京都江戸川区西小松川12-345')
+      expect(res).toStrictEqual({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
+    })
   })
 }
