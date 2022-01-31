@@ -845,10 +845,23 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
     })
 
-      // 町丁目の末尾の町を省略したケース
+    describe('町丁目の末尾の町の省略に関連するケース', () => {
       test('東京都江戸川区西小松川12-345', async () => {
-      const res = await normalize('東京都江戸川区西小松川12-345')
-      expect(res).toStrictEqual({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
+        const res = await normalize('東京都江戸川区西小松川12-345')
+        expect(res).toStrictEqual({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
+      })
+
+      describe('自治体内に町あり/なしで同じ名前の町丁目が共存している', () => {
+        test('福島県須賀川市西川町123-456', async () => {
+          const res = await normalize('福島県須賀川市西川町123-456')
+          expect(res).toStrictEqual({"pref": "福島県", "city": "須賀川市", "town": "西川町", "addr": "123-456", "level": 3, "lat": 37.294611, "lng": 140.359974})
+        })
+
+        test('福島県須賀川市西川123-456', async () => {
+          const res = await normalize('福島県須賀川市西川123-456')
+          expect(res).toStrictEqual({"pref": "福島県", "city": "須賀川市", "town": "西川", "addr": "123-456", "level": 3, "lat": 37.296938, "lng": 140.343569})
+        })
+      })
     })
   })
 }

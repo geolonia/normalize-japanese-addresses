@@ -91,6 +91,21 @@ export const getTowns = async (pref: string, city: string) => {
   return (cachedTowns[cacheKey] = towns)
 }
 
+// 同じ自治体の中に「◯◯町」と「○○」が共存しているか
+export const coExistTownNameEndWithCho = (
+  targetTownName: string,
+  towns: TownList,
+) => {
+  for (let i = 0; i < towns.length; i++) {
+    const townName = towns[i].town
+    if (townName.endsWith('町')) continue
+    if (targetTownName.replace(/町$/, '') === townName) {
+      return true
+    }
+  }
+  return false
+}
+
 export const getTownRegexPatterns = async (pref: string, city: string) => {
   const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
@@ -100,7 +115,12 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   const towns = await getTowns(pref, city)
 
   // 町丁目が「町」で終わるケースへの対応
-  const townsEndWithCho = towns.filter((town) => town.town.endsWith('町'))
+  // 通常は「○○町」のうち「町」の省略は許容し、同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
+  // この場合は町の省略は許容せず、住所は書き分けられているものとして正規化を行う。
+  const townsEndWithCho = towns.filter(
+    (town) =>
+      town.town.endsWith('町') && !coExistTownNameEndWithCho(town.town, towns),
+  )
   towns.push(
     ...townsEndWithCho.map((town) => ({
       ...town,
