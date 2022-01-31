@@ -851,7 +851,7 @@ for (const [runtime, normalize] of cases) {
         expect(res).toStrictEqual({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
       })
 
-      describe('自治体内に町あり/なしで同じ名前の町丁目が共存している', () => {
+      describe('自治体内に町あり/なしが違うだけでほぼ同じ名前の町丁目が共存しているケース', () => {
         test('福島県須賀川市西川町123-456', async () => {
           const res = await normalize('福島県須賀川市西川町123-456')
           expect(res).toStrictEqual({"pref": "福島県", "city": "須賀川市", "town": "西川町", "addr": "123-456", "level": 3, "lat": 37.294611, "lng": 140.359974})
@@ -860,6 +860,16 @@ for (const [runtime, normalize] of cases) {
         test('福島県須賀川市西川123-456', async () => {
           const res = await normalize('福島県須賀川市西川123-456')
           expect(res).toStrictEqual({"pref": "福島県", "city": "須賀川市", "town": "西川", "addr": "123-456", "level": 3, "lat": 37.296938, "lng": 140.343569})
+        })
+
+        test('広島県三原市幸崎久和喜789-1234', async () => {
+          const res = await normalize('広島県三原市幸崎久和喜789-1234')
+          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎久和喜", "addr": "789-1234", "level": 3, "lat": 34.348481, "lng": 133.067756})
+        })
+
+        test('広島県三原市幸崎町久和喜789-1234', async () => {
+          const res = await normalize('広島県三原市幸崎町久和喜789-1234')
+          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎町久和喜", "addr": "789-1234", "level": 3, "lat": 34.352656, "lng": 133.055612})
         })
       })
     })
