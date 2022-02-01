@@ -867,14 +867,14 @@ for (const [runtime, normalize] of cases) {
           expect(res).toStrictEqual({"pref": "福島県", "city": "須賀川市", "town": "西川", "addr": "123-456", "level": 3, "lat": 37.296938, "lng": 140.343569})
         })
 
-        test('広島県三原市幸崎久和喜789-1234', async () => {
-          const res = await normalize('広島県三原市幸崎久和喜789-1234')
-          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎久和喜", "addr": "789-1234", "level": 3, "lat": 34.348481, "lng": 133.067756})
+        test('広島県三原市幸崎久和喜12-345', async () => {
+          const res = await normalize('広島県三原市幸崎久和喜12-345')
+          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎久和喜", "addr": "12-345", "level": 3, "lat": 34.348481, "lng": 133.067756})
         })
 
-        test('広島県三原市幸崎町久和喜789-1234', async () => {
-          const res = await normalize('広島県三原市幸崎町久和喜789-1234')
-          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎町久和喜", "addr": "789-1234", "level": 3, "lat": 34.352656, "lng": 133.055612})
+        test('広島県三原市幸崎町久和喜24-56', async () => {
+          const res = await normalize('広島県三原市幸崎町久和喜24-56')
+          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎町久和喜", "addr": "24-56", "level": 3, "lat": 34.352656, "lng": 133.055612})
         })
       })
 
