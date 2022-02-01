@@ -116,16 +116,16 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
 
   const towns = await getTowns(pref, city)
 
-  // 町丁目が「町」で終わるケースへの対応
-  // 通常は「○○町」のうち「町」の省略は許容し、同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
-  // この場合は町の省略は許容せず、住所は書き分けられているものとして正規化を行う。
-  const townsEndWithCho = towns.filter(
+  // 町丁目に「町」が含まれるケースへの対応
+  // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
+  // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
+  const townsWithCho = towns.filter(
     (town) =>
-      town.town.endsWith('町') &&
+      town.town.indexOf('町') !== -1 &&
       !coexistTownNameWithChoCharcter(town.town, towns),
   )
   towns.push(
-    ...townsEndWithCho.map((town) => ({
+    ...townsWithCho.map((town) => ({
       ...town,
       originalTown: town.town,
       town: town.town.replace(/町$/, ''),
