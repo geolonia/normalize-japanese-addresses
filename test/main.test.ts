@@ -845,10 +845,15 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
     })
 
-    describe('町丁目の末尾の町の省略に関連するケース', () => {
+    describe('町丁目内の文字列の「町」の省略に関連するケース', () => {
       test('東京都江戸川区西小松川12-345', async () => {
         const res = await normalize('東京都江戸川区西小松川12-345')
         expect(res).toStrictEqual({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
+      })
+
+      test('滋賀県長浜市木之本西山123-4', async () => {
+        const res = await normalize('滋賀県長浜市木之本西山123-4')
+        expect(res).toStrictEqual({"pref": "滋賀県", "city": "長浜市", "town": "木之本町西山", "addr": "123-4", "level": 3, "lat": 35.496171, "lng": 136.204177})
       })
 
       describe('自治体内に町あり/なしが違うだけでほぼ同じ名前の町丁目が共存しているケース', () => {

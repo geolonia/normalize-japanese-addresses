@@ -128,7 +128,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
     ...townsWithCho.map((town) => ({
       ...town,
       originalTown: town.town,
-      town: town.town.replace(/町$/, ''),
+      town: town.town.replace(/町/g, ''),
     })),
   )
 
