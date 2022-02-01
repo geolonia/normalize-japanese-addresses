@@ -3,6 +3,7 @@ import { kan2num } from './kan2num'
 import { currentConfig } from '../config'
 import LRU from 'lru-cache'
 import { __internals } from '../normalize'
+import { findKanjiNumbers } from '@geolonia/japanese-numeral'
 
 type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
@@ -92,7 +93,7 @@ export const getTowns = async (pref: string, city: string) => {
 }
 
 // 同じ自治体の中に「◯◯町」と「○○」が共存しているか
-export const coexistTownNameWithChoCharcter = (
+const coexistTownNameWithChoCharcter = (
   targetTownName: string,
   towns: TownList,
 ) => {
@@ -108,6 +109,14 @@ export const coexistTownNameWithChoCharcter = (
   return false
 }
 
+// 十六町 のように漢数字と町が連結しているか
+const isKanjiNumberFollewedByCho = (targetTownName: string) => {
+  const xCho = targetTownName.match(/.町/g)
+  if (!xCho) return false
+  const kanjiNumbers = findKanjiNumbers(xCho[0])
+  return kanjiNumbers.length > 0
+}
+
 export const getTownRegexPatterns = async (pref: string, city: string) => {
   const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
   if (typeof cachedResult !== 'undefined') {
@@ -119,10 +128,12 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   // 町丁目に「町」が含まれるケースへの対応
   // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
   // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
+  // 更に、「愛知県名古屋市瑞穂区十六町1丁目」漢数字を含むケースだと丁目や番地・号の正規化が不可能になる。このようなケースも除外。
   const townsWithCho = towns.filter(
     (town) =>
       town.town.indexOf('町') !== -1 &&
-      !coexistTownNameWithChoCharcter(town.town, towns),
+      !coexistTownNameWithChoCharcter(town.town, towns) &&
+      !isKanjiNumberFollewedByCho(town.town),
   )
   towns.push(
     ...townsWithCho.map((town) => ({

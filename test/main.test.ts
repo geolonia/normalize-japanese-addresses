@@ -877,6 +877,12 @@ for (const [runtime, normalize] of cases) {
           expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎町久和喜", "addr": "789-1234", "level": 3, "lat": 34.352656, "lng": 133.055612})
         })
       })
+
+      // 漢数字を含む町丁目については、後続の丁目や番地が壊れるので町の省略を許容しない
+      test('愛知県名古屋市瑞穂区十六町１丁目123-4', async () => {
+        const res = await normalize('愛知県名古屋市瑞穂区十六町１丁目123-4')
+        expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "十六町一丁目", "addr": "123-4", "level": 3, "lat": 35.128862, "lng":  136.936585})
+      })
     })
   })
 }
