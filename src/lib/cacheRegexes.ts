@@ -92,12 +92,14 @@ export const getTowns = async (pref: string, city: string) => {
 }
 
 // 同じ自治体の中に「◯◯町」と「○○」が共存しているか
-export const coexistTownNameEndWithCho = (
+export const coexistTownNameWithChoCharcter = (
   targetTownName: string,
   towns: TownList,
 ) => {
   for (let i = 0; i < towns.length; i++) {
     const townName = towns[i].town
+    // ◯◯町 （町で終わる）パターンと、 ◯◯町△△ のパターンの両方がある
+    // どちらのケースにも対応する
     if (townName.indexOf('町') === -1) continue
     if (targetTownName.replace(/町/g, '') === townName) {
       return true
@@ -119,7 +121,8 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   // この場合は町の省略は許容せず、住所は書き分けられているものとして正規化を行う。
   const townsEndWithCho = towns.filter(
     (town) =>
-      town.town.endsWith('町') && !coexistTownNameEndWithCho(town.town, towns),
+      town.town.endsWith('町') &&
+      !coexistTownNameWithChoCharcter(town.town, towns),
   )
   towns.push(
     ...townsEndWithCho.map((town) => ({
