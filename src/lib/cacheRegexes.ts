@@ -108,9 +108,6 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
 
   const towns = await getTowns(pref, city)
   const townSet = new Set(towns.map((town) => town.town))
-  // 町屋町 -> 町屋
-  const townReplacer = (match: string, offset: number) =>
-    offset === 0 ? match : ''
 
   // 町丁目に「○○町」が含まれるケースへの対応
   // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
@@ -119,7 +116,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   const townsWithCho = towns.filter(
     (town) =>
       town.town.indexOf('町') !== -1 &&
-      !townSet.has(town.town.replace(/町/g, townReplacer)) &&
+      !townSet.has(town.town.replace(/(?!^町)町/g, '')) && // 冒頭の「町」は明らかに省略するべきではないので、除外
       !isKanjiNumberFollewedByCho(town.town),
   )
   // エイリアスとして町なしのパターンを登録
@@ -127,7 +124,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
     ...townsWithCho.map((town) => ({
       ...town,
       originalTown: town.town,
-      town: town.town.replace(/町/g, townReplacer),
+      town: town.town.replace(/(?!^町)町/g, ''),
     })),
   )
 
