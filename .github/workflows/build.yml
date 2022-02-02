@@ -43,7 +43,6 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v1
         with:
-          version: 'v%s'
           node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
           scope: '@geolonia'
