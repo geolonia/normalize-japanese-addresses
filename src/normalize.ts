@@ -1,5 +1,5 @@
 import { number2kanji } from '@geolonia/japanese-numeral'
-
+import { currentConfig } from './config'
 import { kan2num } from './lib/kan2num'
 import { zen2han } from './lib/zen2han'
 import { patchAddr } from './lib/patchAddr'
@@ -11,7 +11,18 @@ import {
   getSameNamedPrefectureCityRegexPatterns,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
-import { currentConfig } from './config'
+
+/**
+ * normalize {@link Normalizer} の動作オプション。
+ */
+export interface Config {
+  /** 住所データを URL 形式で指定。 file:// 形式で指定するとローカルファイルを参照できます。 */
+  japaneseAddressesApi: string
+
+  /** 町丁目のデータを何件までキャッシュするか。デフォルト 1,000 */
+  townCacheSize: number
+}
+export const config: Config = currentConfig
 
 /**
  * 住所の正規化結果として戻されるオブジェクト
@@ -74,10 +85,13 @@ const defaultOption: Option = {
   level: 3,
 }
 
+/**
+ * @internal
+ */
 export const __internals: { fetch: FetchLike } = {
   // default fetch
   fetch: (input: string) => {
-    const fileURL = new URL(`${currentConfig.japaneseAddressesApi}${input}`)
+    const fileURL = new URL(`${config.japaneseAddressesApi}${input}`)
     return unfetch(fileURL.toString())
   },
 }
