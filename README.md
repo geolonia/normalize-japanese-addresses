@@ -117,8 +117,9 @@ $ npm run build
 dist フォルダ以下に main-node.js など必要なファイルが生成されるので、
 
 ```javascript
-const { normalize } = require('./dist/main-node.js')
-normalize('北海道札幌市西区24-2-2-3-3', {level: 3}).then(result => {
+// sample.js
+const { normalize } = require('./dist/main-node.js');
+normalize('北海道札幌市西区24-2-2-3-3', { level: 3 }).then(result => {
   console.log(result); // { "pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level": 1 }
 })
 ```
