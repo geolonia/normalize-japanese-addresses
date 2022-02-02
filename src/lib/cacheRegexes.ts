@@ -106,26 +106,29 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
     return cachedResult
   }
 
-  const towns = await getTowns(pref, city)
-  const townSet = new Set(towns.map((town) => town.town))
+  const pre_towns = await getTowns(pref, city)
+  const townSet = new Set(pre_towns.map((town) => town.town))
+  const towns = []
 
-  // 町丁目に「町」が含まれるケースへの対応
+  // 町丁目に「○○町」が含まれるケースへの対応
   // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
   // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
   // 更に、「愛知県名古屋市瑞穂区十六町1丁目」漢数字を含むケースだと丁目や番地・号の正規化が不可能になる。このようなケースも除外。
-  const townsWithCho = towns.filter(
-    (town) =>
-      town.town.indexOf('町') !== -1 &&
-      !townSet.has(town.town.replace(/町/g, '')) &&
-      !isKanjiNumberFollewedByCho(town.town),
-  )
-  towns.push(
-    ...townsWithCho.map((town) => ({
-      ...town,
-      originalTown: town.town,
-      town: town.town.replace(/町/g, ''),
-    })),
-  )
+  for (const town of pre_towns) {
+    towns.push(town)
+
+    const originalTown = town.town
+    if (originalTown.indexOf('町') === -1) continue
+    const townAbbr = originalTown.replace(/(?!^町)町/g, '') // NOTE: 冒頭の「町」は明らかに省略するべきではないので、除外
+    if (!townSet.has(townAbbr) && !isKanjiNumberFollewedByCho(originalTown)) {
+      // エイリアスとして町なしのパターンを登録
+      towns.push({
+        ...town,
+        originalTown,
+        town: townAbbr,
+      })
+    }
+  }
 
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
   towns.sort((a, b) => {
