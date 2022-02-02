@@ -89,10 +89,9 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
   for (let i = 0; i < townPatterns.length; i++) {
     const [_town, pattern] = townPatterns[i]
     const match = addr.match(pattern)
-
     if (match) {
       return {
-        town: _town.town,
+        town: _town.originalTown || _town.town,
         addr: addr.substr(match[0].length),
         lat: _town.lat,
         lng: _town.lng,

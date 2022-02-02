@@ -835,15 +835,54 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "埼玉県", "city": "川口市", "town": "大字芝", "addr": "字宮根3938-5", "level": 3, "lat": 35.843399, "lng": 139.690803})
     })
 
-    test('北海道上川郡東神楽町14号北1番地',  async () => {
+    test('北海道上川郡東神楽町14号北1番地', async () => {
       const res = await normalize('北海道上川郡東神楽町14号北1番地')
       expect(res).toStrictEqual({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
     })
 
-    test('北海道上川郡東神楽町十四号北1番地',  async () => {
+    test('北海道上川郡東神楽町十四号北1番地', async () => {
       const res = await normalize('北海道上川郡東神楽町十四号北1番地')
       expect(res).toStrictEqual({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
     })
 
+    describe('町丁目内の文字列の「町」の省略に関連するケース', () => {
+      test('東京都江戸川区西小松川12-345', async () => {
+        const res = await normalize('東京都江戸川区西小松川12-345')
+        expect(res).toStrictEqual({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
+      })
+
+      test('滋賀県長浜市木之本西山123-4', async () => {
+        const res = await normalize('滋賀県長浜市木之本西山123-4')
+        expect(res).toStrictEqual({"pref": "滋賀県", "city": "長浜市", "town": "木之本町西山", "addr": "123-4", "level": 3, "lat": 35.496171, "lng": 136.204177})
+      })
+
+      describe('自治体内に町あり/なしが違うだけでほぼ同じ名前の町丁目が共存しているケース', () => {
+        test('福島県須賀川市西川町123-456', async () => {
+          const res = await normalize('福島県須賀川市西川町123-456')
+          expect(res).toStrictEqual({"pref": "福島県", "city": "須賀川市", "town": "西川町", "addr": "123-456", "level": 3, "lat": 37.294611, "lng": 140.359974})
+        })
+
+        test('福島県須賀川市西川123-456', async () => {
+          const res = await normalize('福島県須賀川市西川123-456')
+          expect(res).toStrictEqual({"pref": "福島県", "city": "須賀川市", "town": "西川", "addr": "123-456", "level": 3, "lat": 37.296938, "lng": 140.343569})
+        })
+
+        test('広島県三原市幸崎久和喜12-345', async () => {
+          const res = await normalize('広島県三原市幸崎久和喜12-345')
+          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎久和喜", "addr": "12-345", "level": 3, "lat": 34.348481, "lng": 133.067756})
+        })
+
+        test('広島県三原市幸崎町久和喜24-56', async () => {
+          const res = await normalize('広島県三原市幸崎町久和喜24-56')
+          expect(res).toStrictEqual({"pref": "広島県", "city": "三原市", "town": "幸崎町久和喜", "addr": "24-56", "level": 3, "lat": 34.352656, "lng": 133.055612})
+        })
+      })
+
+      // 漢数字を含む町丁目については、後続の丁目や番地が壊れるので町の省略を許容しない
+      test('愛知県名古屋市瑞穂区十六町１丁目123-4', async () => {
+        const res = await normalize('愛知県名古屋市瑞穂区十六町１丁目123-4')
+        expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "十六町一丁目", "addr": "123-4", "level": 3, "lat": 35.128862, "lng":  136.936585})
+      })
+    })
   })
 }
