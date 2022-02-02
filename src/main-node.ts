@@ -1,12 +1,11 @@
 import * as Normalize from './normalize'
-import { currentConfig } from './config'
 import { promises as fs } from 'fs'
 import unfetch from 'isomorphic-unfetch'
 
 const fetchOrReadFile = async (
   input: string,
 ): Promise<Response | { json: () => Promise<unknown> }> => {
-  const fileURL = new URL(`${currentConfig.japaneseAddressesApi}${input}`)
+  const fileURL = new URL(`${Normalize.config.japaneseAddressesApi}${input}`)
   if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
     return unfetch(fileURL.toString())
   } else if (fileURL.protocol === 'file:') {
@@ -23,5 +22,5 @@ const fetchOrReadFile = async (
 }
 
 Normalize.__internals.fetch = fetchOrReadFile
-export const config = currentConfig
+export const config = Normalize.config
 export const normalize = Normalize.normalize

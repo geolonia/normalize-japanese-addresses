@@ -1,7 +1,7 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
-import { currentConfig } from '../config'
 import LRU from 'lru-cache'
+import { currentConfig } from '../config'
 import { __internals } from '../normalize'
 import { findKanjiNumbers } from '@geolonia/japanese-numeral'
 
