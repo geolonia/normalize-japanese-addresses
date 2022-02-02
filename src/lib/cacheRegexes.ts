@@ -115,7 +115,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   // 更に、「愛知県名古屋市瑞穂区十六町1丁目」漢数字を含むケースだと丁目や番地・号の正規化が不可能になる。このようなケースも除外。
   const townsWithCho = towns.filter(
     (town) =>
-      town.town.indexOf('町') !== -1 &&
+      town.town.indexOf('町') > 0 && // 冒頭に町がくるケースを除く
       !townSet.has(town.town.replace(/町/g, '')) &&
       !isKanjiNumberFollewedByCho(town.town),
   )

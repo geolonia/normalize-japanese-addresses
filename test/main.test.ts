@@ -883,6 +883,13 @@ for (const [runtime, normalize] of cases) {
         const res = await normalize('愛知県名古屋市瑞穂区十六町１丁目123-4')
         expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "十六町一丁目", "addr": "123-4", "level": 3, "lat": 35.128862, "lng":  136.936585})
       })
+
+      // 町から始まる町丁目について、町を省略した場合は寄せない
+      test('東京都荒川区町屋５丁目 の町を省略した場合', async () => {
+        const res = await normalize('東京都荒川区屋５丁目')
+        expect(res.town).not.toEqual('町屋５丁目')
+        expect(res.level).toEqual(2)
+      })
     })
   })
 }
