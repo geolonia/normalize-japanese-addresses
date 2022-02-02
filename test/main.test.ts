@@ -891,7 +891,13 @@ for (const [runtime, normalize] of cases) {
         expect(res.level).toEqual(2)
       })
 
-      test('石川県輪島市町野町桶戸 の町を省略した場合', async () => {
+      test('石川県輪島市町野町桶戸 の前側の町（町の名前の一部で、接尾の町に当たらない）を省略した場合', async () => {
+        const res = await normalize('石川県輪島市野町桶戸')
+        expect(res.town).not.toEqual('町野町桶戸')
+        expect(res.level).toEqual(2)
+      })
+
+      test('石川県輪島市町野町桶戸 の後側の町を省略した場合', async () => {
         const res = await normalize('石川県輪島市町野桶戸')
         expect(res).toStrictEqual({"pref": "石川県", "city": "輪島市", "town": "町野町桶戸", "addr": "", "level": 3, "lat": 37.414993, "lng":  137.092547})
       })
