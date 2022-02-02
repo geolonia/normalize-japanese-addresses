@@ -66,7 +66,7 @@ normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
 
 ```shell
 # Geolonia 住所データのダウンロード
-$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvf -
+$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvfz -
 ```
 
 ```javascript
