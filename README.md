@@ -1,6 +1,6 @@
 # @geolonia/normalize-japanese-addresses
 
-![build](https://github.com/geolonia/normalize-japanese-addresses/workflows/build/badge.svg)
+![build](https://github.com/geolonia/normalize-japanese-addresses/actions?query=branch%3Amaster)
 
 オープンソースの住所正規化ライブラリです。
 
@@ -10,7 +10,7 @@
 
 https://codepen.io/geolonia/pen/oNBrqzL
 
-## 使い方
+##  インストール
 
 ライブラリは npm レジストリで `@geolonia/normalize-japanese-addresses` として配布されています。
 npm コマンドなどを使ってインストールして下さい。
@@ -19,7 +19,9 @@ npm コマンドなどを使ってインストールして下さい。
 $ npm install @geolonia/normalize-japanese-addresses -S
 ```
 
-### `normalize(address: string)`
+## 使い方
+
+### `normalize(address: string, option: Option)`
 
 住所を正規化します。
 
@@ -37,26 +39,30 @@ normalize('北海道札幌市西区24-2-2-3-3').then(result => {
 * `2` - 市区町村まで判別できた。
 * `3` - 町丁目まで判別できた。
 
-例えば都道府県名のみを正規化したい場合、`level` オプションで指定することで処理を早くすることができます。
+例えば都道府県名のみを正規化したい場合、`level` オプションで指定することで処理を速くすることができます。
 
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
-normalize('北海道札幌市西区24-2-2-3-3', {level}).then(result => {
+normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
   console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "lat": null, "lng": null, "level"; 1}
 })
 ```
 
-### オプション
+### グローバルオプション
+
+以下のパラメーターを変更することでライブラリの動作全体に関わる設定が変更できます。
 
 #### `config.townCacheSize: number`
 
-＠geolonia/normalize-japanese-addresses は市区町村毎の最新の町丁目のデータを web API から取得し住所の正規化を行います。 `townCacheSize` オプションはキャッシュする市区町村の数を変更します。デフォルトは 1,000 件になっています。
+＠geolonia/normalize-japanese-addresses は市区町村毎の最新の町丁目のデータを web API から取得し住所の正規化を行います。`townCacheSize` オプションはキャッシュする市区町村の数を変更します。デフォルトは 1,000 件になっています。
 
 #### `config.japaneseAddressesApi: string`
 
 町丁目データを配信する web API のエンドポイントを指定します。デフォルトは `https://geolonia.github.io/japanese-addresses/api/ja` です。この API から配信されるデータのディレクトリ構成は [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses/tree/develop/api)を参考にしてください。
 
 このオプションに対して `file://` 形式の URL を指定することで、ローカルファイルとして保存したファイルを参照することができます。
+
+##### 使用例
 
 ```shell
 # Geolonia 住所データのダウンロード
@@ -108,12 +114,12 @@ $ npm install
 $ npm run build
 ```
 
-dist フォルダ以下に main.js など必要なファイルが生成されるので、
+dist フォルダ以下に main-node.js など必要なファイルが生成されるので、
 
-```
+```javascript
 const { normalize } = require('./dist/main-node.js')
 normalize('北海道札幌市西区24-2-2-3-3', {level: 3}).then(result => {
-  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level"; 1}
+  console.log(result); // { "pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level": 1 }
 })
 ```
 
@@ -134,7 +140,7 @@ $ node sample.js
 
 ### 貢献方法
 
-プルリクエストや Issue はいつでも歓迎します。
+[プルリクエスト](https://github.com/geolonia/normalize-japanese-addresses/pulls) や [Issue](https://github.com/geolonia/normalize-japanese-addresses/issues) はいつでも歓迎します。
 
 ## ライセンス、利用規約
 
