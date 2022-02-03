@@ -120,7 +120,11 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
     const originalTown = town.town
     if (originalTown.indexOf('町') === -1) continue
     const townAbbr = originalTown.replace(/(?!^町)町/g, '') // NOTE: 冒頭の「町」は明らかに省略するべきではないので、除外
-    if (!townSet.has(townAbbr) && !isKanjiNumberFollewedByCho(originalTown)) {
+    if (
+      !townSet.has(townAbbr) &&
+      !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
+      !isKanjiNumberFollewedByCho(originalTown)
+    ) {
       // エイリアスとして町なしのパターンを登録
       towns.push({
         ...town,

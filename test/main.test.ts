@@ -881,7 +881,29 @@ for (const [runtime, normalize] of cases) {
       // 漢数字を含む町丁目については、後続の丁目や番地が壊れるので町の省略を許容しない
       test('愛知県名古屋市瑞穂区十六町１丁目123-4', async () => {
         const res = await normalize('愛知県名古屋市瑞穂区十六町１丁目123-4')
-        expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "十六町一丁目", "addr": "123-4", "level": 3, "lat": 35.128862, "lng":  136.936585})
+        expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "十六町一丁目", "addr": "123-4", "level": 3, "lat": 35.128862, "lng": 136.936585})
+      })
+
+      describe('大字◯◯と◯◯町が共存するケース', () => {
+        test('埼玉県川口市新堀999-888', async () => {
+          const res = await normalize('埼玉県川口市新堀999-888')
+          expect(res).toStrictEqual({"pref": "埼玉県", "city": "川口市", "town": "大字新堀", "addr": "999-888", "level": 3, "lat": 35.827425, "lng": 139.783579})
+        })
+
+        test('埼玉県川口市大字新堀999-888', async () => {
+          const res = await normalize('埼玉県川口市大字新堀999-888')
+          expect(res).toStrictEqual({"pref": "埼玉県", "city": "川口市", "town": "大字新堀", "addr": "999-888", "level": 3, "lat": 35.827425, "lng": 139.783579})
+        })
+
+        test('埼玉県川口市新堀町999-888', async () => {
+          const res = await normalize('埼玉県川口市新堀町999-888')
+          expect(res).toStrictEqual({"pref": "埼玉県", "city": "川口市", "town": "新堀町", "addr": "999-888", "level": 3, "lat": 35.825057, "lng": 139.781901})
+        })
+
+        test('埼玉県川口市大字新堀町999-888', async () => {
+          const res = await normalize('埼玉県川口市大字新堀町999-888')
+          expect(res).toStrictEqual({"pref": "埼玉県", "city": "川口市", "town": "新堀町", "addr": "999-888", "level": 3, "lat": 35.825057, "lng": 139.781901})
+        })
       })
 
       // 町から始まる町丁目について、町を省略した場合は寄せない
