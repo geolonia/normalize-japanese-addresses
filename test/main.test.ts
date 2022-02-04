@@ -925,6 +925,12 @@ for (const [runtime, normalize] of cases) {
       })
     })
 
+    test('should handle unicode normalization', async () => {
+      const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
+      const resp = await normalize(address)
+      expect(resp.city).toEqual('つくば市')
+    })
+
     // 建物名と京都の通り名削除がコンフリクトしないようにする
     test.only('京都府京都市中京区山本町９９９番地おはようビル２０５号室', async () => {
       const res = await normalize('京都府京都市中京区山本町９９９番地おはようビル２０５号室')
