@@ -924,5 +924,11 @@ for (const [runtime, normalize] of cases) {
         expect(res).toStrictEqual({"pref": "石川県", "city": "輪島市", "town": "町野町桶戸", "addr": "", "level": 3, "lat": 37.414993, "lng":  137.092547})
       })
     })
+
+    test('should handle unicode normalization', async () => {
+      const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
+      const resp = await normalize(address)
+      expect(resp.city).toEqual('つくば市')
+    })
   })
 }

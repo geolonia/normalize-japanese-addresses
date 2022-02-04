@@ -25,9 +25,3 @@ test('normalize should complete in the local environment', async () => {
 
   expect(unfetch).not.toBeCalled()
 })
-
-test('should handle unicode normalization', async () => {
-  const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
-  const resp = await normalize(address)
-  expect(resp.city).toEqual('つくば市')
-})
