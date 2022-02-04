@@ -126,6 +126,7 @@ export const normalize: Normalizer = async (
    * 3. 最初に出てくる `1-` や `五-` のような文字列を町丁目とみなして、それ以前のスペースをすべて削除する。
    */
   let addr = address
+    .normalize('NFC')
     .replace(/　/g, ' ')
     .replace(/ +/g, ' ')
     .replace(/([０-９Ａ-Ｚａ-ｚ]+)/g, (match) => {
