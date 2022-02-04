@@ -924,5 +924,11 @@ for (const [runtime, normalize] of cases) {
         expect(res).toStrictEqual({"pref": "石川県", "city": "輪島市", "town": "町野町桶戸", "addr": "", "level": 3, "lat": 37.414993, "lng":  137.092547})
       })
     })
+
+    // 建物名と京都の通り名削除がコンフリクトしないようにする
+    test.only('京都府京都市中京区山本町９９９番地おはようビル２０５号室', async () => {
+      const res = await normalize('京都府京都市中京区山本町９９９番地おはようビル２０５号室')
+      expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "山本町", "addr": "９９９番地おはようビル２０５号室", "level": 3, "lat": -1, "lng": -1})
+    })
   })
 }

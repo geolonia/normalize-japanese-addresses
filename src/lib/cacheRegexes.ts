@@ -190,6 +190,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
     )
 
     if (city.match(/^京都市/)) {
+      // 通り名を削除する
       return [town, `.*${pattern}`]
     } else {
       return [town, `^${pattern}`]
