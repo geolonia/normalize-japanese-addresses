@@ -1,6 +1,6 @@
 # @geolonia/normalize-japanese-addresses
 
-![build](https://github.com/geolonia/normalize-japanese-addresses/actions?query=branch%3Amaster)
+[![build](https://github.com/geolonia/normalize-japanese-addresses/actions/workflows/build.yml/badge.svg)](https://github.com/geolonia/normalize-japanese-addresses/actions/workflows/build.yml)
 
 オープンソースの住所正規化ライブラリです。
 
