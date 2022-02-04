@@ -7,7 +7,8 @@ jest.mock('isomorphic-unfetch') // disable request for testing
 jest.setTimeout(3 * 60 * 1000)
 beforeAll(async () => {
   config.japaneseAddressesApi =
-    'file://' + path.resolve(__dirname, 'japanese-addresses-master', 'api', 'ja')
+    'file://' +
+    path.resolve(__dirname, 'japanese-addresses-master', 'api', 'ja')
   jest.setTimeout(5000)
 })
 
@@ -23,4 +24,10 @@ test('normalize should complete in the local environment', async () => {
   console.log('with-cache performance(ms): ', finished2 - started2)
 
   expect(unfetch).not.toBeCalled()
+})
+
+test('should handle unicode normalization', async () => {
+  const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
+  const resp = await normalize(address)
+  expect(resp.city).toEqual('つくば市')
 })
