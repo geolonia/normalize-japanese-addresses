@@ -5,7 +5,7 @@ import { normalize as normalizerForBrowser } from '../src/main-browser'
 
 const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser][] = [
   ['node', normalizerForNode],
-  // ['browser', normalizerForBrowser],
+  ['browser', normalizerForBrowser],
 ]
 
 for (const [runtime, normalize] of cases) {
