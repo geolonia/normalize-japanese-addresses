@@ -182,7 +182,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
             // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
             const _pattern = `(${patterns.join(
               '|',
-              // 通り名削除の際に「◯丁目」と「◯号室」がコンフリクトしないように `号(?!室)` という記述がされている。
+              // 「◯丁目」と「◯号室」がコンフリクトしないように `号(?!室)` という記述がされている。
               // このパターンは今後他のコンフリクトのケースが見つかった時に増えるかもしれない。
               // 次の issue を参照: https://github.com/geolonia/normalize-japanese-addresses/issues/162
             )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号(?!室)|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
