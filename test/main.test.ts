@@ -934,7 +934,7 @@ for (const [runtime, normalize] of cases) {
       expect(resp.city).toEqual('つくば市')
     })
 
-    // 建物名に「号室」が使われていた時に、京都の通り名削除とコンフリクトしないようにする
+    // このケースは、中京区五丁目という町丁目がり、これに意図せずマッチしないことをテストしている
     test('京都府京都市中京区山本町９９９番地おはようビル２０５号室', async () => {
       const res = await normalize('京都府京都市中京区山本町９９９番地おはようビル２０５号室')
       expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "山本町", "addr": "999おはようビル205号室", "level": 3, "lat": 35.012883, "lng": 135.766495})
