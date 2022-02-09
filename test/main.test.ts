@@ -923,6 +923,13 @@ for (const [runtime, normalize] of cases) {
         const res = await normalize('石川県輪島市町野桶戸')
         expect(res).toStrictEqual({"pref": "石川県", "city": "輪島市", "town": "町野町桶戸", "addr": "", "level": 3, "lat": 37.414993, "lng":  137.092547})
       })
+
+      test('京都府京都市下京区西中筋通北小路通上る丸屋町 京都の通り名削除と町の省略がコンフリクトするケース', async () => {
+        const res = await normalize('京都府京都市下京区西中筋通北小路通上る丸屋町')
+        expect(res.city).toEqual('京都市下京区')
+        expect(res.town).not.toEqual('北小路町')
+        expect(res.town).toEqual('丸屋町')
+      })
     })
 
     test('should handle unicode normalization', async () => {
