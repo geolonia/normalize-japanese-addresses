@@ -3,7 +3,10 @@
 import { normalize as normalizerForNode } from '../src/main-node'
 import { normalize as normalizerForBrowser } from '../src/main-browser'
 
-const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser][] = [['node', normalizerForNode], ['browser', normalizerForBrowser]]
+const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser][] = [
+  ['node', normalizerForNode],
+  // ['browser', normalizerForBrowser],
+]
 
 for (const [runtime, normalize] of cases) {
   describe(`tests for ${runtime} entry point`, () => {
@@ -931,10 +934,10 @@ for (const [runtime, normalize] of cases) {
       expect(resp.city).toEqual('つくば市')
     })
 
-    // 建物名と京都の通り名削除がコンフリクトしないようにする
-    test.only('京都府京都市中京区山本町９９９番地おはようビル２０５号室', async () => {
+    // 建物名に「号室」が使われていた時に、京都の通り名削除とコンフリクトしないようにする
+    test('京都府京都市中京区山本町９９９番地おはようビル２０５号室', async () => {
       const res = await normalize('京都府京都市中京区山本町９９９番地おはようビル２０５号室')
-      expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "山本町", "addr": "９９９番地おはようビル２０５号室", "level": 3, "lat": -1, "lng": -1})
+      expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "山本町", "addr": "999おはようビル205号室", "level": 3, "lat": 35.012883, "lng": 135.766495})
     })
   })
 }
