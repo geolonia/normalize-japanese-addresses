@@ -925,8 +925,9 @@ for (const [runtime, normalize] of cases) {
       })
     })
 
-    test('京都府京都市上京区主計町１番１号 京都の地番住所', async () => {
-      const res = await normalize('京都府京都市上京区主計町１番１号')
+    test('京都府京都市上京区主計町一番一号: 京都の地番住所では「一号|1号..」が「一番町」に正規化されてはいけない', async () => {
+      const res = await normalize('京都府京都市上京区主計町一番一号')
+      expect(res.town).not.toEqual('一番町')
       expect(res.town).toEqual('主計町')
       expect(res.addr).toEqual('1-1')
     })

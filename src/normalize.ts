@@ -239,7 +239,7 @@ export const normalize: Normalizer = async (
   }
 
   const banchiGoQueue = []
-  // 可能であれば、この段階で先に番地・号らしい文字列を取得しておく: 例 1番2号、etc.
+  // この段階で先に番地・号である可能性の大きい文字列を取得して分離しておく: 例 1番2号
   if (city && option.level >= 3) {
     const patterns = getBanchiGoRegexPatterns()
     for (const pattern of patterns) {

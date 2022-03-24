@@ -201,7 +201,9 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
 }
 
 export const getBanchiGoRegexPatterns = (): RegExp[] => {
-  const patterns = [/[0-9]+番[0-9]+号/g]
+  const patterns = [
+    /[0-9０-９一二三四五六七八九〇十百千]+番[0-9０-９一二三四五六七八九〇十百千]+号/g,
+  ]
   return patterns
 }
 
