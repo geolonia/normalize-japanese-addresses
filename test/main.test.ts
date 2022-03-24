@@ -925,6 +925,12 @@ for (const [runtime, normalize] of cases) {
       })
     })
 
+    test('京都府京都市上京区主計町１番１号 京都の地番住所', async () => {
+      const res = await normalize('京都府京都市上京区主計町１番１号')
+      expect(res.town).toEqual('主計町')
+      expect(res.addr).toEqual('1-1')
+    })
+
     test('should handle unicode normalization', async () => {
       const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
       const resp = await normalize(address)
