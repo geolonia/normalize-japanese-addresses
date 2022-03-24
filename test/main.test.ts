@@ -925,11 +925,73 @@ for (const [runtime, normalize] of cases) {
       })
     })
 
-    test('京都府京都市上京区主計町一番一号: 京都の地番住所では「一号|1号..」が「一番町」に正規化されてはいけない', async () => {
-      const res = await normalize('京都府京都市上京区主計町一番一号')
-      expect(res.town).not.toEqual('一番町')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('1-1')
+    describe('番地・号の分離: 京都の住所では「一号|1号..」などが「一番町」に正規化されてはいけない', () => {
+      test('京都府京都市上京区主計町一番一号', async () => {
+        const res = await normalize('京都府京都市上京区主計町一番一号')
+        expect(res.town).not.toEqual('一番町')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('1-1')
+      })
+
+      test('京都府京都市上京区主計町二番二号', async () => {
+        const res = await normalize('京都府京都市上京区主計町二番二号')
+        expect(res.town).not.toEqual('二番町')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('2-2')
+      })
+
+      test('京都府京都市上京区主計町三番三号', async () => {
+        const res = await normalize('京都府京都市上京区主計町三番三号')
+        expect(res.town).not.toEqual('三番町')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('3-3')
+      })
+
+      test('京都府京都市上京区中務町５４３番２１号', async () => {
+        const res = await normalize('京都府京都市上京区中務町５４３番２１号')
+        expect(res.town).not.toEqual('一番町')
+        expect(res.town).toEqual('中務町')
+        expect(res.addr).toEqual('543-21')
+      })
+
+      test('京都府京都市上京区晴明町1番３号', async () => {
+        const res = await normalize('京都府京都市上京区晴明町1番３号')
+        expect(res.town).not.toEqual('三番町')
+        expect(res.town).toEqual('晴明町')
+        expect(res.addr).toEqual('1-3')
+      })
+
+      test('京都府京都市上京区主計町1番地3', async () => {
+        const res = await normalize('京都府京都市上京区主計町1番地3')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('1-3')
+      })
+
+      test('京都府京都市上京区主計町123番', async () => {
+        const res = await normalize('京都府京都市上京区主計町123番')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('123')
+      })
+
+      test('京都府京都市上京区主計町123番地', async () => {
+        const res = await normalize('京都府京都市上京区主計町123番地')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('123')
+      })
+
+      test('京都府京都市上京区主計町1番2-403号 建物名の省略と部屋番号の表記のケース', async () => {
+        const res = await normalize('京都府京都市上京区主計町1番2-403号')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('1-2-403号')
+      })
+
+      // TODO: https://github.com/geolonia/normalize-japanese-addresses/pull/163 で解消される予定
+      test.skip('京都府京都市上京区主計町1番1号おはようビル301号室 ビル名に号が含まれるケース', async () => {
+        const res = await normalize('京都府京都市上京区主計町1番1号おはようビル301号室')
+        expect(res.town).not.toEqual('一番町')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('1-1 おはようビル301号室')
+      })
     })
 
     test('should handle unicode normalization', async () => {
