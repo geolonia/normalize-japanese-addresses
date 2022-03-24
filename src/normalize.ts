@@ -8,7 +8,7 @@ import {
   getPrefectureRegexPatterns,
   getCityRegexPatterns,
   getTownRegexPatterns,
-  getBanchiGoRegexPatterns,
+  getBanchiGoRegexps,
   getSameNamedPrefectureCityRegexPatterns,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
@@ -241,7 +241,7 @@ export const normalize: Normalizer = async (
   const banchiGoQueue = []
   // この段階で先に番地・号である可能性の大きい文字列を取得して分離しておく: 例 1番2号
   if (city && option.level >= 3) {
-    const patterns = getBanchiGoRegexPatterns()
+    const patterns = getBanchiGoRegexps()
     for (const pattern of patterns) {
       const match = addr.match(pattern)
       if (match) {
