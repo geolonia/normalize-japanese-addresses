@@ -11,7 +11,7 @@
     "test:addresses": "jest test/addresses.test.ts",
     "test:node": "curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvfz - -C ./test > /dev/null 2>&1 && jest test/fs.test.ts",
     "test:generate-test-data": "npx ts-node -O '{\"module\":\"commonjs\"}' test/build-test-data.ts > test/addresses.csv",
-    "lint": "eslint \"src/**/*.ts\" --fix",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
     "build": "rm -rf ./dist && rollup -c ./rollup.config.ts"
   },
   "author": "",

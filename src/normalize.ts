@@ -160,8 +160,10 @@ export const normalize: Normalizer = async (
   const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
   const prefPatterns = getPrefectureRegexPatterns(prefs)
-  const sameNamedPrefectureCityRegexPatterns =
-    getSameNamedPrefectureCityRegexPatterns(prefs, prefectures)
+  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(
+    prefs,
+    prefectures,
+  )
 
   // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
   // あらかじめ県名を補完しておく。
@@ -238,21 +240,18 @@ export const normalize: Normalizer = async (
     }
   }
 
-  const banchiGoQueue = []
-  // この段階で先に番地・号である可能性の大きい文字列を取得して分離しておく: 例 1番2号
+  // 町丁目以降の正規化
   if (city && option.level >= 3) {
-    const patterns = getBanchiGoRegexps()
-    for (const pattern of patterns) {
+    // この段階で先に番地・号である可能性の大きい文字列を取得して分離しておく: 例 1番2号
+    const banchiGoQueue = []
+    for (const pattern of getBanchiGoRegexps()) {
       const match = addr.match(pattern)
       if (match) {
         banchiGoQueue.push(match[0])
         addr = addr.replace(match[0], '')
       }
     }
-  }
 
-  // 町丁目以降の正規化
-  if (city && option.level >= 3) {
     const normalized = await normalizeTownName(addr, pref, city)
     if (normalized) {
       town = normalized.town
