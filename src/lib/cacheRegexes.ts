@@ -24,8 +24,9 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
-  undefined
+let cachedSameNamedPrefectureCityRegexPatterns:
+  | [string, string][]
+  | undefined = undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
@@ -197,6 +198,16 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   }) as [SingleTown, string][]
 
   cachedTownRegexes.set(`${pref}-${city}`, patterns)
+  return patterns
+}
+
+export const getBanchiGoRegexps = (): RegExp[] => {
+  const patterns = [
+    // 1番2-304号 など。部屋番号が入るパターン
+    /[0-9０-９一二三四五六七八九〇十百千]+(番地?|-)[0-9０-９一二三四五六七八九〇十百千]+(号|-)[0-9０-９一二三四五六七八九〇十百千]+(号室?)/g,
+    // 1番2号 など
+    /[0-9０-９一二三四五六七八九〇十百千]+番[0-9０-９一二三四五六七八九〇十百千]+号/g,
+  ]
   return patterns
 }
 
