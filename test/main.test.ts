@@ -3,7 +3,10 @@
 import { normalize as normalizerForNode } from '../src/main-node'
 import { normalize as normalizerForBrowser } from '../src/main-browser'
 
-const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser][] = [['node', normalizerForNode], ['browser', normalizerForBrowser]]
+const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser][] = [
+  ['node', normalizerForNode],
+  ['browser', normalizerForBrowser],
+]
 
 for (const [runtime, normalize] of cases) {
   describe(`tests for ${runtime} entry point`, () => {
@@ -998,6 +1001,15 @@ for (const [runtime, normalize] of cases) {
       const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
       const resp = await normalize(address)
       expect(resp.city).toEqual('つくば市')
+    })
+
+    // 中京区五丁目という町丁目があり、これに意図せずマッチしないことをテストしている
+    test('京都府京都市中京区山本町９９９番地おはようビル２０５号室', async () => {
+      const res = await normalize('京都府京都市中京区山本町９９９番地おはようビル２０５号室')
+      expect(res.city).toEqual('京都市中京区')
+      expect(res.town).not.toEqual('五丁目')
+      expect(res.town).toEqual('山本町')
+      expect(res.addr).toEqual('999おはようビル205号室')
     })
   })
 }
