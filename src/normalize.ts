@@ -258,6 +258,10 @@ export const normalize: Normalizer = async (
       addr = normalized.addr
       lat = parseFloat(normalized.lat)
       lng = parseFloat(normalized.lng)
+      if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        lat = null
+        lng = null
+      }
     }
 
     addr = (banchiGoQueue.join('') + addr)
