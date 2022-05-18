@@ -999,5 +999,11 @@ for (const [runtime, normalize] of cases) {
       const resp = await normalize(address)
       expect(resp.city).toEqual('つくば市')
     })
+
+    test('latとlngのデータがない場合はnullを返す', async () => {
+      const res = await normalize('大分県大分市田中町3丁目1-12')
+      expect(res.lat).toEqual(null)
+      expect(res.lng).toEqual(null)
+    })
   })
 }
