@@ -42,6 +42,21 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
     })
 
+    test('和歌山県東牟婁郡串本町串本千二三四', async () => {
+      const res = await normalize('和歌山県東牟婁郡串本町串本千二三四')
+      expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
+    })
+
+    test('和歌山県東牟婁郡串本町串本千二百三四', async () => {
+      const res = await normalize('和歌山県東牟婁郡串本町串本千二百三四')
+      expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
+    })
+
+    test('和歌山県東牟婁郡串本町串本千二百三十四', async () => {
+      const res = await normalize('和歌山県東牟婁郡串本町串本千二百三十四')
+      expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
+    })
+
     test('和歌山県東牟婁郡串本町くじ野川一二三四', async () => {
       const res = await normalize('和歌山県東牟婁郡串本町くじ野川一二三四')
       expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "鬮野川", "addr": "1234", "lat": 33.493026, "lng": 135.784941, "level": 3})
