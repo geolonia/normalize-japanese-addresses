@@ -13,7 +13,14 @@ interface SingleTown {
   lat: string
   lng: string
 }
+interface SingleResidential {
+  gaiku: string
+  jyukyo: string
+  lat: string
+  lng: string
+}
 type TownList = SingleTown[]
+type ResidentialList = SingleResidential[]
 
 const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
@@ -24,6 +31,7 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
+const cachedResidentials: { [key: string]: ResidentialList } = {}
 let cachedSameNamedPrefectureCityRegexPatterns:
   | [string, string][]
   | undefined = undefined
@@ -91,6 +99,41 @@ export const getTowns = async (pref: string, city: string) => {
   )
   const towns = (await responseTownsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
+}
+
+export const getResidentials = async (
+  pref: string,
+  city: string,
+  town: string,
+) => {
+  const cacheKey = `${pref}-${city}-${town}`
+  const cache = cachedResidentials[cacheKey]
+  if (typeof cache !== 'undefined') {
+    return cache
+  }
+
+  const responseResidentialsResp = await __internals.fetch(
+    [
+      '',
+      encodeURI(pref),
+      encodeURI(city),
+      encodeURI(town),
+      encodeURI('住居表示.json'),
+    ].join('/'),
+  )
+  let residentials: ResidentialList
+  try {
+    residentials = (await responseResidentialsResp.json()) as ResidentialList
+  } catch {
+    residentials = []
+  }
+
+  residentials.sort(
+    (res1, res2) =>
+      `${res2.gaiku}-${res2.jyukyo}`.length -
+      `${res1.gaiku}-${res1.jyukyo}`.length,
+  )
+  return (cachedResidentials[cacheKey] = residentials)
 }
 
 // 十六町 のように漢数字と町が連結しているか

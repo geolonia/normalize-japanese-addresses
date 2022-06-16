@@ -10,6 +10,7 @@ import {
   getTownRegexPatterns,
   getBanchiGoRegexps,
   getSameNamedPrefectureCityRegexPatterns,
+  getResidentials,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
 
@@ -35,6 +36,10 @@ export interface NormalizeResult {
   city: string
   /** 町丁目 */
   town: string
+  /** 住居表示住所における街区符号 */
+  gaiku?: string
+  /** 住居表示住所における住居番号 */
+  jyukyo?: string
   /** 正規化後の住所文字列 */
   addr: string
   /** 緯度。データが存在しない場合は null */
@@ -47,6 +52,7 @@ export interface NormalizeResult {
    * - 1 - 都道府県まで判別できた。
    * - 2 - 市区町村まで判別できた。
    * - 3 - 町丁目まで判別できた。
+   * - 8 - 住居表示住所として街区符号・住居番号までの判別ができた。
    */
   level: number
 }
@@ -115,6 +121,27 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
   }
 }
 
+const normalizeResidentialPart = async (
+  addr: string,
+  pref: string,
+  city: string,
+  town: string,
+) => {
+  const residentials = await getResidentials(pref, city, town)
+  // residential is already sorted
+  const residential = residentials.find((residential) => {
+    return addr.startsWith(`${residential.gaiku}-${residential.jyukyo}`)
+  })
+  if (residential) {
+    const extracted = addr
+      .replace(`${residential.gaiku}-${residential.jyukyo}`, '')
+      .trim()
+    return { ...residential, addr: extracted }
+  } else {
+    return null
+  }
+}
+
 export const normalize: Normalizer = async (
   address,
   option = defaultOption,
@@ -154,6 +181,7 @@ export const normalize: Normalizer = async (
   let lat = null
   let lng = null
   let level = 0
+  let normalized = null
 
   // 都道府県名の正規化
 
@@ -252,7 +280,8 @@ export const normalize: Normalizer = async (
       }
     }
 
-    const normalized = await normalizeTownName(addr, pref, city)
+    normalized = await normalizeTownName(addr, pref, city)
+
     if (normalized) {
       town = normalized.town
       addr = normalized.addr
@@ -314,11 +343,25 @@ export const normalize: Normalizer = async (
 
   addr = patchAddr(pref, city, town, addr)
 
+  // 住居表示住所リストを使い番地号までの正規化を行う
+  if (option.level > 3 && normalized && town) {
+    normalized = await normalizeResidentialPart(addr, pref, city, town)
+  }
+  if (normalized) {
+    lat = parseFloat(normalized.lat)
+    lng = parseFloat(normalized.lng)
+  } else {
+  }
+  if (Number.isNaN(lat) || Number.isNaN(lng)) {
+    lat = null
+    lng = null
+  }
+
   if (pref) level = level + 1
   if (city) level = level + 1
   if (town) level = level + 1
 
-  return {
+  const result: NormalizeResult = {
     pref,
     city,
     town,
@@ -327,4 +370,13 @@ export const normalize: Normalizer = async (
     lng,
     level,
   }
+
+  if (normalized && 'gaiku' in normalized && 'jyukyo' in normalized) {
+    result.level = 8
+    result.addr = normalized.addr
+    result.gaiku = normalized.gaiku
+    result.jyukyo = normalized.jyukyo
+  }
+
+  return result
 }
