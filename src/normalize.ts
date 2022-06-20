@@ -350,8 +350,8 @@ export const normalize: Normalizer = async (
   if (normalized) {
     lat = parseFloat(normalized.lat)
     lng = parseFloat(normalized.lng)
-  } else {
   }
+
   if (Number.isNaN(lat) || Number.isNaN(lng)) {
     lat = null
     lng = null
