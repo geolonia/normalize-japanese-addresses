@@ -41,8 +41,8 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const resp = await __internals.fetch('.json') // ja.json
-  const data = (await resp.json()) as PrefectureList
+  const prefsResp = await __internals.fetch('.json') // ja.json
+  const data = (await prefsResp.json()) as PrefectureList
   return cachePrefectures(data)
 }
 
@@ -94,10 +94,10 @@ export const getTowns = async (pref: string, city: string) => {
     return cachedTown
   }
 
-  const responseTownsResp = await __internals.fetch(
+  const townsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
   )
-  const towns = (await responseTownsResp.json()) as TownList
+  const towns = (await townsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
 }
 
@@ -112,7 +112,7 @@ export const getResidentials = async (
     return cache
   }
 
-  const responseResidentialsResp = await __internals.fetch(
+  const residentialsResp = await __internals.fetch(
     [
       '',
       encodeURI(pref),
@@ -123,7 +123,7 @@ export const getResidentials = async (
   )
   let residentials: ResidentialList
   try {
-    residentials = (await responseResidentialsResp.json()) as ResidentialList
+    residentials = (await residentialsResp.json()) as ResidentialList
   } catch {
     residentials = []
   }
