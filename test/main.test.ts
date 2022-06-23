@@ -860,6 +860,11 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
     })
 
+    test('愛知県名古屋市瑞穂区弥富町', async () => {
+      const res = await normalize('愛知県名古屋市瑞穂区弥富町')
+      expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "彌富町", "addr": "", "level": 3, "lat": 35.132011, "lng": 136.955457 })
+    })
+
     describe('町丁目内の文字列の「町」の省略に関連するケース', () => {
       test('東京都江戸川区西小松川12-345', async () => {
         const res = await normalize('東京都江戸川区西小松川12-345')
