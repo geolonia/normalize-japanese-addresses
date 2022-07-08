@@ -950,6 +950,13 @@ for (const [runtime, normalize] of cases) {
         expect(res.town).not.toEqual('北小路町')
         expect(res.town).toEqual('丸屋町')
       })
+
+      test('京都府京都市下京区油小路通高辻下ル麓町123', async () => {
+        const res = await normalize('京都府京都市下京区麓町123')
+        expect(res.city).toEqual('京都市下京区')
+        expect(res.town).toEqual('麓町')
+        expect(res.addr).toEqual("123")
+      })
     })
 
     describe('番地・号の分離: 京都の住所では「一号|1号..」などが「一番町」に正規化されてはいけない', () => {
