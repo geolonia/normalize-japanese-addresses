@@ -1005,6 +1005,14 @@ for (const [runtime, normalize] of cases) {
         expect(res.addr).toEqual('1-2-403号')
       })
 
+      test('京都以外の字は正しく分離される', async () => {
+        const address = '愛知県名古屋市緑区鳴海町字アイウエオ100番200号'
+        const res = await normalize(address)
+        expect(res.town).toEqual('鳴海町')
+        expect(res.addr).toEqual('字アイウエオ100-200')
+        expect(res.level).toEqual(3)
+      })
+
       // TODO: https://github.com/geolonia/normalize-japanese-addresses/pull/163 で解消される予定
       test.skip('京都府京都市上京区主計町1番1号おはようビル301号室 ビル名に号が含まれるケース', async () => {
         const res = await normalize('京都府京都市上京区主計町1番1号おはようビル301号室')
