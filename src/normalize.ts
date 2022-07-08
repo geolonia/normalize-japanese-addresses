@@ -242,13 +242,16 @@ export const normalize: Normalizer = async (
 
   // 町丁目以降の正規化
   if (city && option.level >= 3) {
+    // 京都市の通り名削除の副作用への対応:
     // この段階で先に番地・号である可能性の大きい文字列を取得して分離しておく: 例 1番2号
-    const banchiGoQueue = []
-    for (const pattern of getBanchiGoRegexps()) {
-      const match = addr.match(pattern)
-      if (match) {
-        banchiGoQueue.push(match[0])
-        addr = addr.replace(match[0], '')
+    const kyotoBanchiGoQueue = []
+    if (city.match(/^京都市/)) {
+      for (const pattern of getBanchiGoRegexps()) {
+        const match = addr.match(pattern)
+        if (match) {
+          kyotoBanchiGoQueue.push(match[0])
+          addr = addr.replace(match[0], '')
+        }
       }
     }
 
@@ -264,7 +267,7 @@ export const normalize: Normalizer = async (
       }
     }
 
-    addr = (banchiGoQueue.join('') + addr)
+    addr = (kyotoBanchiGoQueue.join('') + addr)
       .replace(/^-/, '')
       .replace(/([0-9]+)(丁目)/g, (match) => {
         return match.replace(/([0-9]+)/g, (num) => {
