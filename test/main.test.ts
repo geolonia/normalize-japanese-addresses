@@ -959,7 +959,7 @@ for (const [runtime, normalize] of cases) {
       })
     })
 
-    describe('番地・号の分離: 京都の住所では「一号|1号..」などが「一番町」に正規化されてはいけない', () => {
+    describe.only('番地・号の分離: 京都の住所では「一号|1号..」などが「一番町」に正規化されてはいけない', () => {
       test('京都府京都市上京区主計町一番一号', async () => {
         const res = await normalize('京都府京都市上京区主計町一番一号')
         expect(res.town).not.toEqual('一番町')
@@ -1015,6 +1015,12 @@ for (const [runtime, normalize] of cases) {
 
       test('京都府京都市上京区主計町1番2-403号 建物名の省略と部屋番号の表記のケース', async () => {
         const res = await normalize('京都府京都市上京区主計町1番2-403号')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('1-2-403号')
+      })
+
+      test('京都府京都市上京区あああ通り主計町1番2-403号 通り名を含むケース', async () => {
+        const res = await normalize('京都府京都市上京区あああ通り主計町1番2-403号')
         expect(res.town).toEqual('主計町')
         expect(res.addr).toEqual('1-2-403号')
       })
