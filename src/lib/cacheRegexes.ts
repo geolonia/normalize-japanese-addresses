@@ -111,6 +111,8 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
   const townSet = new Set(pre_towns.map((town) => town.town))
   const towns = []
 
+  const isKyoto = city.match(/^京都市/)
+
   // 町丁目に「○○町」が含まれるケースへの対応
   // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
   // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
@@ -122,6 +124,7 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
     if (originalTown.indexOf('町') === -1) continue
     const townAbbr = originalTown.replace(/(?!^町)町/g, '') // NOTE: 冒頭の「町」は明らかに省略するべきではないので、除外
     if (
+      !isKyoto && // 京都は通り名削除の処理があるため、意図しないマッチになるケースがある。これを除く
       !townSet.has(townAbbr) &&
       !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
       !isKanjiNumberFollewedByCho(originalTown)
@@ -190,24 +193,10 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
         ),
     )
 
-    if (city.match(/^京都市/)) {
-      return [town, `.*${pattern}`]
-    } else {
-      return [town, `^${pattern}`]
-    }
+    return [town, pattern]
   }) as [SingleTown, string][]
 
   cachedTownRegexes.set(`${pref}-${city}`, patterns)
-  return patterns
-}
-
-export const getBanchiGoRegexps = (): RegExp[] => {
-  const patterns = [
-    // 1番2-304号 など。部屋番号が入るパターン
-    /[0-9０-９一二三四五六七八九〇十百千]+(番地?|-)[0-9０-９一二三四五六七八九〇十百千]+(号|-)[0-9０-９一二三四五六七八九〇十百千]+(号室?)/g,
-    // 1番2号 など
-    /[0-9０-９一二三四五六七八九〇十百千]+番[0-9０-９一二三四五六七八九〇十百千]+号/g,
-  ]
   return patterns
 }
 

@@ -943,6 +943,20 @@ for (const [runtime, normalize] of cases) {
         const res = await normalize('石川県輪島市町野桶戸')
         expect(res).toStrictEqual({"pref": "石川県", "city": "輪島市", "town": "町野町桶戸", "addr": "", "level": 3, "lat": 37.414993, "lng":  137.092547})
       })
+
+      test('京都府京都市下京区西中筋通北小路通上る丸屋町 京都の通り名削除と町の省略がコンフリクトするケース', async () => {
+        const res = await normalize('京都府京都市下京区西中筋通北小路通上る丸屋町')
+        expect(res.city).toEqual('京都市下京区')
+        expect(res.town).not.toEqual('北小路町')
+        expect(res.town).toEqual('丸屋町')
+      })
+
+      test('京都府京都市下京区油小路通高辻下ル麓町123', async () => {
+        const res = await normalize('京都府京都市下京区麓町123')
+        expect(res.city).toEqual('京都市下京区')
+        expect(res.town).toEqual('麓町')
+        expect(res.addr).toEqual("123")
+      })
     })
 
     describe('番地・号の分離: 京都の住所では「一号|1号..」などが「一番町」に正規化されてはいけない', () => {
@@ -1003,6 +1017,20 @@ for (const [runtime, normalize] of cases) {
         const res = await normalize('京都府京都市上京区主計町1番2-403号')
         expect(res.town).toEqual('主計町')
         expect(res.addr).toEqual('1-2-403号')
+      })
+
+      test.skip('京都府京都市上京区あああ通り主計町1番2-403号 通り名を含むケース', async () => {
+        const res = await normalize('京都府京都市上京区あああ通り主計町1番2-403号')
+        expect(res.town).toEqual('主計町')
+        expect(res.addr).toEqual('1-2-403号')
+      })
+
+      test('京都以外の字は正しく分離される', async () => {
+        const address = '愛知県名古屋市緑区鳴海町字アイウエオ100番200号'
+        const res = await normalize(address)
+        expect(res.town).toEqual('鳴海町')
+        expect(res.addr).toEqual('字アイウエオ100-200')
+        expect(res.level).toEqual(3)
       })
 
       // TODO: https://github.com/geolonia/normalize-japanese-addresses/pull/163 で解消される予定

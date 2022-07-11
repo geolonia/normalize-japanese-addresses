@@ -8,7 +8,6 @@ import {
   getPrefectureRegexPatterns,
   getCityRegexPatterns,
   getTownRegexPatterns,
-  getBanchiGoRegexps,
   getSameNamedPrefectureCityRegexPatterns,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
@@ -101,15 +100,23 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
   addr = addr.trim().replace(/^大字/, '')
   const townPatterns = await getTownRegexPatterns(pref, city)
 
-  for (let i = 0; i < townPatterns.length; i++) {
-    const [_town, pattern] = townPatterns[i]
-    const match = addr.match(pattern)
-    if (match) {
-      return {
-        town: _town.originalTown || _town.town,
-        addr: addr.substr(match[0].length),
-        lat: _town.lat,
-        lng: _town.lng,
+  const regexPrefixes = ['^']
+  if (city.match(/^京都市/)) {
+    // 京都は通り名削除のために後方一致を使う
+    regexPrefixes.push('.*')
+  }
+
+  for (const regexPrefix of regexPrefixes) {
+    for (const [town, pattern] of townPatterns) {
+      const regex = new RegExp(`${regexPrefix}${pattern}`)
+      const match = addr.match(regex)
+      if (match) {
+        return {
+          town: town.originalTown || town.town,
+          addr: addr.substr(match[0].length),
+          lat: town.lat,
+          lng: town.lng,
+        }
       }
     }
   }
@@ -242,16 +249,6 @@ export const normalize: Normalizer = async (
 
   // 町丁目以降の正規化
   if (city && option.level >= 3) {
-    // この段階で先に番地・号である可能性の大きい文字列を取得して分離しておく: 例 1番2号
-    const banchiGoQueue = []
-    for (const pattern of getBanchiGoRegexps()) {
-      const match = addr.match(pattern)
-      if (match) {
-        banchiGoQueue.push(match[0])
-        addr = addr.replace(match[0], '')
-      }
-    }
-
     const normalized = await normalizeTownName(addr, pref, city)
     if (normalized) {
       town = normalized.town
@@ -264,7 +261,7 @@ export const normalize: Normalizer = async (
       }
     }
 
-    addr = (banchiGoQueue.join('') + addr)
+    addr = addr
       .replace(/^-/, '')
       .replace(/([0-9]+)(丁目)/g, (match) => {
         return match.replace(/([0-9]+)/g, (num) => {
