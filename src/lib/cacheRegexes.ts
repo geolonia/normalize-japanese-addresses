@@ -13,12 +13,20 @@ interface SingleTown {
   lat: string
   lng: string
 }
+
+interface GaikuListItem {
+  gaiku: string
+  lat: string
+  lng: string
+}
+
 interface SingleResidential {
   gaiku: string
   jyukyo: string
   lat: string
   lng: string
 }
+
 type TownList = SingleTown[]
 type ResidentialList = SingleResidential[]
 
@@ -31,6 +39,7 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
+const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
 const cachedResidentials: { [key: string]: ResidentialList } = {}
 let cachedSameNamedPrefectureCityRegexPatterns:
   | [string, string][]
@@ -99,6 +108,28 @@ export const getTowns = async (pref: string, city: string) => {
   )
   const towns = (await townsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
+}
+
+export const getGaikuList = async (
+  pref: string,
+  city: string,
+  town: string,
+) => {
+  const cacheKey = `${pref}-${city}-${town}`
+  const cache = cachedGaikuListItem[cacheKey]
+  if (typeof cache !== 'undefined') {
+    return cache
+  }
+  const gaikuResp = await __internals.fetch(
+    ['', encodeURI(pref), encodeURI(city), encodeURI(town + '.json')].join('/'),
+  )
+  let gaikuListItem: GaikuListItem[]
+  try {
+    gaikuListItem = (await gaikuResp.json()) as GaikuListItem[]
+  } catch {
+    gaikuListItem = []
+  }
+  return (cachedGaikuListItem[cacheKey] = gaikuListItem)
 }
 
 export const getResidentials = async (

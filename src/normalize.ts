@@ -11,6 +11,7 @@ import {
   getBanchiGoRegexps,
   getSameNamedPrefectureCityRegexPatterns,
   getResidentials,
+  getGaikuList,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
 
@@ -52,7 +53,8 @@ export interface NormalizeResult {
    * - 1 - 都道府県まで判別できた。
    * - 2 - 市区町村まで判別できた。
    * - 3 - 町丁目まで判別できた。
-   * - 8 - 住居表示住所として街区符号・住居番号までの判別ができた。
+   * - 7 - 住居表示住所の街区までの判別ができた。
+   * - 8 - 住居表示住所の街区符号・住居番号までの判別ができた。
    */
   level: number
 }
@@ -127,7 +129,11 @@ const normalizeResidentialPart = async (
   city: string,
   town: string,
 ) => {
-  const residentials = await getResidentials(pref, city, town)
+  const [gaikuListItem, residentials] = await Promise.all([
+    getGaikuList(pref, city, town),
+    getResidentials(pref, city, town),
+  ])
+
   // residential is already sorted
   const residential = residentials.find((residential) => {
     return addr.startsWith(`${residential.gaiku}-${residential.jyukyo}`)
@@ -146,6 +152,12 @@ export const normalize: Normalizer = async (
   address,
   option = defaultOption,
 ) => {
+  if (option.level > 6) {
+    // 住居表示住所の正規化を行う場合、geolonia でホストしたデータを用いる
+    currentConfig.japaneseAddressesApi =
+      'https://japanese-addresses.geolonia.com/next/ja'
+  }
+
   /**
    * 入力された住所に対して以下の正規化を予め行う。
    *
@@ -178,6 +190,8 @@ export const normalize: Normalizer = async (
   let pref = ''
   let city = ''
   let town = ''
+  let gaiku = ''
+  let jyukyo = ''
   let lat = null
   let lng = null
   let level = 0
@@ -348,6 +362,8 @@ export const normalize: Normalizer = async (
     normalized = await normalizeResidentialPart(addr, pref, city, town)
   }
   if (normalized) {
+    if ('gaiku' in normalized) gaiku = normalized.gaiku
+    if ('jyukyo' in normalized && option.level > 7) jyukyo = normalized.jyukyo
     lat = parseFloat(normalized.lat)
     lng = parseFloat(normalized.lng)
   }
@@ -360,6 +376,8 @@ export const normalize: Normalizer = async (
   if (pref) level = level + 1
   if (city) level = level + 1
   if (town) level = level + 1
+  if (gaiku) level = 7
+  if (jyukyo) level = 8
 
   const result: NormalizeResult = {
     pref,
