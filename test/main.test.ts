@@ -865,6 +865,33 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "彌富町", "addr": "", "level": 3, "lat": 35.132011, "lng": 136.955457 })
     })
 
+    describe('途中にスペースを含むケース', () => {
+      // https://github.com/geolonia/normalize-japanese-addresses/issues/180
+      test('京都府京都市　下京区上之町999', async () => {
+        const res = await normalize('京都府京都市 下京区上之町999')
+        expect(res.pref).toEqual('京都府')
+        expect(res.city).toEqual('京都市下京区')
+        expect(res.town).toEqual('上之町')
+        expect(res.addr).toEqual('999')
+      })
+
+      test('宮城県仙台市 若林区土樋999', async () => {
+        const res = await normalize('宮城県仙台市 若林区土樋999')
+        expect(res.pref).toEqual('宮城県')
+        expect(res.city).toEqual('仙台市若林区')
+        expect(res.town).toEqual('土樋')
+        expect(res.addr).toEqual('999')
+      })
+
+      test('青森県上北郡 横浜町字三保野888', async () => {
+        const res = await normalize('青森県上北郡 横浜町字三保野888')
+        expect(res.pref).toEqual('青森県')
+        expect(res.city).toEqual('上北郡横浜町')
+        expect(res.town).toEqual('字三保野')
+        expect(res.addr).toEqual('999')
+      })
+    })
+
     describe('町丁目内の文字列の「町」の省略に関連するケース', () => {
       test('東京都江戸川区西小松川12-345', async () => {
         const res = await normalize('東京都江戸川区西小松川12-345')
