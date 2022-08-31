@@ -6,10 +6,9 @@
   "main": "./dist/main-node.js",
   "types": "./dist/normalize.d.ts",
   "scripts": {
-    "test": "npm run test:main && npm run test:addresses && npm run test:node && npm run test:residential",
+    "test": "npm run test:main && npm run test:addresses && npm run test:node",
     "test:main": "jest test/main.test.ts",
     "test:addresses": "jest test/addresses.test.ts",
-    "test:residential": "jest test/residential.test.ts",
     "test:node": "curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvfz - -C ./test > /dev/null 2>&1 && jest test/fs.test.ts",
     "test:generate-test-data": "npx ts-node -O '{\"module\":\"commonjs\"}' test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
