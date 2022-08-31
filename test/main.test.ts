@@ -882,14 +882,6 @@ for (const [runtime, normalize] of cases) {
         expect(res.town).toEqual('土樋')
         expect(res.addr).toEqual('999')
       })
-
-      test('青森県上北郡 横浜町字三保野888', async () => {
-        const res = await normalize('青森県上北郡 横浜町字三保野888')
-        expect(res.pref).toEqual('青森県')
-        expect(res.city).toEqual('上北郡横浜町')
-        expect(res.town).toEqual('字三保野')
-        expect(res.addr).toEqual('999')
-      })
     })
 
     describe('町丁目内の文字列の「町」の省略に関連するケース', () => {
