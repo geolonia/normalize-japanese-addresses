@@ -190,8 +190,8 @@ export const normalize: Normalizer = async (
     .replace(/(.+)(丁目?|番(町|地|丁)|条|軒|線|(の|ノ)町|地割)/, (match) => {
       return match.replace(/ /g, '') // 町丁目名以前のスペースはすべて削除
     })
-    .replace(/(.+)(区|區)/, (match) => {
-      return match.replace(/ /g, '') // 区以前のスペースはすべて削除
+    .replace(/(.+)((郡.+(町|村))|((市|巿).+(区|區)))/, (match) => {
+      return match.replace(/ /g, '') // 区、郡以前のスペースはすべて削除
     })
     .replace(/.+?[0-9一二三四五六七八九〇十百千]-/, (match) => {
       return match.replace(/ /g, '') // 1番はじめに出てくるアラビア数字以前のスペースを削除
