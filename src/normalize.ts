@@ -149,18 +149,38 @@ const normalizeResidentialPart = async (
     getResidentials(pref, city, town),
   ])
 
-  // residential is already sorted
-  const residential = residentials.find((residential) => {
-    return addr.startsWith(`${residential.gaiku}-${residential.jyukyo}`)
-  })
-  if (residential) {
-    const extracted = addr
-      .replace(`${residential.gaiku}-${residential.jyukyo}`, '')
-      .trim()
-    return { ...residential, addr: extracted }
-  } else {
+  // 住居表示未整備
+  if (gaikuListItem.length === 0) {
     return null
   }
+
+  const match = addr.match(/^([1-9][0-9]*)-([1-9][0-9]*)/)
+  if (match) {
+    const gaiku = match[1]
+    const jyukyo = match[2]
+    const jyukyohyoji = `${gaiku}-${jyukyo}`
+    const residential = residentials.find(
+      (res) => `${res.gaiku}-${res.jyukyo}` === jyukyohyoji,
+    )
+
+    if (residential) {
+      const addr2 = addr.replace(jyukyohyoji, '').trim()
+      return {
+        gaiku,
+        jyukyo,
+        addr: addr2,
+        lat: residential.lat,
+        lng: residential.lng,
+      }
+    }
+
+    const gaikuItem = gaikuListItem.find((item) => item.gaiku === gaiku)
+    if (gaikuItem) {
+      const addr2 = addr.replace(gaikuItem.gaiku, '').trim()
+      return { gaiku, addr: addr2, lat: gaikuItem.lat, lng: gaikuItem.lng }
+    }
+  }
+  return null
 }
 
 export const normalize: Normalizer = async (
@@ -212,8 +232,8 @@ export const normalize: Normalizer = async (
   let pref = ''
   let city = ''
   let town = ''
-  let gaiku = ''
-  let jyukyo = ''
+  const gaiku = ''
+  const jyukyo = ''
   let lat = null
   let lng = null
   let level = 0
@@ -373,8 +393,6 @@ export const normalize: Normalizer = async (
     normalized = await normalizeResidentialPart(addr, pref, city, town)
   }
   if (normalized) {
-    if ('gaiku' in normalized) gaiku = normalized.gaiku
-    if ('jyukyo' in normalized && option.level > 7) jyukyo = normalized.jyukyo
     lat = parseFloat(normalized.lat)
     lng = parseFloat(normalized.lng)
   }
@@ -387,8 +405,6 @@ export const normalize: Normalizer = async (
   if (pref) level = level + 1
   if (city) level = level + 1
   if (town) level = level + 1
-  if (gaiku) level = 7
-  if (jyukyo) level = 8
 
   const result: NormalizeResult = {
     pref,
@@ -400,11 +416,14 @@ export const normalize: Normalizer = async (
     level,
   }
 
-  if (normalized && 'gaiku' in normalized && 'jyukyo' in normalized) {
-    result.level = 8
+  if (normalized && 'gaiku' in normalized) {
     result.addr = normalized.addr
     result.gaiku = normalized.gaiku
+    result.level = 7
+  }
+  if (normalized && 'jyukyo' in normalized) {
     result.jyukyo = normalized.jyukyo
+    result.level = 8
   }
 
   return result

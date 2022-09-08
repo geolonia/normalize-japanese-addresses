@@ -15,7 +15,7 @@ beforeAll(() => {
   jest.setTimeout(5000)
 })
 
-test('住居表示1', async () => {
+test('住居表示', async () => {
   const normResult = await normalize(
     '東京都世田谷区北烏山６−２２−２２ おはようビル',
     {
@@ -28,15 +28,24 @@ test('住居表示1', async () => {
   expect(normResult.addr).toEqual('おはようビル')
 })
 
-test('住居表示2', async () => {
+test('住居表示だが、知らない号', async () => {
   const normResult = await normalize(
-    '東京都世田谷区北烏山６−２２番２２号 おはようビル',
+    '東京都世田谷区北烏山６−２２番１２３４５６７８９０号 おはようビル',
     {
       geoloniaApiKey: 'YOUR-API-KEY',
     },
   )
-  expect(normResult.level).toEqual(8)
+  expect(normResult.level).toEqual(7)
   expect(normResult.gaiku).toEqual('22')
-  expect(normResult.jyukyo).toEqual('22')
-  expect(normResult.addr).toEqual('おはようビル')
+  expect(normResult.addr).toEqual('-1234567890 おはようビル')
+})
+
+test('住居表示未整備', async () => {
+  const normResult = await normalize('滋賀県米原市甲津原999', {
+    geoloniaApiKey: 'YOUR-API-KEY',
+  })
+  expect(normResult.level).toEqual(3)
+  expect(normResult.addr).toEqual('999')
+  expect(normResult.gaiku).toBeUndefined()
+  expect(normResult.jyukyo).toBeUndefined()
 })
