@@ -15,6 +15,20 @@ interface SingleTown {
 }
 type TownList = SingleTown[]
 
+interface GaikuListItem {
+  gaiku: string
+  lat: string
+  lng: string
+}
+
+interface SingleResidential {
+  gaiku: string
+  jyukyo: string
+  lat: string
+  lng: string
+}
+type ResidentialList = SingleResidential[]
+
 const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
   maxAge: 60 * 60 * 24 * 7 * 1000, // 7日間
@@ -24,6 +38,8 @@ let cachedPrefecturePatterns: [string, string][] | undefined = undefined
 const cachedCityPatterns: { [key: string]: [string, string][] } = {}
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
+const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
+const cachedResidentials: { [key: string]: ResidentialList } = {}
 let cachedSameNamedPrefectureCityRegexPatterns:
   | [string, string][]
   | undefined = undefined
@@ -33,8 +49,8 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const resp = await __internals.fetch('.json') // ja.json
-  const data = (await resp.json()) as PrefectureList
+  const prefsResp = await __internals.fetch('.json') // ja.json
+  const data = (await prefsResp.json()) as PrefectureList
   return cachePrefectures(data)
 }
 
@@ -86,11 +102,68 @@ export const getTowns = async (pref: string, city: string) => {
     return cachedTown
   }
 
-  const responseTownsResp = await __internals.fetch(
+  const townsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
   )
-  const towns = (await responseTownsResp.json()) as TownList
+  const towns = (await townsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
+}
+
+export const getGaikuList = async (
+  pref: string,
+  city: string,
+  town: string,
+) => {
+  const cacheKey = `${pref}-${city}-${town}`
+  const cache = cachedGaikuListItem[cacheKey]
+  if (typeof cache !== 'undefined') {
+    return cache
+  }
+  const gaikuResp = await __internals.fetch(
+    ['', encodeURI(pref), encodeURI(city), encodeURI(town + '.json')].join('/'),
+  )
+  let gaikuListItem: GaikuListItem[]
+  try {
+    gaikuListItem = (await gaikuResp.json()) as GaikuListItem[]
+  } catch {
+    gaikuListItem = []
+  }
+  return (cachedGaikuListItem[cacheKey] = gaikuListItem)
+}
+
+export const getResidentials = async (
+  pref: string,
+  city: string,
+  town: string,
+) => {
+  const cacheKey = `${pref}-${city}-${town}`
+  const cache = cachedResidentials[cacheKey]
+  if (typeof cache !== 'undefined') {
+    return cache
+  }
+
+  const residentialsResp = await __internals.fetch(
+    [
+      '',
+      encodeURI(pref),
+      encodeURI(city),
+      encodeURI(town),
+      encodeURI('住居表示.json'),
+    ].join('/'),
+  )
+  let residentials: ResidentialList
+  try {
+    residentials = (await residentialsResp.json()) as ResidentialList
+  } catch {
+    residentials = []
+  }
+
+  residentials.sort(
+    (res1, res2) =>
+      `${res2.gaiku}-${res2.jyukyo}`.length -
+      `${res1.gaiku}-${res1.jyukyo}`.length,
+  )
+  return (cachedResidentials[cacheKey] = residentials)
 }
 
 // 十六町 のように漢数字と町が連結しているか
