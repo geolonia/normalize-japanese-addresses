@@ -7,6 +7,9 @@ const fetchOrReadFile = async (
 ): Promise<Response | { json: () => Promise<unknown> }> => {
   const fileURL = new URL(`${Normalize.config.japaneseAddressesApi}${input}`)
   if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
+    if (Normalize.config.geoloniaApiKey) {
+      fileURL.search = `?geolonia-api-key=${Normalize.config.geoloniaApiKey}`
+    }
     return unfetch(fileURL.toString())
   } else if (fileURL.protocol === 'file:') {
     const filePath = decodeURI(fileURL.pathname)
