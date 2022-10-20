@@ -1080,5 +1080,11 @@ for (const [runtime, normalize] of cases) {
       expect(res.lat).toEqual(null)
       expect(res.lng).toEqual(null)
     })
+
+    test('町丁目名が判別できなかった場合、残った住所には漢数字->数字などの変換処理を施さない', async () => {
+      const res = await normalize('北海道滝川市一の坂町西')
+      expect(res.town).toEqual('')
+      expect(res.addr).toEqual('一の坂町西')
+    })
   })
 }
