@@ -1,5 +1,5 @@
 import { number2kanji } from '@geolonia/japanese-numeral'
-import { currentConfig } from './config'
+import { currentConfig, gh_pages_endpoint } from './config'
 import { kan2num } from './lib/kan2num'
 import { zen2han } from './lib/zen2han'
 import { patchAddr } from './lib/patchAddr'
@@ -192,9 +192,12 @@ export const normalize: Normalizer = async (
   if (option.geoloniaApiKey || config.geoloniaApiKey) {
     option.level = 8
     option.geoloniaApiKey && (config.geoloniaApiKey = option.geoloniaApiKey)
-    // TODO: japanese-addresses.geolonia.com を作成後に置き換え
-    config.japaneseAddressesApi =
-      'https://japanese-addresses-dev.geolonia.com/next/ja'
+    // API キーがある場合は、 Geolonia SaaS に切り替え。
+    // ただし、config を書き換えて別のエンドポイントを使うようにカスタマイズしているケースがあるので、その場合は config に既に入っている値を優先
+    if (config.japaneseAddressesApi === gh_pages_endpoint) {
+      config.japaneseAddressesApi =
+        'https://japanese-addresses.geolonia.com/next/ja'
+    }
   }
 
   /**
