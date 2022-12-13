@@ -339,52 +339,55 @@ export const normalize: Normalizer = async (
       }
     }
 
-    addr = addr
-      .replace(/^-/, '')
-      .replace(/([0-9]+)(丁目)/g, (match) => {
-        return match.replace(/([0-9]+)/g, (num) => {
-          return number2kanji(Number(num))
+    // townが取得できた場合にのみ、addrに対する各種の変換処理を行う。
+    if (town) {
+      addr = addr
+        .replace(/^-/, '')
+        .replace(/([0-9]+)(丁目)/g, (match) => {
+          return match.replace(/([0-9]+)/g, (num) => {
+            return number2kanji(Number(num))
+          })
         })
-      })
-      .replace(
-        /(([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号)\s*(.+)/,
-        '$1 $5',
-      )
-      .replace(
-        /([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号?/,
-        '$1-$3',
-      )
-      .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
-      .replace(/([0-9〇一二三四五六七八九十百千]+)の/g, '$1-')
-      .replace(
-        /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
-        (match) => {
-          return kan2num(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
-        },
-      )
-      .replace(
-        /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
-        (match) => {
-          return kan2num(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
-        },
-      )
-      .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
-        // `1-` のようなケース
-        return kan2num(s)
-      })
-      .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => {
-        // `-1` のようなケース
-        return kan2num(s)
-      })
-      .replace(/-[^0-9]+([0-9〇一二三四五六七八九十百千]+)/, (s) => {
-        // `-あ1` のようなケース
-        return kan2num(zen2han(s))
-      })
-      .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => {
-        // `串本町串本１２３４` のようなケース
-        return kan2num(s)
-      })
-      .trim()
+        .replace(
+          /(([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号)\s*(.+)/,
+          '$1 $5',
+        )
+        .replace(
+          /([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号?/,
+          '$1-$3',
+        )
+        .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
+        .replace(/([0-9〇一二三四五六七八九十百千]+)の/g, '$1-')
+        .replace(
+          /([0-9〇一二三四五六七八九十百千]+)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g,
+          (match) => {
+            return kan2num(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+          },
+        )
+        .replace(
+          /[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]([0-9〇一二三四五六七八九十百千]+)/g,
+          (match) => {
+            return kan2num(match).replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-')
+          },
+        )
+        .replace(/([0-9〇一二三四五六七八九十百千]+)-/, (s) => {
+          // `1-` のようなケース
+          return kan2num(s)
+        })
+        .replace(/-([0-9〇一二三四五六七八九十百千]+)/, (s) => {
+          // `-1` のようなケース
+          return kan2num(s)
+        })
+        .replace(/-[^0-9]+([0-9〇一二三四五六七八九十百千]+)/, (s) => {
+          // `-あ1` のようなケース
+          return kan2num(zen2han(s))
+        })
+        .replace(/([0-9〇一二三四五六七八九十百千]+)$/, (s) => {
+          // `串本町串本１２３４` のようなケース
+          return kan2num(s)
+        })
+        .trim()
+    }
   }
 
   addr = patchAddr(pref, city, town, addr)
