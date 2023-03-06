@@ -60,7 +60,7 @@ describe('Request with Geolonia backend', () => {
     expect(normResult.jyukyo).toBeUndefined()
   })
 
-  test.only('番地号部分にスペースが含まれていても正規化する', async () => {
+  test('番地号部分にスペースが含まれていても正規化する', async () => {
     const addresses = [
       '港区新橋五丁目  24   番  8  号',
       '港区新橋五丁目24 番 8 号',
