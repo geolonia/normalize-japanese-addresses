@@ -59,6 +59,24 @@ describe('Request with Geolonia backend', () => {
     expect(normResult.gaiku).toBeUndefined()
     expect(normResult.jyukyo).toBeUndefined()
   })
+
+  test('番地号部分にスペースが含まれていても正規化する', async () => {
+    const addresses = [
+      '港区新橋五丁目  24   番  8  号',
+      '港区新橋五丁目24 番 8 号',
+      '港区新橋５－２４－８',
+    ]
+    const results = await Promise.all(
+      addresses.map((address) =>
+        normalize(address, {
+          geoloniaApiKey: 'YOUR-API-KEY',
+        }),
+      ),
+    )
+    for (let index = 0; index < addresses.length - 1; index++) {
+      expect(results[index]).toEqual(results[index + 1])
+    }
+  })
 })
 
 describe('tests for config', () => {
