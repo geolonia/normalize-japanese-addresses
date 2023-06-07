@@ -13,7 +13,11 @@
     "test:node": "curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvfz - -C ./test > /dev/null 2>&1 && jest test/fs.test.ts",
     "test:generate-test-data": "npx ts-node -O '{\"module\":\"commonjs\"}' test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
-    "build": "rm -rf ./dist && rollup -c ./rollup.config.ts"
+    "build": "npm run clean && rollup -c rollup.config.ts",
+    "clean": "node -e \"const { execSync } = require('child_process'); const command = process.platform === 'win32' ? 'del /s /q dist' : 'rm -rf dist'; try { execSync(command, { stdio: 'inherit' }); } catch (error) { console.log(error.message); }\""
+
+
+
   },
   "author": "",
   "license": "MIT",
