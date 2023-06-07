@@ -15,9 +15,6 @@
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
     "build": "npm run clean && rollup -c rollup.config.ts",
     "clean": "node -e \"const { execSync } = require('child_process'); const command = process.platform === 'win32' ? 'del /s /q dist' : 'rm -rf dist'; try { execSync(command, { stdio: 'inherit' }); } catch (error) { console.log(error.message); }\""
-
-
-
   },
   "author": "",
   "license": "MIT",
