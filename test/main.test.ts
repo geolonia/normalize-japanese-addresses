@@ -1086,5 +1086,12 @@ for (const [runtime, normalize] of cases) {
       expect(res.town).toEqual('')
       expect(res.addr).toEqual('一の坂町西')
     })
+
+    test('旧漢字対応 (麩 -> 麸)', async () => {
+      const address = '愛知県津島市池麩町'
+      const res = await normalize(address)
+      expect(res.town).toEqual('池麸町')
+      expect(res.level).toEqual(3)
+    })
   })
 }
