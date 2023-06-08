@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:">
+<title>normalize-japanese-addresses-es</title>
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image"  content="https://code4sabae.github.io/normalize-japanese-addresses-es/normalizeJapaneseAddress.png">
+<meta name="twitter:image" content="https://code4sabae.github.io/normalize-japanese-addresses-es/normalizeJapaneseAddress.png">
+<script type="module">
+import { normalize } from "./dist/main-es.js";
+//import { normalize } from "https://code4fukui.github.io/normalize-japanese-addresses/dist/main-es.js";
+
+window.onload = () => {
+    btn_convert.onclick = async () => {
+        const adr = inp_address.value;
+        try {
+            const result = await normalize(adr);
+            console.log(result);
+            ta_result.value = JSON.stringify(result, null, 2);
+        } catch (e) {
+            ta_result.value = e.message;
+        }
+    };
+};
+</script>
+<link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+<style>
+input[type=text] {
+    width: 100%;
+}
+button {
+    margin-bottom: .5em;
+}
+textarea {
+    height: 12em;
+}
+</style>
+
+</head>
+<body>
+<h1>normalize-japanese-addresses-es</h1>
+<input type=text id=inp_address placeholder="住所"><br>
+<button id=btn_convert>↓ 正規化</button><br>
+<textarea id=ta_result></textarea>
+
+<hr>
+Lib: MIT by <a href=https://geolonia.com/>Geolonia</a> <a href=https://github.com/code4sabae/normalize-japanese-addresses-es>normalize-japanese-addresses-es</a> (ES ver. of <a href=https://github.com/geolonia/normalize-japanese-addresses>@geolonia/normalize-japanese-addresses</a>)<br>
+App: CC BY <a href=https://fukuno.jig.jp/3170>@taisukef</a><br>
+</html>
