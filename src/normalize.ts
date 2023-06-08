@@ -46,7 +46,7 @@ export interface NormalizeResult {
   addr: string
   /** 緯度。データが存在しない場合は null */
   lat: number | null
-  /** 軽度。データが存在しない場合は null */
+  /** 経度。データが存在しない場合は null */
   lng: number | null
   /**
    * 住所文字列をどこまで判別できたかを表す正規化レベル
