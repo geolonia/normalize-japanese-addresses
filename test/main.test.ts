@@ -2,8 +2,9 @@
 
 import { normalize as normalizerForNode } from '../src/main-node'
 import { normalize as normalizerForBrowser } from '../src/main-browser'
+import { normalize as normalizerForES } from '../src/main-es'
 
-const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser][] = [['node', normalizerForNode], ['browser', normalizerForBrowser]]
+const cases: [runtime: string, normalizer: typeof normalizerForNode | typeof normalizerForBrowser | typeof normalizerForES][] = [['node', normalizerForNode], ['browser', normalizerForBrowser], ['es', normalizerForES]]
 
 for (const [runtime, normalize] of cases) {
   describe(`tests for ${runtime} entry point`, () => {

@@ -25,4 +25,13 @@ export default [
     output: { file: pkg.main, format: 'cjs' },
     plugins: [typescript()],
   },
+  {
+    input: 'src/main-es.ts',
+    output: {
+      dir: 'dist',
+      name: 'normalize',
+      format: 'esm',
+    },
+    plugins: [typescript(), resolve({ browser: true }), commonjs()],
+  },
 ]
