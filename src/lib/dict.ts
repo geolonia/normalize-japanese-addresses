@@ -29,6 +29,7 @@ export const toRegexPattern = (string: string) => {
   _str = _str
     .replace(/三栄町|四谷三栄町/g, '(三栄町|四谷三栄町)')
     .replace(/鬮野川|くじ野川|くじの川/g, '(鬮野川|くじ野川|くじの川)')
+    .replace(/柿碕町|柿さき町/g, '(柿碕町|柿さき町)')
     .replace(/通り|とおり/g, '(通り|とおり)')
     .replace(/埠頭|ふ頭/g, '(埠頭|ふ頭)')
     .replace(/番町|番丁/g, '(番町|番丁)')
