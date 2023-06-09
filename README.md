@@ -8,7 +8,8 @@
 
 ## デモ
 
-https://codepen.io/geolonia/pen/oNBrqzL
+- https://codepen.io/geolonia/pen/oNBrqzL
+- https://code4fukui.github.io/normalize-japanese-addresses/
 
 ##  インストール
 
@@ -46,6 +47,14 @@ const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
   console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "lat": null, "lng": null, "level"; 1}
 })
+```
+
+ESモジュールとして使う（ブラウザ or Deno）
+```javascript
+import { normalize } from "https://code4fukui.github.io/normalize-japanese-addresses/dist/main-es.js";
+
+const result = await normalize('北海道札幌市西区24-2-2-3-3');
+console.log(result);
 ```
 
 ### グローバルオプション
