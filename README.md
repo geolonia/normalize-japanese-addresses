@@ -9,7 +9,7 @@
 ## デモ
 
 - https://codepen.io/geolonia/pen/oNBrqzL
-- https://code4fukui.github.io/normalize-japanese-addresses/
+- https://eolonia.github.io/normalize-japanese-addresses/
 
 ##  インストール
 
@@ -51,7 +51,7 @@ normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
 
 ESモジュールとして使う（ブラウザ or Deno）
 ```javascript
-import { normalize } from "https://code4fukui.github.io/normalize-japanese-addresses/dist/main-es.js";
+import { normalize } from "https://cdn.skypack.dev/@geolonia/normalize-japanese-addresses";
 
 const result = await normalize('北海道札幌市西区24-2-2-3-3');
 console.log(result);
