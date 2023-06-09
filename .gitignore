@@ -23,7 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 /cache
-/dist
+#/dist
 
 // Use npm
 yarn.lock
