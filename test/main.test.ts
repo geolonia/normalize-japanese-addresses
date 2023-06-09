@@ -1093,5 +1093,12 @@ for (const [runtime, normalize] of cases) {
       expect(res.town).toEqual('池麸町')
       expect(res.level).toEqual(3)
     })
+
+    test('柿碕町|柿さき町', async () => {
+      const address = '愛知県安城市柿碕町'
+      const res = await normalize(address)
+      expect(res.town).toEqual('柿さき町')
+      expect(res.level).toEqual(3)
+    })
   })
 }
