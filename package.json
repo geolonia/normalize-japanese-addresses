@@ -14,7 +14,7 @@
     "test:generate-test-data": "npx ts-node -O '{\"module\":\"commonjs\"}' test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
     "build": "npm run clean && rollup -c rollup.config.ts",
-    "clean": "node -e \"const { execSync } = require('child_process'); const command = process.platform === 'win32' ? 'del /s /q dist' : 'rm -rf dist'; try { execSync(command, { stdio: 'inherit' }); } catch (error) { console.log(error.message); }\""
+    "clean": "node -e \"const fs = require('fs'); try { fs.rmSync('dist', { recursive: true, force: true }) } catch (err) { console.error(err) }\""
   },
   "author": "",
   "license": "MIT",
