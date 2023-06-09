@@ -1,11 +1,8 @@
 <!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:">
 <title>住所正規化デモ (ESモジュール版)</title>
 <meta name="twitter:card" content="summary_large_image">
-<meta property="og:image"  content="https://code4sabae.github.io/normalize-japanese-addresses-es/normalizeJapaneseAddress.png">
-<meta name="twitter:image" content="https://code4sabae.github.io/normalize-japanese-addresses-es/normalizeJapaneseAddress.png">
 <script type="module">
-//import { normalize } from "./dist/main-es.js";
-import { normalize } from "https://code4fukui.github.io/normalize-japanese-addresses/dist/main-es.js";
+import { normalize } from "./dist/main-es.js";
 
 window.onload = () => {
     btn_convert.onclick = async () => {
@@ -41,6 +38,6 @@ textarea {
 <textarea id=ta_result></textarea>
 
 <hr>
-Lib: MIT by <a href=https://geolonia.com/>Geolonia</a> (<a href=https://github.com/code4fukui/normalize-japanese-addresses>@code4fukui/normalize-japanese-addresses</a> forked  <a href=https://github.com/geolonia/normalize-japanese-addresses>@geolonia/normalize-japanese-addresses</a>)<br>
+Lib: MIT by <a href=https://geolonia.com/>Geolonia</a> (<a href=https://github.com/geolonia/normalize-japanese-addresses>@geolonia/normalize-japanese-addresses</a>)<br>
 </body>
 </html>
