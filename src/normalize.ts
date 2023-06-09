@@ -46,7 +46,7 @@ export interface NormalizeResult {
   addr: string
   /** 緯度。データが存在しない場合は null */
   lat: number | null
-  /** 軽度。データが存在しない場合は null */
+  /** 経度。データが存在しない場合は null */
   lng: number | null
   /**
    * 住所文字列をどこまで判別できたかを表す正規化レベル
@@ -353,7 +353,7 @@ export const normalize: Normalizer = async (
           '$1 $5',
         )
         .replace(
-          /([0-9〇一二三四五六七八九十百千]+)(番地?)([0-9〇一二三四五六七八九十百千]+)号?/,
+          /([0-9〇一二三四五六七八九十百千]+)\s*(番地?)\s*([0-9〇一二三四五六七八九十百千]+)\s*号?/,
           '$1-$3',
         )
         .replace(/([0-9〇一二三四五六七八九十百千]+)番地?/, '$1')
