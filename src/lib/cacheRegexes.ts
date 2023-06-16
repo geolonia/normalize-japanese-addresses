@@ -260,14 +260,28 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
             const _pattern = `(${patterns.join(
               '|',
             )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
-
             return _pattern // デバッグのときにめんどくさいので変数に入れる。
           },
         ),
     )
-
     return [town, pattern]
   }) as [SingleTown, string][]
+
+  // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
+  for (const town of towns) {
+    const chomeMatch = town.town.match(
+      /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
+    )
+    if (!chomeMatch) {
+      continue
+    }
+    const chomeNamePart = chomeMatch[1]
+    const chomeNum = chomeMatch[2]
+    const pattern = toRegexPattern(
+      `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
+    )
+    patterns.push([town, pattern])
+  }
 
   cachedTownRegexes.set(`${pref}-${city}`, patterns)
   return patterns
