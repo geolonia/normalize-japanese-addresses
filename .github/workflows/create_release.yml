@@ -1,0 +1,22 @@
+name: Auto Release
+
+on:
+  create:
+    tags:
+      - '*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ github.event.inputs.tag }}
+          tag_name: ${{ github.event.inputs.tag }}
+          generate_release_notes: true
