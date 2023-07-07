@@ -378,7 +378,7 @@ export const normalize: Normalizer = async (
           // `-1` のようなケース
           return kan2num(s)
         })
-        .replace(/-[^0-9]+([0-9〇一二三四五六七八九十百千]+)/, (s) => {
+        .replace(/-[^0-9]([0-9〇一二三四五六七八九十百千]+)/, (s) => {
           // `-あ1` のようなケース
           return kan2num(zen2han(s))
         })

@@ -866,6 +866,11 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "彌富町", "addr": "", "level": 3, "lat": 35.132011, "lng": 136.955457 })
     })
 
+    test('東京都千代田区永田町1-2-3-レジデンス億万101 (号の後にハイフンで漢数字末尾に含んだマンション名が続き、号室が数値の場合)', async () => {
+      const res = await normalize('東京都千代田区永田町1-2-3-レジデンス億万101')
+      expect(res).toStrictEqual({"pref": "東京都", "city": "千代田区", "town": "永田町一丁目", "addr": "2-3-レジデンス億万101", "lat": 35.675895, "lng": 139.746306, "level": 3})
+    })
+
     describe('途中にスペースを含むケース', () => {
       // https://github.com/geolonia/normalize-japanese-addresses/issues/180
       test('京都府京都市　下京区上之町999', async () => {
