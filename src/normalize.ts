@@ -39,7 +39,7 @@ export const config: Config = currentConfig
 /**
  * 住所の正規化結果として戻されるオブジェクト
  */
-export interface NormalizeResult {
+interface NormalizeResult_v1 {
   /** 都道府県 */
   pref: string
   /** 市区町村 */
@@ -67,6 +67,34 @@ export interface NormalizeResult {
    */
   level: number
 }
+
+type NormalizeResult_v2 = {
+  /** 都道府県 */
+  pref: string
+  /** 市区町村 */
+  city: string
+  /** 町丁目 */
+  town: string
+  /** 住居表示または地番 */
+  addr: string
+  /** 正規化後の住所文字列 */
+  other: string
+  /** 緯度。データが存在しない場合は null */
+  lat: number | null
+  /** 経度。データが存在しない場合は null */
+  lng: number | null
+  /**
+   * 住所文字列をどこまで判別できたかを表す正規化レベル
+   * - 0 - 都道府県も判別できなかった。
+   * - 1 - 都道府県まで判別できた。
+   * - 2 - 市区町村まで判別できた。
+   * - 3 - 町丁目まで判別できた。
+   * - 8 - 住居表示住所の街区符号・住居番号までの判別または地番住所の判別ができた。
+   */
+  level: number
+}
+
+export type NormalizeResult = NormalizeResult_v1 | NormalizeResult_v2
 
 /**
  * 正規化関数の {@link normalize} のオプション
@@ -151,7 +179,13 @@ const normalizeResidentialPart = async (
   pref: string,
   city: string,
   town: string,
-) => {
+): Promise<{
+  gaiku: string
+  jyukyo?: string
+  addr: string
+  lat: string
+  lng: string
+} | null> => {
   const [gaikuListItem, residentials] = await Promise.all([
     getGaikuList(pref, city, town),
     getResidentials(pref, city, town),
@@ -196,7 +230,7 @@ const normalizeAddrPart = async (
   pref: string,
   city: string,
   town: string,
-) => {
+): Promise<{ addr: string; other: string } | null> => {
   const addrListItem = await getAddrs(pref, city, town)
 
   // 住居表示住所、および地番住所が見つからなかった
@@ -207,8 +241,8 @@ const normalizeAddrPart = async (
   // TODO: 正規表現での抜き出し
   const addrItem = addrListItem.find((item) => item.addr === addr)
   if (addrItem) {
-    const addr2 = addr.replace(addrItem.addr, '').trim()
-    return { addr: addrItem.addr, addr2 }
+    const other = addr.replace(addrItem.addr, '').trim()
+    return { addr: addrItem.addr, other }
   }
   return null
 }
@@ -422,32 +456,45 @@ export const normalize: Normalizer = async (
 
   addr = patchAddr(pref, city, town, addr)
 
+  if (pref) level = level + 1
+  if (city) level = level + 1
+  if (town) level = level + 1
+
+  // v2 のインターフェース
+  if (currentConfig.interfaceVersion > 1) {
+    const normalizedAddrPart = await normalizeAddrPart(addr, pref, city, town)
+    let other = ''
+    if (normalizedAddrPart) {
+      addr = normalizedAddrPart.addr
+      other = normalizedAddrPart.other
+      level = 8
+    }
+    const result: NormalizeResult_v2 = {
+      pref,
+      city,
+      town,
+      addr,
+      other,
+      level,
+      lat: null,
+      lng: null,
+    }
+    return result
+  }
+
   // 住居表示住所リストを使い番地号までの正規化を行う
   if (option.level > 3 && normalized && town) {
-    if (currentConfig.interfaceVersion < 2) {
-      normalized = await normalizeResidentialPart(addr, pref, city, town)
-    } else {
-      // case interfaceVersion >= 2
-      normalized = await normalizeAddrPart(addr, pref, city, town)
-    }
+    normalized = await normalizeResidentialPart(addr, pref, city, town)
   }
   if (normalized) {
-    if ('lat' in normalized && typeof normalized.lat === 'string') {
-      lat = parseFloat(normalized.lat)
-    }
-    if ('lng' in normalized && typeof normalized.lng === 'string') {
-      lng = parseFloat(normalized.lng)
-    }
+    lat = parseFloat(normalized.lat)
+    lng = parseFloat(normalized.lng)
   }
 
   if (Number.isNaN(lat) || Number.isNaN(lng)) {
     lat = null
     lng = null
   }
-
-  if (pref) level = level + 1
-  if (city) level = level + 1
-  if (town) level = level + 1
 
   const result: NormalizeResult = {
     pref,
