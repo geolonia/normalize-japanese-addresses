@@ -11,6 +11,7 @@ import {
   getSameNamedPrefectureCityRegexPatterns,
   getResidentials,
   getGaikuList,
+  getAddrs,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
 
@@ -18,6 +19,13 @@ import unfetch from 'isomorphic-unfetch'
  * normalize {@link Normalizer} の動作オプション。
  */
 export interface Config {
+  /**
+   * レスポンス型のバージョン。デフォルト 1
+   * 1 の場合は jyukyo: string, gaiku: string
+   * 2 の場合は addr: string, type: 'GAIKU' | 'CHIBAN'
+   */
+  interfaceVersion: number
+
   /** 住所データを URL 形式で指定。 file:// 形式で指定するとローカルファイルを参照できます。 */
   japaneseAddressesApi: string
 
@@ -179,6 +187,28 @@ const normalizeResidentialPart = async (
       const addr2 = addr.replace(gaikuItem.gaiku, '').trim()
       return { gaiku, addr: addr2, lat: gaikuItem.lat, lng: gaikuItem.lng }
     }
+  }
+  return null
+}
+
+const normalizeAddrPart = async (
+  addr: string,
+  pref: string,
+  city: string,
+  town: string,
+) => {
+  const addrListItem = await getAddrs(pref, city, town)
+
+  // 住居表示住所、および地番住所が見つからなかった
+  if (addrListItem.length === 0) {
+    return null
+  }
+
+  // TODO: 正規表現での抜き出し
+  const addrItem = addrListItem.find((item) => item.addr === addr)
+  if (addrItem) {
+    const addr2 = addr.replace(addrItem.addr, '').trim()
+    return { addr: addrItem.addr, addr2 }
   }
   return null
 }
@@ -394,11 +424,20 @@ export const normalize: Normalizer = async (
 
   // 住居表示住所リストを使い番地号までの正規化を行う
   if (option.level > 3 && normalized && town) {
-    normalized = await normalizeResidentialPart(addr, pref, city, town)
+    if (currentConfig.interfaceVersion < 2) {
+      normalized = await normalizeResidentialPart(addr, pref, city, town)
+    } else {
+      // case interfaceVersion >= 2
+      normalized = await normalizeAddrPart(addr, pref, city, town)
+    }
   }
   if (normalized) {
-    lat = parseFloat(normalized.lat)
-    lng = parseFloat(normalized.lng)
+    if ('lat' in normalized && typeof normalized.lat === 'string') {
+      lat = parseFloat(normalized.lat)
+    }
+    if ('lng' in normalized && typeof normalized.lng === 'string') {
+      lng = parseFloat(normalized.lng)
+    }
   }
 
   if (Number.isNaN(lat) || Number.isNaN(lng)) {

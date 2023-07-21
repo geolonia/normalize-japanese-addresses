@@ -29,6 +29,14 @@ interface SingleResidential {
 }
 type ResidentialList = SingleResidential[]
 
+interface SingleAddr {
+  addr: string
+  type: 'GAIKU' | 'CHIBAN'
+  lat: string | null
+  lng: string | null
+}
+type AddrList = SingleAddr[]
+
 const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
   maxAge: 60 * 60 * 24 * 7 * 1000, // 7日間
@@ -40,6 +48,7 @@ let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
 const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
 const cachedResidentials: { [key: string]: ResidentialList } = {}
+const cachedAddrs: { [key: string]: AddrList } = {} // TODO: use LRU
 let cachedSameNamedPrefectureCityRegexPatterns:
   | [string, string][]
   | undefined = undefined
@@ -114,7 +123,13 @@ export const getGaikuList = async (
   city: string,
   town: string,
 ) => {
-  const cacheKey = `${pref}-${city}-${town}`
+  if (currentConfig.interfaceVersion > 1) {
+    throw new Error(
+      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
+    )
+  }
+
+  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
   const cache = cachedGaikuListItem[cacheKey]
   if (typeof cache !== 'undefined') {
     return cache
@@ -136,7 +151,13 @@ export const getResidentials = async (
   city: string,
   town: string,
 ) => {
-  const cacheKey = `${pref}-${city}-${town}`
+  if (currentConfig.interfaceVersion > 1) {
+    throw new Error(
+      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
+    )
+  }
+
+  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
   const cache = cachedResidentials[cacheKey]
   if (typeof cache !== 'undefined') {
     return cache
@@ -164,6 +185,35 @@ export const getResidentials = async (
       `${res1.gaiku}-${res1.jyukyo}`.length,
   )
   return (cachedResidentials[cacheKey] = residentials)
+}
+
+export const getAddrs = async (pref: string, city: string, town: string) => {
+  if (currentConfig.interfaceVersion < 2) {
+    throw new Error(
+      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 2 or higher`,
+    )
+  }
+
+  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
+  const cache = cachedAddrs[cacheKey]
+  if (typeof cache !== 'undefined') {
+    return cache
+  }
+
+  const addrsResp = await __internals.fetch(
+    ['', encodeURI(pref), encodeURI(city), encodeURI(town) + 'json'].join('/'),
+  )
+  let addrs: AddrList
+  try {
+    addrs = (await addrsResp.json()) as AddrList
+  } catch {
+    addrs = []
+  }
+
+  // TODO: addr フィールドの正規化
+
+  addrs.sort((res1, res2) => res1.addr.length - res2.addr.length)
+  return (cachedAddrs[cacheKey] = addrs)
 }
 
 // 十六町 のように漢数字と町が連結しているか
