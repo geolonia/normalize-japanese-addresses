@@ -11,8 +11,25 @@ import {
   getSameNamedPrefectureCityRegexPatterns,
   getResidentials,
   getGaikuList,
+  PrefectureList,
+  TownList,
+  AddrList,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
+
+type TransformRequestResponse = null | PrefectureList | TownList | AddrList
+
+export type TransformRequestQuery = {
+  level: number //  level = -1 は旧 API。 transformRequestFunction を設定しても無視する
+  pref?: string
+  city?: string
+  town?: string
+}
+
+export type TransformRequestFunction = (
+  url: URL,
+  query: TransformRequestQuery,
+) => TransformRequestResponse | Promise<TransformRequestResponse>
 
 /**
  * normalize {@link Normalizer} の動作オプション。
@@ -23,6 +40,8 @@ export interface Config {
 
   /** 町丁目のデータを何件までキャッシュするか。デフォルト 1,000 */
   townCacheSize: number
+
+  transformRequest?: TransformRequestFunction
 
   geoloniaApiKey?: string
 }
@@ -92,6 +111,7 @@ export type Normalizer = (
 
 export type FetchLike = (
   input: string,
+  requestQuery?: TransformRequestQuery,
 ) => Promise<Response | { json: () => Promise<unknown> }>
 
 const defaultOption = {

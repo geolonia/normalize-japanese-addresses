@@ -5,7 +5,7 @@ import { currentConfig } from '../config'
 import { __internals } from '../normalize'
 import { findKanjiNumbers } from '@geolonia/japanese-numeral'
 
-type PrefectureList = { [key: string]: string[] }
+export type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
   town: string
   originalTown?: string
@@ -13,8 +13,13 @@ interface SingleTown {
   lat: string
   lng: string
 }
-type TownList = SingleTown[]
-
+export type TownList = SingleTown[]
+interface SingleAddr {
+  addr: string
+  lat: string | null
+  lng: string | null
+}
+export type AddrList = SingleAddr[]
 interface GaikuListItem {
   gaiku: string
   lat: string
@@ -49,7 +54,7 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const prefsResp = await __internals.fetch('.json') // ja.json
+  const prefsResp = await __internals.fetch('.json', { level: 1 }) // ja.json
   const data = (await prefsResp.json()) as PrefectureList
   return cachePrefectures(data)
 }
@@ -104,6 +109,7 @@ export const getTowns = async (pref: string, city: string) => {
 
   const townsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
+    { level: 3, pref, city },
   )
   const towns = (await townsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
