@@ -1,5 +1,6 @@
 import { normalize, config } from '../src/main-node'
 
+config.interfaceVersion = 2
 config.transformRequest = async (url, query) => {
   const { level, pref, city, town } = query
   switch (level) {
@@ -28,13 +29,27 @@ config.transformRequest = async (url, query) => {
   }
 }
 
-test('リクエスト変形テスト', async () => {
-  const res = await normalize('A県 X市 あああ123-45', { level: 3 })
+test('リクエスト変形テスト 1', async () => {
+  const res = await normalize('A県 X市 あああ 1の2おはようビル', { level: 3 })
   expect(res).toStrictEqual({
     pref: 'A県',
     city: 'X市',
     town: 'あああ',
-    addr: '123-45',
+    addr: '1の2おはようビル',
+    lng: 135,
+    level: 3,
+    lat: 30,
+  })
+})
+
+test('リクエスト変形テスト 2', async () => {
+  const res = await normalize('A県 X市 あああ 1の2おはようビル', { level: 8 })
+  expect(res).toStrictEqual({
+    pref: 'A県',
+    city: 'X市',
+    town: 'あああ',
+    addr: '1-2',
+    other: 'おはようビル',
     lng: 135,
     level: 3,
     lat: 30,
