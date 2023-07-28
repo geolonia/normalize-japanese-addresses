@@ -32,6 +32,7 @@ describe('Request with Geolonia backend', () => {
         geoloniaApiKey: 'YOUR-API-KEY',
       },
     )
+    if (!('gaiku' in normResult)) throw new Error('type error')
     expect(normResult.level).toEqual(8)
     expect(normResult.gaiku).toEqual('22')
     expect(normResult.jyukyo).toEqual('22')
@@ -45,6 +46,7 @@ describe('Request with Geolonia backend', () => {
         geoloniaApiKey: 'YOUR-API-KEY',
       },
     )
+    if (!('gaiku' in normResult)) throw new Error('type error')
     expect(normResult.level).toEqual(7)
     expect(normResult.gaiku).toEqual('22')
     expect(normResult.addr).toEqual('-1234567890 おはようビル')
@@ -54,6 +56,7 @@ describe('Request with Geolonia backend', () => {
     const normResult = await normalize('滋賀県米原市甲津原999', {
       geoloniaApiKey: 'YOUR-API-KEY',
     })
+    if (!('gaiku' in normResult)) throw new Error('type error')
     expect(normResult.level).toEqual(3)
     expect(normResult.addr).toEqual('999')
     expect(normResult.gaiku).toBeUndefined()
