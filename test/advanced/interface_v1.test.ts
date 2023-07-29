@@ -1,9 +1,9 @@
-import * as Normalize from '../src/normalize'
-import { normalize } from '../src/main-node'
+import * as Normalize from '../../src/normalize'
+import { normalize } from '../../src/main-node'
 import unfetch from 'isomorphic-unfetch'
-import { gh_pages_endpoint } from '../src/config'
+import { gh_pages_endpoint } from '../../src/config'
 
-// interfaceVersion 1 に対するテスト。
+// interfaceVersion 1 に対するテスト。（デフォルト設定）
 // prop ID でのみ利用。
 // interfaceVersion 1 は廃止予定。
 

@@ -1,4 +1,4 @@
-import { normalize, config } from '../src/main-node'
+import { normalize, config } from '../../src/main-node'
 
 config.interfaceVersion = 2
 config.transformRequest = async (url, query) => {
@@ -30,8 +30,10 @@ config.transformRequest = async (url, query) => {
 }
 
 // interfaceVersion 2 に対するテスト。
-// transformRequest を使った柔軟なリクエストが可能なバージョン。
-// 将来的に 1 を廃止し、こちらをデフォルトにする予定。
+// addr として住居表示または地番を返す。
+// addr 以降の列は other として返す。
+// transformRequest が使用可能。
+// 将来的にこちらをデフォルトにする予定。
 
 test('リクエスト変形テスト 1', async () => {
   const res = await normalize('A県 X市 あああ 1の2おはようビル', { level: 3 })

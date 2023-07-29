@@ -41,7 +41,7 @@ export interface Config {
   /**
    * レスポンス型のバージョン。デフォルト 1
    * 1 の場合は jyukyo: string, gaiku: string
-   * 2 の場合は addr: string, type: 'GAIKU' | 'CHIBAN'
+   * 2 の場合は addr: string,　other: string
    */
   interfaceVersion: number
 
@@ -51,6 +51,7 @@ export interface Config {
   /** 町丁目のデータを何件までキャッシュするか。デフォルト 1,000 */
   townCacheSize: number
 
+  /** 住所データへのリクエストを変形するオプション。 interfaceVersion === 2 で有効 */
   transformRequest?: TransformRequestFunction
 
   geoloniaApiKey?: string
@@ -490,6 +491,7 @@ export const normalize: Normalizer = async (
   // 将来的に v2 に統一することを検討中
   // ==================================================================
 
+  // v2 のインターフェース
   if (currentConfig.interfaceVersion === 2) {
     const normalizedAddrPart = await normalizeAddrPart(addr, pref, city, town)
     let other = undefined
