@@ -29,13 +29,17 @@ config.transformRequest = async (url, query) => {
   }
 }
 
+// interfaceVersion 2 に対するテスト。
+// transformRequest を使った柔軟なリクエストが可能なバージョン。
+// 将来的に 1 を廃止し、こちらをデフォルトにする予定。
+
 test('リクエスト変形テスト 1', async () => {
   const res = await normalize('A県 X市 あああ 1の2おはようビル', { level: 3 })
   expect(res).toStrictEqual({
     pref: 'A県',
     city: 'X市',
     town: 'あああ',
-    addr: '1の2おはようビル',
+    addr: '1-2おはようビル',
     lng: 135,
     level: 3,
     lat: 30,
@@ -50,8 +54,8 @@ test('リクエスト変形テスト 2', async () => {
     town: 'あああ',
     addr: '1-2',
     other: 'おはようビル',
-    lng: 135,
-    level: 3,
-    lat: 30,
+    lng: 135.2,
+    level: 8,
+    lat: 30.2,
   })
 })

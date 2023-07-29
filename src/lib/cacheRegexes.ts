@@ -46,9 +46,8 @@ const cachedTowns: { [key: string]: TownList } = {}
 const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
 const cachedResidentials: { [key: string]: ResidentialList } = {}
 const cachedAddrs: { [key: string]: AddrList } = {} // TODO: use LRU
-let cachedSameNamedPrefectureCityRegexPatterns:
-  | [string, string][]
-  | undefined = undefined
+let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
+  undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
@@ -200,6 +199,7 @@ export const getAddrs = async (pref: string, city: string, town: string) => {
 
   const addrsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city), encodeURI(town) + 'json'].join('/'),
+    { level: 8, pref, city, town },
   )
   let addrs: AddrList
   try {
@@ -207,8 +207,6 @@ export const getAddrs = async (pref: string, city: string, town: string) => {
   } catch {
     addrs = []
   }
-
-  // TODO: addr フィールドの正規化
 
   addrs.sort((res1, res2) => res1.addr.length - res2.addr.length)
   return (cachedAddrs[cacheKey] = addrs)

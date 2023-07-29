@@ -99,7 +99,7 @@ type NormalizeResult_v2 = {
   /** 住居表示または地番 */
   addr: string
   /** 正規化後の住所文字列 */
-  other: string
+  other?: string
   /** 緯度。データが存在しない場合は null */
   lat: number | null
   /** 経度。データが存在しない場合は null */
@@ -252,7 +252,7 @@ const normalizeAddrPart = async (
   pref: string,
   city: string,
   town: string,
-): Promise<{ addr: string; other: string } | null> => {
+) => {
   const addrListItem = await getAddrs(pref, city, town)
 
   // 住居表示住所、および地番住所が見つからなかった
@@ -260,11 +260,10 @@ const normalizeAddrPart = async (
     return null
   }
 
-  // TODO: 正規表現での抜き出し
-  const addrItem = addrListItem.find((item) => item.addr === addr)
+  const addrItem = addrListItem.find((item) => addr.startsWith(item.addr))
   if (addrItem) {
     const other = addr.replace(addrItem.addr, '').trim()
-    return { addr: addrItem.addr, other }
+    return { addr: addrItem.addr, other, lat: addrItem.lat, lng: addrItem.lng }
   }
   return null
 }
@@ -331,10 +330,8 @@ export const normalize: Normalizer = async (
   const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
   const prefPatterns = getPrefectureRegexPatterns(prefs)
-  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(
-    prefs,
-    prefectures,
-  )
+  const sameNamedPrefectureCityRegexPatterns =
+    getSameNamedPrefectureCityRegexPatterns(prefs, prefectures)
 
   // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
   // あらかじめ県名を補完しておく。
@@ -482,13 +479,29 @@ export const normalize: Normalizer = async (
   if (city) level = level + 1
   if (town) level = level + 1
 
-  // v2 のインターフェース
-  if (currentConfig.interfaceVersion > 1) {
+  if (option.level <= 3) {
+    return { pref, city, town, addr, level, lat, lng }
+  }
+
+  // ======================== Advanced section ========================
+  // これ以下は地番住所または住居表示住所までの正規化・ジオコーディングを行う処理
+  // 現状、インターフェース v1 と v2 が存在する
+  // japanese-addresses のフォーマット、および normalize 関数の戻り値が異なる
+  // 将来的に v2 に統一することを検討中
+  // ==================================================================
+
+  if (currentConfig.interfaceVersion === 2) {
     const normalizedAddrPart = await normalizeAddrPart(addr, pref, city, town)
-    let other = ''
+    let other = undefined
     if (normalizedAddrPart) {
       addr = normalizedAddrPart.addr
-      other = normalizedAddrPart.other
+      if (normalizedAddrPart.other) {
+        other = normalizedAddrPart.other
+      }
+      if (normalizedAddrPart.lat !== null)
+        lat = parseFloat(normalizedAddrPart.lat)
+      if (normalizedAddrPart.lng !== null)
+        lng = parseFloat(normalizedAddrPart.lng)
       level = 8
     }
     const result: NormalizeResult_v2 = {
@@ -496,47 +509,50 @@ export const normalize: Normalizer = async (
       city,
       town,
       addr,
-      other,
       level,
-      lat: null,
-      lng: null,
+      lat,
+      lng,
+    }
+    if (other) {
+      result.other = other
     }
     return result
-  }
+  } else if (currentConfig.interfaceVersion === 1) {
+    // 住居表示住所リストを使い番地号までの正規化を行う
+    if (option.level > 3 && normalized && town) {
+      normalized = await normalizeResidentialPart(addr, pref, city, town)
+    }
+    if (normalized) {
+      lat = parseFloat(normalized.lat)
+      lng = parseFloat(normalized.lng)
+    }
 
-  // 住居表示住所リストを使い番地号までの正規化を行う
-  if (option.level > 3 && normalized && town) {
-    normalized = await normalizeResidentialPart(addr, pref, city, town)
-  }
-  if (normalized) {
-    lat = parseFloat(normalized.lat)
-    lng = parseFloat(normalized.lng)
-  }
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      lat = null
+      lng = null
+    }
 
-  if (Number.isNaN(lat) || Number.isNaN(lng)) {
-    lat = null
-    lng = null
-  }
+    const result: NormalizeResult_v1 = {
+      pref,
+      city,
+      town,
+      addr,
+      lat,
+      lng,
+      level,
+    }
+    if (normalized && 'gaiku' in normalized) {
+      result.addr = normalized.addr
+      result.gaiku = normalized.gaiku
+      result.level = 7
+    }
+    if (normalized && 'jyukyo' in normalized) {
+      result.jyukyo = normalized.jyukyo
+      result.level = 8
+    }
 
-  const result: NormalizeResult = {
-    pref,
-    city,
-    town,
-    addr,
-    lat,
-    lng,
-    level,
+    return result
+  } else {
+    throw new Error('invalid interfaceVersion')
   }
-
-  if (normalized && 'gaiku' in normalized) {
-    result.addr = normalized.addr
-    result.gaiku = normalized.gaiku
-    result.level = 7
-  }
-  if (normalized && 'jyukyo' in normalized) {
-    result.jyukyo = normalized.jyukyo
-    result.level = 8
-  }
-
-  return result
 }
