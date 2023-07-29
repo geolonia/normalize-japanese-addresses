@@ -10,7 +10,7 @@
     "test:node:platform": "npm run test:node-win || npm run test:node",
     "test:main": "jest test/main.test.ts",
     "test:addresses": "jest test/addresses.test.ts",
-    "test:advanced": "jest test/advanced/*.test.ts --runInBand",
+    "test:advanced": "jest test/advanced --runInBand",
     "test:util": "jest test/util.test.ts",
     "test:node": "curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvfz - -C ./test > nul 2>&1 && jest test/fs.test.ts",
     "test:node-win": "curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz -o master.tar.gz && 7z x master.tar.gz -y -o./ && 7z x ./master.tar -y -o./test && del master.tar.gz master.tar && jest test/fs.test.ts",
