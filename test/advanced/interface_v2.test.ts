@@ -2,13 +2,27 @@ import { normalize, config } from '../../src/main-node'
 
 config.interfaceVersion = 2
 config.transformRequest = async (url, query) => {
-  const { level, pref, city, town } = query
+  const { level, pref = '', city = '', town = '' } = query
+
   switch (level) {
-    case 1:
+    case 1: {
+      const actual = url.toString()
+      const expected = config.japaneseAddressesApi + '.json'
+      if (actual !== expected) {
+        throw new Error(`Invalid URL: ${actual} should be ${expected}`)
+      }
       return {
         A県: ['X市', 'Y市', 'Z町'],
       }
-    case 3:
+    }
+    case 3: {
+      const actual = url.toString()
+      const expected =
+        config.japaneseAddressesApi +
+        `/${encodeURIComponent(pref)}/${encodeURIComponent(city)}.json`
+      if (actual !== expected) {
+        throw new Error(`Invalid URL: ${actual} should be ${expected}`)
+      }
       if (pref === 'A県' && city === 'X市') {
         return [
           { town: 'あああ', koaza: '', lat: '30', lng: '135' },
@@ -17,15 +31,26 @@ config.transformRequest = async (url, query) => {
       } else {
         return null
       }
-    case 8:
+    }
+    case 8: {
+      const actual = url.toString()
+      const expected =
+        config.japaneseAddressesApi +
+        `/${encodeURIComponent(pref)}/${encodeURIComponent(
+          city,
+        )}/${encodeURIComponent(town)}.json`
+      if (actual !== expected) {
+        throw new Error(`Invalid URL: ${actual} should be ${expected}`)
+      }
       if (pref === 'A県' && city === 'X市' && town === 'あああ') {
         return [
           { addr: '1-1', lat: '30.1', lng: '135.1' },
           { addr: '1-2', lat: '30.2', lng: '135.2' },
         ]
       }
+    }
     default:
-      return null
+      throw new Error(`Invalid required normalization level: ${level}`)
   }
 }
 
