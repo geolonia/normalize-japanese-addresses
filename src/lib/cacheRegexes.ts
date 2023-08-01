@@ -198,7 +198,7 @@ export const getAddrs = async (pref: string, city: string, town: string) => {
   }
 
   const addrsResp = await __internals.fetch(
-    ['', encodeURI(pref), encodeURI(city), encodeURI(town) + 'json'].join('/'),
+    ['', encodeURI(pref), encodeURI(city), encodeURI(town) + '.json'].join('/'),
     { level: 8, pref, city, town },
   )
   let addrs: AddrList
