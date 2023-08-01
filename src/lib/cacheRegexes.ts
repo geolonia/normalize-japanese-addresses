@@ -5,7 +5,7 @@ import { currentConfig } from '../config'
 import { __internals } from '../normalize'
 import { findKanjiNumbers } from '@geolonia/japanese-numeral'
 
-type PrefectureList = { [key: string]: string[] }
+export type PrefectureList = { [key: string]: string[] }
 interface SingleTown {
   town: string
   originalTown?: string
@@ -13,8 +13,13 @@ interface SingleTown {
   lat: string
   lng: string
 }
-type TownList = SingleTown[]
-
+export type TownList = SingleTown[]
+interface SingleAddr {
+  addr: string
+  lat: string | null
+  lng: string | null
+}
+export type AddrList = SingleAddr[]
 interface GaikuListItem {
   gaiku: string
   lat: string
@@ -40,16 +45,16 @@ let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
 const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
 const cachedResidentials: { [key: string]: ResidentialList } = {}
-let cachedSameNamedPrefectureCityRegexPatterns:
-  | [string, string][]
-  | undefined = undefined
+const cachedAddrs: { [key: string]: AddrList } = {} // TODO: use LRU
+let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
+  undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
     return cachedPrefectures
   }
 
-  const prefsResp = await __internals.fetch('.json') // ja.json
+  const prefsResp = await __internals.fetch('.json', { level: 1 }) // ja.json
   const data = (await prefsResp.json()) as PrefectureList
   return cachePrefectures(data)
 }
@@ -104,6 +109,7 @@ export const getTowns = async (pref: string, city: string) => {
 
   const townsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
+    { level: 3, pref, city },
   )
   const towns = (await townsResp.json()) as TownList
   return (cachedTowns[cacheKey] = towns)
@@ -114,7 +120,13 @@ export const getGaikuList = async (
   city: string,
   town: string,
 ) => {
-  const cacheKey = `${pref}-${city}-${town}`
+  if (currentConfig.interfaceVersion > 1) {
+    throw new Error(
+      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
+    )
+  }
+
+  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
   const cache = cachedGaikuListItem[cacheKey]
   if (typeof cache !== 'undefined') {
     return cache
@@ -136,7 +148,13 @@ export const getResidentials = async (
   city: string,
   town: string,
 ) => {
-  const cacheKey = `${pref}-${city}-${town}`
+  if (currentConfig.interfaceVersion > 1) {
+    throw new Error(
+      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
+    )
+  }
+
+  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
   const cache = cachedResidentials[cacheKey]
   if (typeof cache !== 'undefined') {
     return cache
@@ -164,6 +182,34 @@ export const getResidentials = async (
       `${res1.gaiku}-${res1.jyukyo}`.length,
   )
   return (cachedResidentials[cacheKey] = residentials)
+}
+
+export const getAddrs = async (pref: string, city: string, town: string) => {
+  if (currentConfig.interfaceVersion < 2) {
+    throw new Error(
+      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 2 or higher`,
+    )
+  }
+
+  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
+  const cache = cachedAddrs[cacheKey]
+  if (typeof cache !== 'undefined') {
+    return cache
+  }
+
+  const addrsResp = await __internals.fetch(
+    ['', encodeURI(pref), encodeURI(city), encodeURI(town) + 'json'].join('/'),
+    { level: 8, pref, city, town },
+  )
+  let addrs: AddrList
+  try {
+    addrs = (await addrsResp.json()) as AddrList
+  } catch {
+    addrs = []
+  }
+
+  addrs.sort((res1, res2) => res1.addr.length - res2.addr.length)
+  return (cachedAddrs[cacheKey] = addrs)
 }
 
 // 十六町 のように漢数字と町が連結しているか

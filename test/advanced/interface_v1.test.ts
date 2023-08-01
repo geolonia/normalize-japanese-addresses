@@ -1,7 +1,11 @@
-import * as Normalize from '../src/normalize'
-import { normalize } from '../src/main-node'
+import * as Normalize from '../../src/normalize'
+import { normalize } from '../../src/main-node'
 import unfetch from 'isomorphic-unfetch'
-import { gh_pages_endpoint } from '../src/config'
+import { gh_pages_endpoint } from '../../src/config'
+
+// interfaceVersion 1 に対するテスト。（デフォルト設定）
+// prop ID でのみ利用。
+// interfaceVersion 1 は廃止予定。
 
 test('default endppoint', () => {
   expect(Normalize.config.japaneseAddressesApi).toEqual(gh_pages_endpoint)
@@ -32,6 +36,7 @@ describe('Request with Geolonia backend', () => {
         geoloniaApiKey: 'YOUR-API-KEY',
       },
     )
+    if (!('gaiku' in normResult)) throw new Error('type error')
     expect(normResult.level).toEqual(8)
     expect(normResult.gaiku).toEqual('22')
     expect(normResult.jyukyo).toEqual('22')
@@ -46,6 +51,7 @@ describe('Request with Geolonia backend', () => {
       },
     )
     expect(normResult.level).toEqual(7)
+    if (!('gaiku' in normResult)) throw new Error('type error')
     expect(normResult.gaiku).toEqual('22')
     expect(normResult.addr).toEqual('-1234567890 おはようビル')
   })
@@ -56,8 +62,8 @@ describe('Request with Geolonia backend', () => {
     })
     expect(normResult.level).toEqual(3)
     expect(normResult.addr).toEqual('999')
-    expect(normResult.gaiku).toBeUndefined()
-    expect(normResult.jyukyo).toBeUndefined()
+    expect(normResult).not.toHaveProperty('gaiku')
+    expect(normResult).not.toHaveProperty('jyukyo')
   })
 
   test('番地号部分にスペースが含まれていても正規化する', async () => {
