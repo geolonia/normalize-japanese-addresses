@@ -2,6 +2,7 @@ import { normalize, config } from '../../src/main-node'
 
 config.interfaceVersion = 2
 config.transformRequest = async (url, query) => {
+  console.log(url, query)
   const { level, pref = '', city = '', town = '' } = query
 
   switch (level) {
@@ -48,6 +49,8 @@ config.transformRequest = async (url, query) => {
           { addr: '1-2', lat: '30.2', lng: '135.2' },
           { addr: '2-3', lat: null, lng: null },
         ]
+      } else {
+        return []
       }
     }
     default:
@@ -101,5 +104,18 @@ test('リクエスト変形テスト - レベル8 で緯度経度が null の時
     lng: 135,
     level: 8,
     lat: 30,
+  })
+})
+
+test('リクエスト変形テスト - 全く正規化できないケース', async () => {
+  const res = await normalize('こんにちはこんにちは', { level: 8 })
+  expect(res).toStrictEqual({
+    pref: '',
+    city: '',
+    town: '',
+    addr: 'こんにちはこんにちは',
+    lat: null,
+    lng: null,
+    level: 0,
   })
 })

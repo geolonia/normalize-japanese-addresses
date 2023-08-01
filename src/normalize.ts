@@ -331,8 +331,10 @@ export const normalize: Normalizer = async (
   const prefectures = await getPrefectures()
   const prefs = Object.keys(prefectures)
   const prefPatterns = getPrefectureRegexPatterns(prefs)
-  const sameNamedPrefectureCityRegexPatterns =
-    getSameNamedPrefectureCityRegexPatterns(prefs, prefectures)
+  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(
+    prefs,
+    prefectures,
+  )
 
   // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
   // あらかじめ県名を補完しておく。
@@ -480,7 +482,7 @@ export const normalize: Normalizer = async (
   if (city) level = level + 1
   if (town) level = level + 1
 
-  if (option.level <= 3) {
+  if (option.level <= 3 || level < 3) {
     return { pref, city, town, addr, level, lat, lng }
   }
 
