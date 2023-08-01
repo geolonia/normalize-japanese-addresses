@@ -46,6 +46,7 @@ config.transformRequest = async (url, query) => {
         return [
           { addr: '1-1', lat: '30.1', lng: '135.1' },
           { addr: '1-2', lat: '30.2', lng: '135.2' },
+          { addr: '2-3', lat: null, lng: null },
         ]
       }
     }
@@ -84,5 +85,21 @@ test('リクエスト変形テスト 2', async () => {
     lng: 135.2,
     level: 8,
     lat: 30.2,
+  })
+})
+
+test('リクエスト変形テスト - レベル8 で緯度経度が null の時はレベル3の緯度経度を使う', async () => {
+  const res = await normalize('A県 X市 あああ 2の3 こんばんはビル', {
+    level: 8,
+  })
+  expect(res).toStrictEqual({
+    pref: 'A県',
+    city: 'X市',
+    town: 'あああ',
+    addr: '2-3',
+    other: 'こんばんはビル',
+    lng: 135,
+    level: 8,
+    lat: 30,
   })
 })
