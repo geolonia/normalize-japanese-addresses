@@ -1119,12 +1119,22 @@ for (const [runtime, normalize] of cases) {
       expect(res.level).toEqual(3)
     })
 
-    test('愛知県豊田市西丹波町三五十', async () => {
-      const address = '愛知県豊田市西丹波町三五十'
-      const res = await normalize(address)
-      expect(res.town).toEqual('西丹波町')
-      expect(res.addr).toEqual("三五十")
-      expect(res.level).toEqual(3)
+    describe.only('漢数字の小字のケース', () => {
+      test('愛知県豊田市西丹波町三五十', async () => {
+        const address = '愛知県豊田市西丹波町三五十'
+        const res = await normalize(address)
+        expect(res.town).toEqual('西丹波町')
+        expect(res.addr).toEqual("三五十")
+        expect(res.level).toEqual(3)
+      })
+
+      test('広島県府中市栗柄町名字八五十2459 小字以降は現在のところ無視される', async () => {
+        const address = '広島県府中市栗柄町名字八五十2459'
+        const res = await normalize(address)
+        expect(res.town).toEqual('栗柄町')
+        expect(res.addr).toEqual("名字八五十2459")
+        expect(res.level).toEqual(3)
+      })
     })
   })
 }
