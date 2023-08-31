@@ -1119,7 +1119,7 @@ for (const [runtime, normalize] of cases) {
       expect(res.level).toEqual(3)
     })
 
-    describe.only('漢数字の小字のケース', () => {
+    describe('漢数字の小字のケース', () => {
       test('愛知県豊田市西丹波町三五十', async () => {
         const address = '愛知県豊田市西丹波町三五十'
         const res = await normalize(address)
