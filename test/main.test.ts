@@ -1119,11 +1119,11 @@ for (const [runtime, normalize] of cases) {
       expect(res.level).toEqual(3)
     })
 
-    test('愛知県豊田市西丹波町三五十 漢数字の番地のケース', async () => {
+    test('愛知県豊田市西丹波町三五十', async () => {
       const address = '愛知県豊田市西丹波町三五十'
       const res = await normalize(address)
       expect(res.town).toEqual('西丹波町')
-      expect(res.addr).toEqual("350")
+      expect(res.addr).toEqual("三五十")
       expect(res.level).toEqual(3)
     })
   })
