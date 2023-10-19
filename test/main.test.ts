@@ -871,12 +871,12 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "東京都", "city": "千代田区", "town": "永田町一丁目", "addr": "2-3-レジデンス億万101", "lat": 35.675895, "lng": 139.746306, "level": 3})
     })
 
-    test('東京都千代田区三番町２番地４三番町ＫＳビル１０階(番地と建物名が混ざり、「番」が消える)', async () => {
+    test('東京都千代田区三番町２番地４三番町ＫＳビル１０階(番地と建物名が混ざり、「番」が消えることがないこと)', async () => {
       const res = await normalize('東京都千代田区三番町２番地４三番町ＫＳビル１０階')
       expect(res).toStrictEqual({"pref": "東京都", "city": "千代田区", "town": "三番町", "addr": "2-4三町KSビル10階", "lat": 35.690557, "lng": 139.743591, "level": 3})  
     })
 
-    test('東京都千代田区神田美土代町９番地７千代田２１ビル７階(「7千代田」が「7000代田」になる)', async () => {
+    test('東京都千代田区神田美土代町９番地７千代田２１ビル７階(「7千代田」が「7000代田」にならないこと)', async () => {
       const res = await normalize('東京都千代田区神田美土代町９番地７千代田２１ビル７階')
       expect(res).toStrictEqual({
         pref: '東京都',
