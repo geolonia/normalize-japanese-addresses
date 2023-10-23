@@ -3,7 +3,7 @@ name: Auto Release
 permissions:
   contents: write
 on:
-  create:
+  push:
     tags:
       - 'v*.*.*'
 
