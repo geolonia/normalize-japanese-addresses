@@ -891,7 +891,7 @@ for (const [runtime, normalize] of cases) {
 
     test('神奈川県川崎市川崎区駅前本町１５番５十五番館ビル(「５十五番館ビル」が「番」が消えずに「5十五番館ビル」となる)', async () => {
       const res = await normalize('神奈川県川崎市川崎区駅前本町１５番５十五番館ビル')
-      expect(res).toStrictEqual({"pref": "神奈川県", "city": "川崎市川崎区", "town": "駅前本町", "addr": "15-5十五番館ビル", "lat": 35.530613, "lng": 139.702222, "level": 3})
+      expect(res).toStrictEqual({"pref": "神奈川県", "city": "川崎市川崎区", "town": "駅前本町", "addr": "15-5十五番館ビル", "lat": 35.532434, "lng": 139.6996, "level": 3})
     })
 
     describe('途中にスペースを含むケース', () => {
