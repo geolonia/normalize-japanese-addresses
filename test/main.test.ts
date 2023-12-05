@@ -53,11 +53,6 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
     })
 
-    test('和歌山県東牟婁郡串本町串本千二百三十四', async () => {
-      const res = await normalize('和歌山県東牟婁郡串本町串本千二百三十四')
-      expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
-    })
-
     test('和歌山県東牟婁郡串本町くじ野川一二三四', async () => {
       const res = await normalize('和歌山県東牟婁郡串本町くじ野川一二三四')
       expect(res).toStrictEqual({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "鬮野川", "addr": "1234", "lat": 33.493026, "lng": 135.784941, "level": 3})
@@ -280,11 +275,6 @@ for (const [runtime, normalize] of cases) {
       expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16", "lat": 34.684074, "lng": 135.467031, "level": 3})
     })
 
-    test('大阪府大阪市此花区西九条3-2-16', async () => {
-      const res = await normalize('大阪府大阪市此花区西九条3-2-16')
-      expect(res).toStrictEqual({"pref": "大阪府", "city": "大阪市此花区", "town": "西九条三丁目", "addr": "2-16", "lat": 34.684074, "lng": 135.467031, "level": 3})
-    })
-
     test('千葉県鎌ケ谷市中佐津間２丁目１５－１４－９', async () => {
       const res = await normalize('千葉県鎌ケ谷市中佐津間２丁目１５－１４－９')
       expect(res).toStrictEqual({"pref": "千葉県", "city": "鎌ヶ谷市", "town": "中佐津間二丁目", "addr": "15-14-9", "lat": 35.800253, "lng": 140.002133, "level": 3})
@@ -383,11 +373,6 @@ for (const [runtime, normalize] of cases) {
     test('埼玉県八潮市大字大瀬１丁目１－１', async () => {
       const res = await normalize('埼玉県八潮市大字大瀬１丁目１－１')
       expect(res).toStrictEqual({"pref": "埼玉県", "city": "八潮市", "town": "大瀬一丁目", "addr": "1-1", "lat": 35.808825, "lng": 139.84291, "level": 3})
-    })
-
-    test('岡山県笠岡市大宜1249－1', async () => {
-      const res = await normalize('岡山県笠岡市大宜1249－1')
-      expect(res).toStrictEqual({"pref": "岡山県", "city": "笠岡市", "town": "大宜", "addr": "1249-1", "lat": 34.506729, "lng": 133.473295, "level": 3})
     })
 
     test('岡山県笠岡市大宜1249－1', async () => {
@@ -761,7 +746,7 @@ for (const [runtime, normalize] of cases) {
     })
 
     test('京都府京都市中京区河原町二条下ル一之舟入町537-50（船と舟のゆらぎ）', async () => {
-      const res = await normalize('京都府京都市中京区河原町二条下ル一之船入町537-50')
+      const res = await normalize('京都府京都市中京区河原町二条下ル一之舟入町537-50')
       expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
     })
 
