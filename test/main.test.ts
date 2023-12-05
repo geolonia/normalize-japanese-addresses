@@ -746,7 +746,7 @@ for (const [runtime, normalize] of cases) {
     })
 
     test('京都府京都市中京区河原町二条下ル一之舟入町537-50（船と舟のゆらぎ）', async () => {
-      const res = await normalize('京都府京都市中京区河原町二条下ル一之船入町537-50')
+      const res = await normalize('京都府京都市中京区河原町二条下ル一之舟入町537-50')
       expect(res).toStrictEqual({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
     })
 
