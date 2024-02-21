@@ -1,6 +1,6 @@
 {
   "name": "@geolonia/normalize-japanese-addresses",
-  "version": "2.10.0",
+  "version": "2.10.1",
   "description": "",
   "browser": "./dist/main-browser.js",
   "main": "./dist/main-node.js",
