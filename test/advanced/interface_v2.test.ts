@@ -1,4 +1,5 @@
 import { normalize, config } from '../../src/main-node'
+import { NormalizeResult } from '../../src/normalize'
 
 config.interfaceVersion = 2
 config.transformRequest = async (url, query) => {
@@ -48,6 +49,11 @@ config.transformRequest = async (url, query) => {
           { addr: '1-1', lat: '30.1', lng: '135.1' },
           { addr: '1-2', lat: '30.2', lng: '135.2' },
           { addr: '2-3', lat: null, lng: null },
+          { addr: '3-1', lat: '30.25', lng: '135.25' },
+          { addr: '3-19', lat: '30.3', lng: '135.3' },
+          { addr: '13-1', lat: '30.4', lng: '135.4' },
+          { addr: '13-14', lat: '30.45', lng: '135.45' },
+          { addr: '13-19', lat: '30.5', lng: '135.5' },
         ]
       } else {
         return []
@@ -106,6 +112,77 @@ test('リクエスト変形テスト - レベル8 で緯度経度が null の時
     lat: 30,
   })
 })
+
+const expectedCommon = { pref: 'A県', city: 'X市', town: 'あああ', level: 8 }
+const cases: { input: string; expected: NormalizeResult }[] = [
+  {
+    input: 'A県 X市 あああ1-1 こんばんはビル',
+    expected: {
+      ...expectedCommon,
+      addr: '1-1',
+      other: 'こんばんはビル',
+      lng: 135.1,
+      lat: 30.1,
+    },
+  },
+  {
+    input: 'A県 X市 あああ3-1 こんばんはビル',
+    expected: {
+      ...expectedCommon,
+      addr: '3-1',
+      other: 'こんばんはビル',
+      lng: 135.25,
+      lat: 30.25,
+    },
+  },
+  {
+    input: 'A県 X市 あああ3-19 こんばんはビル',
+    expected: {
+      ...expectedCommon,
+      addr: '3-19',
+      other: 'こんばんはビル',
+      lng: 135.3,
+      lat: 30.3,
+    },
+  },
+  {
+    input: 'A県 X市 あああ13-1 こんばんはビル',
+    expected: {
+      ...expectedCommon,
+      addr: '13-1',
+      other: 'こんばんはビル',
+      lng: 135.4,
+      lat: 30.4,
+    },
+  },
+  {
+    input: 'A県 X市 あああ13-14 こんばんはビル',
+    expected: {
+      ...expectedCommon,
+      addr: '13-14',
+      other: 'こんばんはビル',
+      lng: 135.45,
+      lat: 30.45,
+    },
+  },
+  {
+    input: 'A県 X市 あああ13-19 こんばんはビル',
+    expected: {
+      ...expectedCommon,
+      addr: '13-19',
+      other: 'こんばんはビル',
+      lng: 135.5,
+      lat: 30.5,
+    },
+  },
+]
+
+for (const { input, expected } of cases) {
+  test(`リクエスト変形テスト - ${input}`, async () => {
+    const res = await normalize(input, { level: 8 })
+    expect(res).toStrictEqual(expected)
+  })
+}
 
 test('リクエスト変形テスト - 全く正規化できないケース', async () => {
   const res = await normalize('こんにちはこんにちは', { level: 8 })
