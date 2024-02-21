@@ -46,8 +46,9 @@ const cachedTowns: { [key: string]: TownList } = {}
 const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
 const cachedResidentials: { [key: string]: ResidentialList } = {}
 const cachedAddrs: { [key: string]: AddrList } = {} // TODO: use LRU
-let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
-  undefined
+let cachedSameNamedPrefectureCityRegexPatterns:
+  | [string, string][]
+  | undefined = undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
@@ -208,7 +209,9 @@ export const getAddrs = async (pref: string, city: string, town: string) => {
     addrs = []
   }
 
-  addrs.sort((res1, res2) => res1.addr.length - res2.addr.length)
+  // 文字数が多い順に並び替えします。
+  // 長い順に並び替えしないと、短い住所がマッチしてしまう。
+  addrs.sort((res1, res2) => res2.addr.length - res1.addr.length)
   return (cachedAddrs[cacheKey] = addrs)
 }
 
