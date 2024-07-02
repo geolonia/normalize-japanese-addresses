@@ -1113,6 +1113,20 @@ for (const [runtime, normalize] of cases) {
       expect(res.addr).toEqual('ビル名')
     })
 
+    test('旧漢字対応 (亞 -> 亜)', async () => {
+      const address = '宮城県大崎市古川大崎東亜'
+      const res = await normalize(address)
+      expect(res.addr).toEqual('東亜')
+      expect(res.level).toEqual(3)
+    })
+
+    test('旧漢字対応 (澤 -> 沢)', async () => {
+      const address = '東京都西多摩郡奥多摩町海澤'
+      const res = await normalize(address)
+      expect(res.town).toEqual('海澤')
+      expect(res.level).toEqual(3)
+    })
+
     test('旧漢字対応 (麩 -> 麸)', async () => {
       const address = '愛知県津島市池麩町'
       const res = await normalize(address)
