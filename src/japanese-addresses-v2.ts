@@ -66,10 +66,8 @@ export type SingleMachiAza = {
   point?: LngLat
 }
 
-export function machiAzaName(machiAza: SingleMachiAza): string {
-  return `${machiAza.oaza_cho || ''}${machiAza.chome || ''}${
-    machiAza.koaza || ''
-  }`
+export function machiAzaName(m: SingleMachiAza): string {
+  return `${m.oaza_cho || ''}${m.chome || ''}${m.koaza || ''}`
 }
 
 /**

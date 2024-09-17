@@ -20,7 +20,12 @@ export const requestHandlers = {
     if (Normalize.config.geoloniaApiKey) {
       fileURL.search = `?geolonia-api-key=${Normalize.config.geoloniaApiKey}`
     }
-    return unfetch(fileURL.toString())
+    return unfetch(fileURL.toString(), {
+      headers: {
+        'User-Agent':
+          'normalize-japanese-addresses/0.1 (+https://github.com/geolonia/normalize-japanese-addresses/)',
+      },
+    })
   },
 }
 

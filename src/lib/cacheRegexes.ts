@@ -128,6 +128,7 @@ export const getTowns = async (pref: string, city: string) => {
     { level: 3, pref, city },
   )
   const towns = (await townsResp.json()) as MachiAzaApi
+
   return (cachedTowns[cacheKey] = towns)
 }
 
@@ -378,8 +379,8 @@ export const getSameNamedPrefectureCityRegexPatterns = (
       for (let j = 0; j < _prefs.length; j++) {
         if (cityN.indexOf(_prefs[j]) === 0) {
           cachedSameNamedPrefectureCityRegexPatterns.push([
-            `${pref}${city}`,
-            `^${city}`,
+            `${pref.pref}${cityN}`,
+            `^${cityN}`,
           ])
         }
       }
