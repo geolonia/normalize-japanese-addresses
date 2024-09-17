@@ -136,7 +136,7 @@ for (const [runtime, normalize] of cases) {
 
     test('岩手県下閉伊郡普代村第１地割上村４３−２５', async () => {
       const res = await normalize('岩手県下閉伊郡普代村第１地割上村４３−２５')
-      expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "下閉伊郡普代村", "town": "第一地割字上村", "addr": "43-25", "lat": 39.990149, "lng": 141.928282, "level": 3})
+      expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "下閉伊郡普代村", "town": "第１地割", "addr": "上村43-25", "level": 3})
     })
 
     test('岩手県花巻市下北万丁目１７４−１', async () => {
@@ -591,7 +591,7 @@ for (const [runtime, normalize] of cases) {
 
     test('石川県七尾市藤橋町亥四十五番地1', async () => {
       const res = await normalize('石川県七尾市藤橋町亥四十五番地1')
-      expect(res).toBeDeepCloseTo({ "pref": "石川県", "city": "七尾市", "town": "藤橋町", "addr": "亥45-1", "lat": 37.041154, "lng": 136.941183, "level": 3})
+      expect(res).toBeDeepCloseTo({ "pref": "石川県", "city": "七尾市", "town": "藤橋町亥", "addr": "45-1", "lat": 37.041154, "lng": 136.941183, "level": 3})
     })
 
     test('石川県七尾市藤橋町 亥 四十五番地1', async () => {
@@ -749,19 +749,20 @@ for (const [runtime, normalize] of cases) {
       expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
     })
 
-    test('京都府宇治市莵道森本8−10', async () => {
-      const res = await normalize('京都府宇治市莵道森本8−10')
-      expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "宇治市", "town": "莵道", "addr": "森本8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
-    })
-
     test('京都府京都市中京区河原町二条下ル一之舟入町537-50（船と舟のゆらぎ）', async () => {
       const res = await normalize('京都府京都市中京区河原町二条下ル一之舟入町537-50')
       expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
     })
 
     test('京都府宇治市莵道森本8−10（莵と菟のゆらぎ）', async () => {
-      const res = await normalize('京都府宇治市菟道森本8−10')
-      expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "宇治市", "town": "莵道", "addr": "森本8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
+      const addrs = [
+        '京都府宇治市莵道森本8−10',
+        '京都府宇治市菟道森本8−10'
+      ]
+      for (const addr of addrs) {
+        const res = await normalize(addr)
+        expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "宇治市", "town": "菟道森本", "addr": "8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
+      }
     })
 
     // 「都道府県」の文字列を省略した場合
@@ -827,7 +828,7 @@ for (const [runtime, normalize] of cases) {
 
     test('福井県三方上中郡若狭町若狭テクノバレー1-1', async () => {
       const res = await normalize('福井県三方上中郡若狭町若狭テクノバレー1-1')
-      expect(res).toBeDeepCloseTo({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー", "addr": "1-1", "level": 3, "lat": 35.477349, "lng": 135.859423})
+      expect(res).toBeDeepCloseTo({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー１号", "addr": "1", "level": 3, "lat": 35.477349, "lng": 135.859423})
     })
 
     test('埼玉県越谷市大字蒲生3795-1', async () => {

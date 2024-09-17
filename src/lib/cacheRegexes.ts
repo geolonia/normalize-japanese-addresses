@@ -3,7 +3,7 @@ import { kan2num } from './kan2num'
 import LRU from 'lru-cache'
 import { currentConfig } from '../config'
 import { __internals } from '../normalize'
-import { findKanjiNumbers } from '@geolonia/japanese-numeral'
+import { findKanjiNumbers, kanji2number, number2kanji } from '@geolonia/japanese-numeral'
 import {
   cityName,
   MachiAzaApi,
@@ -128,7 +128,6 @@ export const getTowns = async (pref: string, city: string) => {
     { level: 3, pref, city },
   )
   const towns = (await townsResp.json()) as MachiAzaApi
-
   return (cachedTowns[cacheKey] = towns)
 }
 
@@ -303,8 +302,9 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
         .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
         .replace(/大?字/g, '(大?字)?')
         // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
+        // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
         .replace(
-          /([壱一二三四五六七八九十]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
+          /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
           (match: string) => {
             const patterns = []
 
@@ -323,6 +323,9 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
                 .replace(/([一二三四五六七八九十]+)/g, (match) => {
                   return kan2num(match)
                 })
+                .replace(/([１２３４５６７８９０]+)/g, (match) => {
+                  return kanji2number(match).toString()
+                })
                 .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
 
               patterns.push(num.toString()) // 半角アラビア数字
@@ -332,6 +335,9 @@ export const getTownRegexPatterns = async (pref: string, city: string) => {
             const _pattern = `(${patterns.join(
               '|',
             )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+            // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
+            //   console.log(_pattern)
+            // }
             return _pattern // デバッグのときにめんどくさいので変数に入れる。
           },
         ),
