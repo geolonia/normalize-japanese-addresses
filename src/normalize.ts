@@ -9,23 +9,24 @@ import {
   getCityRegexPatterns,
   getTownRegexPatterns,
   getSameNamedPrefectureCityRegexPatterns,
-  // interface version 1
-  getResidentials,
-  getGaikuList,
-  // interface version 2
-  getAddrs,
   PrefectureList,
   TownList,
   AddrList,
+  getRsdt,
+  getChiban,
 } from './lib/cacheRegexes'
 import unfetch from 'isomorphic-unfetch'
 import {
+  chibanToString,
   cityName,
   machiAzaName,
   prefectureName,
+  rsdtToString,
+  SingleChiban,
   SingleCity,
   SingleMachiAza,
   SinglePrefecture,
+  SingleRsdt,
 } from './japanese-addresses-v2'
 
 type TransformRequestResponse = null | PrefectureList | TownList | AddrList
@@ -122,13 +123,21 @@ export type Normalizer = (
   option?: Option,
 ) => Promise<NormalizeResult>
 
+export type FetchOptions = {
+  offset?: number
+  length?: number
+}
+
 export type FetchLike = (
   input: string,
+  options?: FetchOptions,
   requestQuery?: TransformRequestQuery,
-) => Promise<Response | { json: () => Promise<unknown> }>
+) => Promise<
+  Response | { json: () => Promise<unknown>; text: () => Promise<string> }
+>
 
 const defaultOption = {
-  level: 3,
+  level: 8,
 }
 
 /**
@@ -136,12 +145,19 @@ const defaultOption = {
  */
 export const __internals: { fetch: FetchLike } = {
   // default fetch
-  fetch: (input: string) => {
+  fetch: (input: string, options) => {
+    const o = options || {}
     let url = new URL(`${config.japaneseAddressesApi}${input}`).toString()
     if (config.geoloniaApiKey) {
       url += `?geolonia-api-key=${config.geoloniaApiKey}`
     }
-    return unfetch(url)
+    const headers: HeadersInit = {}
+    if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
+      headers['Range'] = `bytes=${o.offset}-${o.offset + o.length - 1}`
+    }
+    return unfetch(url, {
+      headers,
+    })
   },
 }
 
@@ -171,76 +187,51 @@ const normalizeTownName = async (addr: string, pref: string, city: string) => {
   }
 }
 
-const normalizeResidentialPart = async (
-  addr: string,
-  pref: string,
-  city: string,
-  town: string,
-): Promise<{
-  gaiku: string
-  jyukyo?: string
-  addr: string
-  lat: string
-  lng: string
-} | null> => {
-  const [gaikuListItem, residentials] = await Promise.all([
-    getGaikuList(pref, city, town),
-    getResidentials(pref, city, town),
-  ])
-
-  // 住居表示未整備
-  if (gaikuListItem.length === 0) {
-    return null
-  }
-
-  const match = addr.match(/^([1-9][0-9]*)-([1-9][0-9]*)/)
-  if (match) {
-    const gaiku = match[1]
-    const jyukyo = match[2]
-    const jyukyohyoji = `${gaiku}-${jyukyo}`
-    const residential = residentials.find(
-      (res) => `${res.gaiku}-${res.jyukyo}` === jyukyohyoji,
-    )
-
-    if (residential) {
-      const addr2 = addr.replace(jyukyohyoji, '').trim()
-      return {
-        gaiku,
-        jyukyo,
-        addr: addr2,
-        lat: residential.lat,
-        lng: residential.lng,
-      }
-    }
-
-    const gaikuItem = gaikuListItem.find((item) => item.gaiku === gaiku)
-    if (gaikuItem) {
-      const addr2 = addr.replace(gaikuItem.gaiku, '').trim()
-      return { gaiku, addr: addr2, lat: gaikuItem.lat, lng: gaikuItem.lng }
-    }
-  }
-  return null
+type NormalizedAddrPart = {
+  chiban?: SingleChiban
+  rsdt?: SingleRsdt
+  rest: string
 }
-
-const normalizeAddrPart = async (
+async function normalizeAddrPart(
   addr: string,
   pref: SinglePrefecture,
   city: SingleCity,
   town: SingleMachiAza,
-) => {
-  const addrListItem = await getAddrs(pref, city, town)
-
-  // 住居表示住所、および地番住所が見つからなかった
-  if (addrListItem.length === 0) {
-    return null
+): Promise<NormalizedAddrPart> {
+  const match = addr.match(
+    /^([1-9][0-9]*)(?:-([1-9][0-9]*))?(?:-([1-9][0-9]*))?/,
+  )
+  if (!match) {
+    return {
+      rest: addr,
+    }
   }
-
-  const addrItem = addrListItem.find((item) => addr.startsWith(item.addr))
-  if (addrItem) {
-    const other = addr.replace(addrItem.addr, '').trim()
-    return { addr: addrItem.addr, other, lat: addrItem.lat, lng: addrItem.lng }
+  const rest = addr.substring(match[0].length)
+  // TODO: rsdtの場合はrsdtと地番を両方取得する
+  if (town.rsdt) {
+    const res = await getRsdt(pref, city, town)
+    for (const rsdt of res) {
+      if (match[0] === rsdtToString(rsdt)) {
+        return {
+          rsdt,
+          rest,
+        }
+      }
+    }
+  } else {
+    const res = await getChiban(pref, city, town)
+    for (const chiban of res) {
+      if (match[0] === chibanToString(chiban)) {
+        return {
+          chiban,
+          rest,
+        }
+      }
+    }
   }
-  return null
+  return {
+    rest: addr,
+  }
 }
 
 export const normalize: Normalizer = async (
@@ -476,50 +467,45 @@ export const normalize: Normalizer = async (
     return result
   }
 
-  // ======================== Advanced section ========================
-  // これ以下は地番住所または住居表示住所までの正規化・ジオコーディングを行う処理
-  // 現状、インターフェース v1 と v2 が存在する
-  // japanese-addresses のフォーマット、および normalize 関数の戻り値が異なる
-  // 将来的に v2 に統一することを検討中
-  // ==================================================================
-
-  // v2 のインターフェース
-  if (currentConfig.interfaceVersion === 3) {
-    const normalizedAddrPart = await normalizeAddrPart(
-      addr,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      pref!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      city!,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      town!,
-    )
-    let other = undefined
-    if (normalizedAddrPart) {
-      addr = normalizedAddrPart.addr
-      if (normalizedAddrPart.other) {
-        other = normalizedAddrPart.other
-      }
-      if (normalizedAddrPart.lat !== null)
-        lat = parseFloat(normalizedAddrPart.lat)
-      if (normalizedAddrPart.lng !== null)
-        lng = parseFloat(normalizedAddrPart.lng)
-      level = 8
+  const normalizedAddrPart = await normalizeAddrPart(
+    addr,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    pref!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    city!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    town!,
+  )
+  let other = undefined
+  // TODO: rsdtと地番を両方対応した時に両方返すけど、今はrsdtを優先する
+  if (normalizedAddrPart.rsdt) {
+    addr = rsdtToString(normalizedAddrPart.rsdt)
+    other = normalizedAddrPart.rest
+    if (normalizedAddrPart.rsdt.point) {
+      lat = normalizedAddrPart.rsdt.point[1]
+      lng = normalizedAddrPart.rsdt.point[0]
     }
-    const result: NormalizeResult = {
-      pref: pref ? prefectureName(pref) : '',
-      city: city ? cityName(city) : '',
-      town: town ? machiAzaName(town) : '',
-      addr,
-      level,
-      lat,
-      lng,
+    level = 8
+  } else if (normalizedAddrPart.chiban) {
+    addr = chibanToString(normalizedAddrPart.chiban)
+    other = normalizedAddrPart.rest
+    if (normalizedAddrPart.chiban.point) {
+      lat = normalizedAddrPart.chiban.point[1]
+      lng = normalizedAddrPart.chiban.point[0]
     }
-    if (other) {
-      result.other = other
-    }
-    return result
-  } else {
-    throw new Error('invalid interfaceVersion')
+    level = 8
   }
+  const result: NormalizeResult = {
+    pref: pref ? prefectureName(pref) : '',
+    city: city ? cityName(city) : '',
+    town: town ? machiAzaName(town) : '',
+    addr,
+    level,
+    lat,
+    lng,
+  }
+  if (other) {
+    result.other = other
+  }
+  return result
 }

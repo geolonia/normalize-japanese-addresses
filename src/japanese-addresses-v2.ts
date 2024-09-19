@@ -87,6 +87,9 @@ export type SingleRsdt = {
   /// 代表点
   point?: LngLat
 }
+export function rsdtToString(rsdt: SingleRsdt): string {
+  return [rsdt.blk_num, rsdt.rsdt_num, rsdt.rsdt_num2].filter(Boolean).join('-')
+}
 /**
  * @file api/ja/{都道府県名}/{市区町村名}/{町字}/住居表示.json
  */
@@ -102,6 +105,11 @@ export type SingleChiban = {
 
   /// 代表点
   point?: LngLat
+}
+export function chibanToString(chiban: SingleChiban): string {
+  return [chiban.prc_num1, chiban.prc_num2, chiban.prc_num3]
+    .filter(Boolean)
+    .join('-')
 }
 /**
  * @file api/ja/{都道府県名}/{市区町村名}/{町字}/地番.json

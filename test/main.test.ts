@@ -34,12 +34,12 @@ for (const [runtime, normalize] of cases) {
 
     test('和歌山県東牟婁郡串本町串本千二百三十四', async () => {
       const res = await normalize('和歌山県東牟婁郡串本町串本千二百三十四')
-      expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
+      expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 8})
     })
 
     test('和歌山県東牟婁郡串本町串本一千二百三十四', async () => {
       const res = await normalize('和歌山県東牟婁郡串本町串本一千二百三十四')
-      expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
+      expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 8})
     })
 
     test('和歌山県東牟婁郡串本町串本一二三四', async () => {
@@ -828,7 +828,7 @@ for (const [runtime, normalize] of cases) {
 
     test('福井県三方上中郡若狭町若狭テクノバレー1-1', async () => {
       const res = await normalize('福井県三方上中郡若狭町若狭テクノバレー1-1')
-      expect(res).toBeDeepCloseTo({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー１号", "addr": "1", "level": 3, "lat": 35.477349, "lng": 135.859423})
+      expect(res).toBeDeepCloseTo({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー１号", "addr": "1", "level": 8, "lat": 35.477349, "lng": 135.859423})
     })
 
     test('埼玉県越谷市大字蒲生3795-1', async () => {

@@ -1,18 +1,22 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
+import Papaparse from 'papaparse'
 import LRU from 'lru-cache'
 import { currentConfig } from '../config'
 import { __internals } from '../normalize'
-import { findKanjiNumbers, kanji2number, number2kanji } from '@geolonia/japanese-numeral'
+import { findKanjiNumbers, kanji2number } from '@geolonia/japanese-numeral'
 import {
   cityName,
+  LngLat,
   MachiAzaApi,
   machiAzaName,
   PrefectureApi,
   prefectureName,
+  SingleChiban,
   SingleCity,
   SingleMachiAza,
   SinglePrefecture,
+  SingleRsdt,
 } from '../japanese-addresses-v2'
 
 export type PrefectureList = PrefectureApi
@@ -31,24 +35,28 @@ interface SingleAddr {
   lng: string | null
 }
 export type AddrList = SingleAddr[]
-interface GaikuListItem {
-  gaiku: string
-  lat: string
-  lng: string
-}
-
-interface SingleResidential {
-  gaiku: string
-  jyukyo: string
-  lat: string
-  lng: string
-}
-type ResidentialList = SingleResidential[]
 
 const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
   max: currentConfig.townCacheSize,
   maxAge: 60 * 60 * 24 * 7 * 1000, // 7日間
 })
+
+const cache = new LRU<string, unknown>({
+  max: 1000,
+})
+
+async function fetchFromCache<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+): Promise<T> {
+  let data = cache.get(key) as T | undefined
+  if (typeof data !== 'undefined') {
+    return data
+  }
+  data = await fetcher()
+  cache.set(key, data)
+  return data
+}
 
 let cachedPrefecturePatterns:
   | [SinglePrefecture, string][]
@@ -56,9 +64,6 @@ let cachedPrefecturePatterns:
 const cachedCityPatterns: Map<number, [SingleCity, string][]> = new Map()
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
-const cachedResidentials: { [key: string]: ResidentialList } = {}
-const cachedAddrs: { [key: string]: AddrList } = {} // TODO: use LRU
 let cachedSameNamedPrefectureCityRegexPatterns:
   | [string, string][]
   | undefined = undefined
@@ -68,7 +73,7 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const prefsResp = await __internals.fetch('.json', { level: 1 }) // ja.json
+  const prefsResp = await __internals.fetch('.json', {}, { level: 1 }) // ja.json
   const data = (await prefsResp.json()) as PrefectureApi
   return cachePrefectures(data)
 }
@@ -125,112 +130,202 @@ export const getTowns = async (pref: string, city: string) => {
 
   const townsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
+    {},
     { level: 3, pref, city },
   )
   const towns = (await townsResp.json()) as MachiAzaApi
   return (cachedTowns[cacheKey] = towns)
 }
 
-export const getGaikuList = async (
-  pref: string,
-  city: string,
-  town: string,
-) => {
-  if (currentConfig.interfaceVersion > 1) {
-    throw new Error(
-      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
-    )
-  }
-
-  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
-  const cache = cachedGaikuListItem[cacheKey]
-  if (typeof cache !== 'undefined') {
-    return cache
-  }
-  const gaikuResp = await __internals.fetch(
-    ['', encodeURI(pref), encodeURI(city), encodeURI(town + '.json')].join('/'),
-  )
-  let gaikuListItem: GaikuListItem[]
-  try {
-    gaikuListItem = (await gaikuResp.json()) as GaikuListItem[]
-  } catch {
-    gaikuListItem = []
-  }
-  return (cachedGaikuListItem[cacheKey] = gaikuListItem)
-}
-
-export const getResidentials = async (
-  pref: string,
-  city: string,
-  town: string,
-) => {
-  if (currentConfig.interfaceVersion > 1) {
-    throw new Error(
-      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
-    )
-  }
-
-  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
-  const cache = cachedResidentials[cacheKey]
-  if (typeof cache !== 'undefined') {
-    return cache
-  }
-
-  const residentialsResp = await __internals.fetch(
-    [
-      '',
-      encodeURI(pref),
-      encodeURI(city),
-      encodeURI(town),
-      encodeURI('住居表示.json'),
-    ].join('/'),
-  )
-  let residentials: ResidentialList
-  try {
-    residentials = (await residentialsResp.json()) as ResidentialList
-  } catch {
-    residentials = []
-  }
-
-  residentials.sort(
-    (res1, res2) =>
-      `${res2.gaiku}-${res2.jyukyo}`.length -
-      `${res1.gaiku}-${res1.jyukyo}`.length,
-  )
-  return (cachedResidentials[cacheKey] = residentials)
-}
-
-export const getAddrs = async (
+async function fetchMetadata(
+  kind: '地番' | '住居表示',
   pref: SinglePrefecture,
   city: SingleCity,
-  town: SingleMachiAza,
-) => {
+) {
   const prefN = prefectureName(pref)
   const cityN = cityName(city)
-  const townN = machiAzaName(town)
-  const cacheKey = `${prefN}-${cityN}-${townN}-v${currentConfig.interfaceVersion}`
-  const cache = cachedAddrs[cacheKey]
-  if (typeof cache !== 'undefined') {
-    return cache
+  const metadataParts: string[] = []
+  let hasMore = true
+  let tries = 0
+  while (hasMore === true) {
+    if (tries > 10) {
+      throw new Error('metadata fetch failure')
+    }
+    const resp = await __internals.fetch(
+      ['', encodeURI(prefN), encodeURI(`${cityN}-${kind}.txt`)].join('/'),
+      {
+        offset: tries * 50_000,
+        length: 50_000,
+      },
+    )
+    const part = await resp.text()
+    if (part.length === 0) {
+      hasMore = false
+      continue
+    }
+    let trimmed = part.trimEnd()
+    if (trimmed.endsWith('=END=')) {
+      trimmed = trimmed.slice(0, -5)
+      hasMore = false
+    }
+    tries += 1
+    metadataParts.push(trimmed)
   }
+  return metadataParts.join('')
+}
 
-  const addrsResp = await __internals.fetch(
-    ['', encodeURI(prefN), encodeURI(cityN), encodeURI(townN) + '.json'].join(
-      '/',
-    ),
-    { level: 8, pref: prefN, city: cityN, town: townN },
+type MetadataRow = { offset: number; length: number }
+function parseMetadata(metadata: string): { [name: string]: MetadataRow } {
+  const lines = Papaparse.parse<[string, string, string]>(metadata, {
+    header: false,
+  }).data
+  const result: { [key: string]: MetadataRow } = {}
+  for (const line of lines) {
+    const [key, offset, length] = line
+    result[key] = { offset: parseInt(offset, 10), length: parseInt(length, 10) }
+  }
+  return result
+}
+
+async function fetchSubresource(
+  kind: '地番' | '住居表示',
+  pref: SinglePrefecture,
+  city: SingleCity,
+  row: MetadataRow,
+) {
+  const prefN = prefectureName(pref)
+  const cityN = cityName(city)
+  const resp = await __internals.fetch(
+    ['', encodeURI(prefN), encodeURI(`${cityN}-${kind}.txt`)].join('/'),
+    {
+      offset: row.offset,
+      length: row.length,
+    },
   )
-  let addrs: AddrList
-  try {
-    addrs = (await addrsResp.json()) as AddrList
-  } catch {
-    addrs = []
+  return resp.text()
+}
+
+type RsdtDataRow = {
+  blk_num: string
+  rsdt_num: string
+  rsdt_num2: string
+  lng: string
+  lat: string
+}
+type ChibanDataRow = {
+  prc_num1: string
+  prc_num2: string
+  prc_num3: string
+  lng: string
+  lat: string
+}
+function parseSubresource<T extends SingleRsdt | SingleChiban>(
+  data: string,
+): T[] {
+  const firstLineEnd = data.indexOf('\n')
+  // const firstLine = data.slice(0, firstLineEnd)
+  const rest = data.slice(firstLineEnd + 1)
+  const lines = Papaparse.parse<RsdtDataRow | ChibanDataRow>(rest, {
+    header: true,
+  }).data
+  const out: T[] = []
+  for (const line of lines) {
+    const point: LngLat | undefined =
+      line.lng && line.lat
+        ? [parseFloat(line.lng), parseFloat(line.lat)]
+        : undefined
+    if ('blk_num' in line) {
+      out.push({
+        blk_num: line.blk_num,
+        rsdt_num: line.rsdt_num,
+        rsdt_num2: line.rsdt_num2,
+        point: point,
+      } as T)
+    } else if ('prc_num1' in line) {
+      out.push({
+        prc_num1: line.prc_num1,
+        prc_num2: line.prc_num2,
+        prc_num3: line.prc_num3,
+        point: point,
+      } as T)
+    }
+  }
+  return out
+}
+
+export const getRsdt = async (
+  pref: SinglePrefecture,
+  city: SingleCity,
+  town: SingleTown,
+) => {
+  const metadataParsed = await fetchFromCache(
+    `住居表示-${pref.code}-${city.code}`,
+    async () => {
+      const metadata = await fetchMetadata('住居表示', pref, city)
+      return parseMetadata(metadata)
+    },
+  )
+  const row = metadataParsed[machiAzaName(town)]
+  if (!row) {
+    return []
   }
 
-  // 文字数が多い順に並び替えします。
-  // 長い順に並び替えしないと、短い住所がマッチしてしまう。
-  addrs.sort((res1, res2) => res2.addr.length - res1.addr.length)
-  return (cachedAddrs[cacheKey] = addrs)
+  const parsed = await fetchFromCache(
+    `住居表示-${pref.code}-${city.code}-${machiAzaName(town)}`,
+    async () => {
+      const data = await fetchSubresource('住居表示', pref, city, row)
+      const parsed = parseSubresource<SingleRsdt>(data)
+      parsed.sort((a, b) => {
+        const aStr = [a.blk_num, a.rsdt_num, a.rsdt_num2]
+          .filter((a) => !!a)
+          .join('-')
+        const bStr = [b.blk_num, b.rsdt_num, b.rsdt_num2]
+          .filter((a) => !!a)
+          .join('-')
+        return bStr.length - aStr.length
+      })
+      return parsed
+    },
+  )
+  return parsed
+}
+
+export const getChiban = async (
+  pref: SinglePrefecture,
+  city: SingleCity,
+  town: SingleTown,
+) => {
+  const metadataParsed = await fetchFromCache(
+    `地番-${pref.code}-${city.code}`,
+    async () => {
+      const metadata = await fetchMetadata('地番', pref, city)
+      return parseMetadata(metadata)
+    },
+  )
+  const row = metadataParsed[machiAzaName(town)]
+  if (!row) {
+    return []
+  }
+
+  const parsed = await fetchFromCache(
+    `地番-${pref.code}-${city.code}-${machiAzaName(town)}`,
+    async () => {
+      const data = await fetchSubresource('地番', pref, city, row)
+      const parsed = parseSubresource<SingleChiban>(data)
+      parsed.sort((a, b) => {
+        const aStr = [a.prc_num1, a.prc_num2, a.prc_num3]
+          .filter((a) => !!a)
+          .join('-')
+        const bStr = [b.prc_num1, b.prc_num2, b.prc_num3]
+          .filter((a) => !!a)
+          .join('-')
+        return bStr.length - aStr.length
+      })
+      return parsed
+    },
+  )
+
+  return parsed
 }
 
 // 十六町 のように漢数字と町が連結しているか
