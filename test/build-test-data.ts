@@ -1,8 +1,7 @@
 import { normalize } from '../src/main-node'
 import fs from 'fs'
 import path from 'path'
-
-console.log('住所,都道府県,市区町村,町丁目,その他')
+import Papa from 'papaparse'
 
 const data = fs
   .readFileSync(path.join(path.dirname(__filename), '/list.txt'), {
@@ -12,19 +11,38 @@ const data = fs
 
 ;(async () => {
   data.sort()
-  for (let i = 0; i < data.length; i++) {
-    const address = data[i].trim()
+
+  const output: string[][] = [
+    [
+      '住所',
+      '都道府県',
+      '市区町村',
+      '町字',
+      '番地号',
+      'その他',
+      'レベル',
+      '位置情報レベル',
+    ],
+  ]
+  for (const address of data) {
     if (!address) {
       continue
     }
     const result = await normalize(address)
-    const line = [
+    output.push([
       address,
       result.pref,
       result.city,
       result.town,
-      result.addr,
-    ].join(',')
-    console.log(line)
+      result.addr || '',
+      result.other,
+      result.level.toString(),
+      result.point ? result.point.level.toString() : '',
+    ])
   }
+
+  const csv = Papa.unparse(output, {
+    header: true,
+  })
+  console.log(csv)
 })()

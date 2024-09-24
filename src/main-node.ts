@@ -1,7 +1,6 @@
 import * as Normalize from './normalize'
 import { promises as fs } from 'fs'
 import unfetch from 'isomorphic-unfetch'
-import { TransformRequestQuery } from './normalize'
 
 export const requestHandlers = {
   file: async (fileURL: URL, options?: Normalize.FetchOptions) => {
@@ -54,28 +53,16 @@ export const requestHandlers = {
 const fetchOrReadFile = async (
   input: string,
   options?: Normalize.FetchOptions,
-  requestOptions: TransformRequestQuery = { level: -1 },
 ): Promise<
   Response | { json: () => Promise<unknown>; text: () => Promise<string> }
 > => {
   const fileURL = new URL(`${Normalize.config.japaneseAddressesApi}${input}`)
-  if (Normalize.config.transformRequest && requestOptions.level !== -1) {
-    const result = await Normalize.config.transformRequest(
-      fileURL,
-      requestOptions,
-    )
-    return {
-      json: async () => result,
-      text: async () => JSON.stringify(result),
-    }
+  if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
+    return requestHandlers.http(fileURL, options)
+  } else if (fileURL.protocol === 'file:') {
+    return requestHandlers.file(fileURL, options)
   } else {
-    if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
-      return requestHandlers.http(fileURL, options)
-    } else if (fileURL.protocol === 'file:') {
-      return requestHandlers.file(fileURL, options)
-    } else {
-      throw new Error(`Unknown URL schema: ${fileURL.protocol}`)
-    }
+    throw new Error(`Unknown URL schema: ${fileURL.protocol}`)
   }
 }
 

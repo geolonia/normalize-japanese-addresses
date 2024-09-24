@@ -36,13 +36,8 @@ interface SingleAddr {
 }
 export type AddrList = SingleAddr[]
 
-const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
-  max: currentConfig.townCacheSize,
-  maxAge: 60 * 60 * 24 * 7 * 1000, // 7日間
-})
-
 const cache = new LRU<string, unknown>({
-  max: 1000,
+  max: currentConfig.cacheSize,
 })
 
 async function fetchFromCache<T>(
@@ -73,7 +68,7 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const prefsResp = await __internals.fetch('.json', {}, { level: 1 }) // ja.json
+  const prefsResp = await __internals.fetch('.json', {}) // ja.json
   const data = (await prefsResp.json()) as PrefectureApi
   return cachePrefectures(data)
 }
@@ -121,7 +116,13 @@ export const getCityRegexPatterns = (pref: SinglePrefecture) => {
   return patterns
 }
 
-export const getTowns = async (pref: string, city: string) => {
+export const getTowns = async (
+  prefObj: SinglePrefecture,
+  cityObj: SingleCity,
+) => {
+  const pref = prefectureName(prefObj)
+  const city = cityName(cityObj)
+
   const cacheKey = `${pref}-${city}`
   const cachedTown = cachedTowns[cacheKey]
   if (typeof cachedTown !== 'undefined') {
@@ -131,7 +132,6 @@ export const getTowns = async (pref: string, city: string) => {
   const townsResp = await __internals.fetch(
     ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
     {},
-    { level: 3, pref, city },
   )
   const towns = (await townsResp.json()) as MachiAzaApi
   return (cachedTowns[cacheKey] = towns)
@@ -336,129 +336,133 @@ const isKanjiNumberFollewedByCho = (targetTownName: string) => {
   return kanjiNumbers.length > 0
 }
 
-export const getTownRegexPatterns = async (pref: string, city: string) => {
-  const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
-  if (typeof cachedResult !== 'undefined') {
-    return cachedResult
-  }
+export const getTownRegexPatterns = async (
+  pref: SinglePrefecture,
+  city: SingleCity,
+) =>
+  fetchFromCache<[SingleTown, string][]>(
+    `${pref.code}-${city.code}`,
+    async () => {
+      const pre_towns = await getTowns(pref, city)
+      const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
+      const towns: (
+        | SingleMachiAza
+        | (SingleMachiAza & { originalTown: SingleMachiAza })
+      )[] = []
 
-  const pre_towns = await getTowns(pref, city)
-  const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
-  const towns: (
-    | SingleMachiAza
-    | (SingleMachiAza & { originalTown: SingleMachiAza })
-  )[] = []
+      const isKyoto = city.city === '京都市'
 
-  const isKyoto = city.match(/^京都市/)
+      // 町丁目に「○○町」が含まれるケースへの対応
+      // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
+      // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
+      // 更に、「愛知県名古屋市瑞穂区十六町1丁目」漢数字を含むケースだと丁目や番地・号の正規化が不可能になる。このようなケースも除外。
+      for (const town of pre_towns) {
+        towns.push(town)
 
-  // 町丁目に「○○町」が含まれるケースへの対応
-  // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
-  // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
-  // 更に、「愛知県名古屋市瑞穂区十六町1丁目」漢数字を含むケースだと丁目や番地・号の正規化が不可能になる。このようなケースも除外。
-  for (const town of pre_towns) {
-    towns.push(town)
+        const originalTown = machiAzaName(town)
+        if (originalTown.indexOf('町') === -1) continue
+        const townAbbr = originalTown.replace(/(?!^町)町/g, '') // NOTE: 冒頭の「町」は明らかに省略するべきではないので、除外
+        if (
+          !isKyoto && // 京都は通り名削除の処理があるため、意図しないマッチになるケースがある。これを除く
+          !townSet.has(townAbbr) &&
+          !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
+          !isKanjiNumberFollewedByCho(originalTown)
+        ) {
+          // エイリアスとして町なしのパターンを登録
+          towns.push({
+            machiaza_id: town.machiaza_id,
+            point: town.point,
+            oaza_cho: townAbbr,
+            originalTown: town,
+          })
+        }
+      }
 
-    const originalTown = machiAzaName(town)
-    if (originalTown.indexOf('町') === -1) continue
-    const townAbbr = originalTown.replace(/(?!^町)町/g, '') // NOTE: 冒頭の「町」は明らかに省略するべきではないので、除外
-    if (
-      !isKyoto && // 京都は通り名削除の処理があるため、意図しないマッチになるケースがある。これを除く
-      !townSet.has(townAbbr) &&
-      !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
-      !isKanjiNumberFollewedByCho(originalTown)
-    ) {
-      // エイリアスとして町なしのパターンを登録
-      towns.push({
-        machiaza_id: town.machiaza_id,
-        point: town.point,
-        oaza_cho: townAbbr,
-        originalTown: town,
+      // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
+      towns.sort((a, b) => {
+        let aLen = machiAzaName(a).length
+        let bLen = machiAzaName(b).length
+
+        // 大字で始まる場合、優先度を低く設定する。
+        // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
+        if (machiAzaName(a).startsWith('大字')) aLen -= 2
+        if (machiAzaName(b).startsWith('大字')) bLen -= 2
+
+        return bLen - aLen
       })
-    }
-  }
 
-  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
-  towns.sort((a, b) => {
-    let aLen = machiAzaName(a).length
-    let bLen = machiAzaName(b).length
+      const patterns = towns.map<[SingleMachiAza, string]>((town) => {
+        const pattern = toRegexPattern(
+          machiAzaName(town)
+            // 横棒を含む場合（流通センター、など）に対応
+            .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
+            .replace(/大?字/g, '(大?字)?')
+            // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
+            // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
+            .replace(
+              /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
+              (match: string) => {
+                const patterns = []
 
-    // 大字で始まる場合、優先度を低く設定する。
-    // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
-    if (machiAzaName(a).startsWith('大字')) aLen -= 2
-    if (machiAzaName(b).startsWith('大字')) bLen -= 2
+                patterns.push(
+                  match
+                    .toString()
+                    .replace(
+                      /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                      '',
+                    ),
+                ) // 漢数字
 
-    return bLen - aLen
-  })
+                if (match.match(/^壱/)) {
+                  patterns.push('一')
+                  patterns.push('1')
+                  patterns.push('１')
+                } else {
+                  const num = match
+                    .replace(/([一二三四五六七八九十]+)/g, (match) => {
+                      return kan2num(match)
+                    })
+                    .replace(/([１２３４５６７８９０]+)/g, (match) => {
+                      return kanji2number(match).toString()
+                    })
+                    .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
 
-  const patterns = towns.map<[SingleMachiAza, string]>((town) => {
-    const pattern = toRegexPattern(
-      machiAzaName(town)
-        // 横棒を含む場合（流通センター、など）に対応
-        .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
-        .replace(/大?字/g, '(大?字)?')
-        // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
-        // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
-        .replace(
-          /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
-          (match: string) => {
-            const patterns = []
+                  patterns.push(num.toString()) // 半角アラビア数字
+                }
 
-            patterns.push(
-              match
-                .toString()
-                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, ''),
-            ) // 漢数字
+                // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+                const _pattern = `(${patterns.join(
+                  '|',
+                )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+                // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
+                //   console.log(_pattern)
+                // }
+                return _pattern // デバッグのときにめんどくさいので変数に入れる。
+              },
+            ),
+        )
+        return ['originalTown' in town ? town.originalTown : town, pattern]
+      })
 
-            if (match.match(/^壱/)) {
-              patterns.push('一')
-              patterns.push('1')
-              patterns.push('１')
-            } else {
-              const num = match
-                .replace(/([一二三四五六七八九十]+)/g, (match) => {
-                  return kan2num(match)
-                })
-                .replace(/([１２３４５６７８９０]+)/g, (match) => {
-                  return kanji2number(match).toString()
-                })
-                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
+      // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
+      for (const town of towns) {
+        const chomeMatch = machiAzaName(town).match(
+          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
+        )
+        if (!chomeMatch) {
+          continue
+        }
+        const chomeNamePart = chomeMatch[1]
+        const chomeNum = chomeMatch[2]
+        const pattern = toRegexPattern(
+          `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
+        )
+        patterns.push([town, pattern])
+      }
 
-              patterns.push(num.toString()) // 半角アラビア数字
-            }
-
-            // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
-            const _pattern = `(${patterns.join(
-              '|',
-            )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
-            // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
-            //   console.log(_pattern)
-            // }
-            return _pattern // デバッグのときにめんどくさいので変数に入れる。
-          },
-        ),
-    )
-    return ['originalTown' in town ? town.originalTown : town, pattern]
-  })
-
-  // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
-  for (const town of towns) {
-    const chomeMatch = machiAzaName(town).match(
-      /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-    )
-    if (!chomeMatch) {
-      continue
-    }
-    const chomeNamePart = chomeMatch[1]
-    const chomeNum = chomeMatch[2]
-    const pattern = toRegexPattern(
-      `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
-    )
-    patterns.push([town, pattern])
-  }
-
-  cachedTownRegexes.set(`${pref}-${city}`, patterns)
-  return patterns
-}
+      return patterns
+    },
+  )
 
 export const getSameNamedPrefectureCityRegexPatterns = (
   prefList: PrefectureList,
