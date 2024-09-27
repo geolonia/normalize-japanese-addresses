@@ -1,9 +1,8 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import Papaparse from 'papaparse'
-import LRU from 'lru-cache'
-import { currentConfig } from '../config'
-import { __internals } from '../normalize'
+import { LRUCache } from 'lru-cache'
+import { currentConfig, __internals } from '../config'
 import { findKanjiNumbers, kanji2number } from '@geolonia/japanese-numeral'
 import {
   cityName,
@@ -36,11 +35,12 @@ interface SingleAddr {
 }
 export type AddrList = SingleAddr[]
 
-const cache = new LRU<string, unknown>({
+const cache = new LRUCache({
   max: currentConfig.cacheSize,
 })
 
-async function fetchFromCache<T>(
+// eslint-disable-next-line @typescript-eslint/ban-types
+async function fetchFromCache<T extends {}>(
   key: string,
   fetcher: () => Promise<T>,
 ): Promise<T> {

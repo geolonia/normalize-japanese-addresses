@@ -3,14 +3,15 @@ import fs from 'fs'
 import path from 'path'
 import Papa from 'papaparse'
 
-const data = fs
-  .readFileSync(path.join(path.dirname(__filename), '/list.txt'), {
-    encoding: 'utf-8',
-  })
-  .split(/\n/)
+const list = fs.readFileSync(path.join(path.dirname(__filename), '/list.txt'), {
+  encoding: 'utf-8',
+})
+const data = Papa.parse<string[]>(list).data
 
 ;(async () => {
-  data.sort()
+  // data.sort()
+
+  const addedAddresses: Set<string> = new Set()
 
   const output: string[][] = [
     [
@@ -21,23 +22,35 @@ const data = fs
       '番地号',
       'その他',
       'レベル',
+      '緯度経度',
       '位置情報レベル',
+      '備考',
     ],
   ]
-  for (const address of data) {
+  for (const line of data) {
+    const address = line[0]
     if (!address) {
       continue
     }
+    if (addedAddresses.has(address)) {
+      throw new Error(
+        `重複の入力住所: ${address} 重複を除き再試行してください。`,
+      )
+    }
+    addedAddresses.add(address)
+
     const result = await normalize(address)
     output.push([
       address,
-      result.pref,
-      result.city,
-      result.town,
+      result.pref || '',
+      result.city || '',
+      result.town || '',
       result.addr || '',
       result.other,
       result.level.toString(),
+      result.point ? `${result.point.lng},${result.point.lat}` : '',
       result.point ? result.point.level.toString() : '',
+      line[1] || '',
     ])
   }
 

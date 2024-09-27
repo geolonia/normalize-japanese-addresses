@@ -25,6 +25,36 @@ export type NormalizeResultPoint = {
   level: number
 }
 
+export function isNormalizeResultPoint(
+  obj: unknown,
+): obj is NormalizeResultPoint {
+  // Check that obj is an object and not null
+  if (typeof obj !== 'object' || obj === null) {
+    return false
+  }
+
+  // Destructure properties from the object
+  const { lat, lng, level } = obj as { [key: string]: unknown }
+
+  // Check that lat, lng, and level are numbers
+  if (
+    typeof lat !== 'number' ||
+    typeof lng !== 'number' ||
+    typeof level !== 'number'
+  ) {
+    return false
+  }
+
+  // Optionally, validate that level is one of the expected values
+  const validLevels = [1, 2, 3, 8]
+  if (!validLevels.includes(level)) {
+    return false
+  }
+
+  // All checks passed
+  return true
+}
+
 export function prefectureToResultPoint(
   pref: SinglePrefecture,
 ): NormalizeResultPoint {
@@ -77,18 +107,18 @@ export function upgradePoint(
 
 export type NormalizeResult = {
   /** 都道府県 */
-  pref: string
+  pref?: string
   /** 市区町村 */
-  city: string
+  city?: string
   /**
    * 丁目・町字
    * 丁目の場合は、丁目名の後に漢数字で丁目が付与される。
    * 例：「青葉一丁目」
    */
-  town: string
+  town?: string
   /** 住居表示または地番 */
   addr?: string
-  /** 正規化後の住所文字列 */
+  /** 正規化後の住所文字列。完全に正規化された場合は、空の文字列が入ります。 */
   other: string
 
   /**

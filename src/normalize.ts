@@ -12,7 +12,6 @@ import {
   getRsdt,
   getChiban,
 } from './lib/cacheRegexes'
-import unfetch from 'isomorphic-unfetch'
 import {
   chibanToString,
   cityName,
@@ -86,41 +85,8 @@ export type Normalizer = (
   option?: Option,
 ) => Promise<NormalizeResult>
 
-export type FetchOptions = {
-  offset?: number
-  length?: number
-}
-
-export type FetchLike = (
-  input: string,
-  options?: FetchOptions,
-) => Promise<
-  Response | { json: () => Promise<unknown>; text: () => Promise<string> }
->
-
 const defaultOption = {
   level: 8,
-}
-
-/**
- * @internal
- */
-export const __internals: { fetch: FetchLike } = {
-  // default fetch
-  fetch: (input: string, options) => {
-    const o = options || {}
-    let url = new URL(`${config.japaneseAddressesApi}${input}`).toString()
-    if (config.geoloniaApiKey) {
-      url += `?geolonia-api-key=${config.geoloniaApiKey}`
-    }
-    const headers: HeadersInit = {}
-    if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
-      headers['Range'] = `bytes=${o.offset}-${o.offset + o.length - 1}`
-    }
-    return unfetch(url, {
-      headers,
-    })
-  },
 }
 
 const normalizeTownName = async (
@@ -376,9 +342,9 @@ export const normalize: Normalizer = async (
 
   if (option.level <= 3 || level < 3) {
     const result: NormalizeResult = {
-      pref: pref ? prefectureName(pref) : '',
-      city: city ? cityName(city) : '',
-      town: town ? machiAzaName(town) : '',
+      pref: pref ? prefectureName(pref) : undefined,
+      city: city ? cityName(city) : undefined,
+      town: town ? machiAzaName(town) : undefined,
       other: other,
       level,
       point,
@@ -414,9 +380,9 @@ export const normalize: Normalizer = async (
     level = 8
   }
   const result: NormalizeResult = {
-    pref: pref ? prefectureName(pref) : '',
-    city: city ? cityName(city) : '',
-    town: town ? machiAzaName(town) : '',
+    pref: pref ? prefectureName(pref) : undefined,
+    city: city ? cityName(city) : undefined,
+    town: town ? machiAzaName(town) : undefined,
     addr,
     level,
     point,

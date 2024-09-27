@@ -1,9 +1,10 @@
 import * as Normalize from './normalize'
+import { __internals, FetchOptions } from './config'
 import { promises as fs } from 'fs'
-import unfetch from 'isomorphic-unfetch'
+import { fetch } from 'undici'
 
 export const requestHandlers = {
-  file: async (fileURL: URL, options?: Normalize.FetchOptions) => {
+  file: async (fileURL: URL, options?: FetchOptions) => {
     const o = options || {}
     const filePath =
       process.platform === 'win32'
@@ -27,7 +28,7 @@ export const requestHandlers = {
       },
     }
   },
-  http: (fileURL: URL, options?: Normalize.FetchOptions) => {
+  http: (fileURL: URL, options?: FetchOptions) => {
     const o = options || {}
     if (Normalize.config.geoloniaApiKey) {
       fileURL.search = `?geolonia-api-key=${Normalize.config.geoloniaApiKey}`
@@ -39,7 +40,7 @@ export const requestHandlers = {
     if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
       headers['Range'] = `bytes=${o.offset}-${o.offset + o.length - 1}`
     }
-    return unfetch(fileURL.toString(), {
+    return fetch(fileURL.toString(), {
       headers,
     })
   },
@@ -52,10 +53,8 @@ export const requestHandlers = {
  */
 const fetchOrReadFile = async (
   input: string,
-  options?: Normalize.FetchOptions,
-): Promise<
-  Response | { json: () => Promise<unknown>; text: () => Promise<string> }
-> => {
+  options?: FetchOptions,
+): Promise<{ json: () => Promise<unknown>; text: () => Promise<string> }> => {
   const fileURL = new URL(`${Normalize.config.japaneseAddressesApi}${input}`)
   if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
     return requestHandlers.http(fileURL, options)
@@ -66,6 +65,6 @@ const fetchOrReadFile = async (
   }
 }
 
-Normalize.__internals.fetch = fetchOrReadFile
+__internals.fetch = fetchOrReadFile
 export const config = Normalize.config
 export const normalize = Normalize.normalize

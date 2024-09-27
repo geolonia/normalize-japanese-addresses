@@ -1,38 +1,52 @@
-import { normalize as normalizerForNode } from '../src/main-node'
-import { normalize as normalizerForBrowser } from '../src/main-browser'
+import { normalize } from '../src/main-node'
 
 import fs from 'fs'
 import path from 'path'
+import Papa from 'papaparse'
+import { toMatchCloseTo } from 'jest-matcher-deep-close-to'
+import { NormalizeResult } from '../src/types'
 
-const lines = fs
-  .readFileSync(path.join(path.dirname(__filename), '/addresses.csv'), {
+expect.extend({ toMatchCloseTo })
+
+const input = fs.readFileSync(
+  path.join(path.dirname(__filename), '/addresses.csv'),
+  {
     encoding: 'utf-8',
-  })
-  .split(/\n/)
-lines.shift() // 見出し行
+  },
+)
+const lines = Papa.parse<string[]>(input).data
 
-const cases: [
-  runtime: string,
-  normalizer: typeof normalizerForNode | typeof normalizerForBrowser,
-][] = [
-  ['node', normalizerForNode],
-  ['browser', normalizerForBrowser],
-]
+describe(`address tests`, () => {
+  for (const line of lines) {
+    const addr = line[0]
+    if (addr === '住所') {
+      continue
+    }
 
-for (const [runtime, normalize] of cases) {
-  describe(`tests for ${runtime} entry point`, () => {
-    lines.forEach((line) => {
-      if (line) {
-        const data = line.trim().split(/,/)
+    let testName = addr
+    if (line[9] !== '') {
+      testName += ` (${line[9]})`
+    }
 
-        test(data[0], async () => {
-          const res = await normalize(data[0])
-          expect(res.pref).toStrictEqual(data[1])
-          expect(res.city).toStrictEqual(data[2])
-          expect(res.town).toStrictEqual(data[3])
-          expect(res.addr).toStrictEqual(data[4])
-        })
+    test(testName, async () => {
+      const res = await normalize(addr)
+      const point = line[7] ? line[7].split(',').map(parseFloat) : undefined
+      const match: NormalizeResult = {
+        other: line[5],
+        level: parseInt(line[6]),
       }
+      if (line[1] !== '') match.pref = line[1]
+      if (line[2] !== '') match.city = line[2]
+      if (line[3] !== '') match.town = line[3]
+      if (line[4] !== '') match.addr = line[4]
+      if (point) {
+        match.point = {
+          lng: point[0],
+          lat: point[1],
+          level: parseInt(line[8]),
+        }
+      }
+      expect(res).toMatchCloseTo(match)
     })
-  })
-}
+  }
+})

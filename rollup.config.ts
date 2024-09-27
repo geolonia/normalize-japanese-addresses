@@ -17,6 +17,7 @@ export default [
     input: 'src/main-node.ts',
     external: [
       '@geolonia/japanese-numeral',
+      'papaparse',
       'isomorphic-unfetch',
       'lru-cache',
       'unzipper',

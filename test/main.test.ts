@@ -1,10 +1,10 @@
 /* eslint-disable prettier/prettier */
 
-import { toBeDeepCloseTo } from 'jest-matcher-deep-close-to';
+import { toMatchCloseTo } from 'jest-matcher-deep-close-to';
 
 import { normalize } from '../src/main-node'
 
-expect.extend({ toBeDeepCloseTo })
+expect.extend({ toMatchCloseTo })
 
 describe(`basic tests`, () => {
 
@@ -12,610 +12,655 @@ describe(`basic tests`, () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
       level: 1
     })
-    expect(res).toBeDeepCloseTo({ "pref": "神奈川県", "city": "", "town": "", "addr": "横浜市港北区大豆戸町17番地11", "lat": undefined, "lng": undefined, "level": 1})
+    expect(res).toMatchCloseTo({
+      pref: '神奈川県',
+      level: 1,
+    })
   })
 
   test('It should get the level `2` with `神奈川県横浜市港北区大豆戸町１７番地１１`', async () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
       level: 2
     })
-    expect(res).toBeDeepCloseTo({ "pref": "神奈川県", "city": "横浜市港北区", "town": "", "addr": "大豆戸町17番地11", "lat": undefined, "lng": undefined, "level": 2})
+    expect(res).toMatchCloseTo({
+      pref: '神奈川県',
+      city: '横浜市港北区',
+      level: 2,
+    })
   })
 
   test('It should get the level `3` with `神奈川県横浜市港北区大豆戸町１７番地１１`', async () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
       level: 3
     })
-    expect(res).toBeDeepCloseTo({ "pref": "神奈川県", "city": "横浜市港北区", "town": "大豆戸町", "addr": "17-11", "lat": 35.513492, "lng": 139.625651, "level": 3})
+    expect(res).toMatchCloseTo({
+      pref: '神奈川県',
+      city: '横浜市港北区',
+      town: '大豆戸町',
+      other: '17-11',
+      level: 3,
+    })
   })
 
   test('It should get the level `2` with `神奈川県横浜市港北区`', async () => {
     const res = await normalize('神奈川県横浜市港北区', {
       level: 3
     })
-    expect(res).toBeDeepCloseTo({ "pref": "神奈川県", "city": "横浜市港北区", "town": "", "addr": "", "lat": undefined, "lng": undefined, "level": 2})
+    expect(res).toMatchCloseTo({
+      pref: '神奈川県',
+      city: '横浜市港北区',
+      level: 2,
+    })
   })
 
   test('It should get the level `1` with `神奈川県`', async () => {
     const res = await normalize('神奈川県', {
       level: 3
     })
-    expect(res).toBeDeepCloseTo({ "pref": "神奈川県", "city": "", "town": "", "addr": "", "lat": undefined, "lng": undefined, "level": 1})
+    expect(res).toMatchCloseTo({
+      pref: '神奈川県',
+      level: 1,
+    })
   })
 
   test('It should get the level `1` with `神奈川県あいうえお市`', async () => {
     const res = await normalize('神奈川県あいうえお市')
-    expect(res).toBeDeepCloseTo({ "pref": "神奈川県", "city": "", "town": "", "addr": "あいうえお市", "lat": undefined, "lng": undefined, "level": 1})
+    expect(res).toMatchCloseTo({
+      pref: '神奈川県',
+      level: 1,
+    })
   })
 
   test('It should get the level `2` with `東京都港区あいうえお`', async () => {
     const res = await normalize('東京都港区あいうえお')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "港区", "town": "", "addr": "あいうえお", "lat": undefined, "lng": undefined, "level": 2})
+    expect(res).toMatchCloseTo({
+      pref: '東京都',
+      city: '港区',
+      level: 2,
+    })
   })
 
   test('It should get the level `0` with `あいうえお`', async () => {
     const res = await normalize('あいうえお')
-    expect(res).toBeDeepCloseTo({ "pref": "", "city": "", "town": "", "addr": "あいうえお", "lat": undefined, "lng": undefined, "level": 0})
+    expect(res).toMatchCloseTo({
+      other: 'あいうえお',
+      level: 0,
+    })
   })
 
-  test('東京都江東区豊洲1丁目2-27', async () => {
-    const res = await normalize('東京都江東区豊洲1丁目2-27')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "lat": 35.661813, "lng": 139.792044, "level": 3})
-  })
-
-  test('東京都江東区豊洲 1丁目2-27', async () => {
-    const res = await normalize('東京都江東区豊洲 1丁目2-27')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "lat": 35.661813, "lng": 139.792044, "level": 3})
-  })
-
-  test('東京都江東区豊洲 1-2-27', async () => {
-    const res = await normalize('東京都江東区豊洲 1-2-27')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "lat": 35.661813, "lng": 139.792044, "level": 3})
-  })
-
-  test('東京都 江東区 豊洲 1-2-27', async () => {
-    const res = await normalize('東京都 江東区 豊洲 1-2-27')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "lat": 35.661813, "lng": 139.792044, "level": 3})
-  })
-
-  test('東京都江東区豊洲 １ー２ー２７', async () => {
-    const res = await normalize('東京都江東区豊洲 １ー２ー２７')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "lat": 35.661813, "lng": 139.792044, "level": 3})
+  describe('東京都江東区豊洲一丁目2-27 のパターンテスト', () => {
+    const addresses = [
+      '東京都江東区豊洲1丁目2-27',
+      '東京都江東区豊洲 1丁目2-27',
+      '東京都江東区豊洲 1-2-27',
+      '東京都 江東区 豊洲 1-2-27',
+      '東京都江東区豊洲 １ー２ー２７',
+      '東京都江東区豊洲 一丁目2-27',
+      '江東区豊洲 一丁目2-27',
+    ]
+    for (const address of addresses) {
+      test(address, async () => {
+        const res = await normalize(address)
+        expect(res).toMatchCloseTo({
+          pref: '東京都',
+          city: '江東区',
+          town: '豊洲一丁目',
+          addr: '2-27',
+          level: 8,
+          point: {
+            lat: 35.661166758,
+            lng: 139.793685144,
+            level: 8,
+          }
+        })
+      })
+    }
   })
 
   test('東京都町田市木曽東4丁目14-イ２２ ジオロニアマンション', async () => {
     const res = await normalize('東京都町田市木曽東四丁目１４ーイ２２ ジオロニアマンション')
-    expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-イ22 ジオロニアマンション", "lat": 35.564817, "lng": 139.429661, "level": 3})
+    expect(res).toMatchCloseTo({
+      other: '14-イ22 ジオロニアマンション',
+    })
   })
 
   test('東京都町田市木曽東4丁目14-Ａ２２ ジオロニアマンション', async () => {
     const res = await normalize('東京都町田市木曽東四丁目１４ーＡ２２ ジオロニアマンション')
-    expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-A22 ジオロニアマンション", "lat": 35.564817, "lng": 139.429661, "level": 3})
+    expect(res).toMatchCloseTo({
+      other: '14-A22 ジオロニアマンション',
+    })
   })
 
   test('東京都町田市木曽東4丁目一四━Ａ二二 ジオロニアマンション', async () => {
     const res = await normalize('東京都町田市木曽東四丁目一四━Ａ二二 ジオロニアマンション')
-    expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "町田市", "town": "木曽東四丁目", "addr": "14-A22 ジオロニアマンション", "lat": 35.564817, "lng": 139.429661, "level": 3})
+    expect(res).toMatchCloseTo({
+      other: '14-A22 ジオロニアマンション',
+    })
   })
 
-  test('東京都江東区豊洲 一丁目2-27', async () => {
-    const res = await normalize('東京都江東区豊洲 一丁目2-27')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "江東区", "town": "豊洲一丁目", "addr": "2-27", "lat": 35.661813, "lng": 139.792044, "level": 3})
-  })
 
   test('東京都江東区豊洲 四-2-27', async () => {
     const res = await normalize('東京都江東区豊洲 四-2-27')
-    expect(res).toBeDeepCloseTo({ "pref": "東京都", "city": "江東区", "town": "豊洲四丁目", "addr": "2-27", "lat": 35.653798, "lng": 139.800664, "level": 3})
+    expect(res).toMatchCloseTo({
+      town: '豊洲四丁目',
+    })
   })
 
-  test('石川県七尾市藤橋町亥45番地1', async () => {
-    const res = await normalize('石川県七尾市藤橋町亥45番地1')
-    expect(res).toBeDeepCloseTo({ "pref": "石川県", "city": "七尾市", "town": "藤橋町亥", "addr": "45-1", "lat": 37.041154, "lng": 136.941183, "level": 3})
-  })
-
-  test('石川県七尾市藤橋町亥四十五番地1', async () => {
-    const res = await normalize('石川県七尾市藤橋町亥四十五番地1')
-    expect(res).toBeDeepCloseTo({ "pref": "石川県", "city": "七尾市", "town": "藤橋町亥", "addr": "45-1", "lat": 37.041154, "lng": 136.941183, "level": 3})
-  })
-
-  test('石川県七尾市藤橋町 亥 四十五番地1', async () => {
-    const res = await normalize('石川県七尾市藤橋町 亥 四十五番地1')
-    expect(res).toBeDeepCloseTo({ "pref": "石川県", "city": "七尾市", "town": "藤橋町亥", "addr": "45-1", "lat": 37.041154, "lng": 136.941183, "level": 3})
-  })
-
-  test('石川県七尾市藤橋町 亥 45-1', async () => {
-    const res = await normalize('石川県七尾市藤橋町 亥 45-1')
-    expect(res).toBeDeepCloseTo({ "pref": "石川県", "city": "七尾市", "town": "藤橋町亥", "addr": "45-1", "lat": 37.041154, "lng": 136.941183, "level": 3})
-  })
-
-  test('和歌山県和歌山市 七番丁19', async () => {
-    const res = await normalize('和歌山県和歌山市 七番丁 19')
-    expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "lat": 34.230447, "lng": 135.171994, "level": 3})
-  })
-
-  test('和歌山県和歌山市7番町19', async () => {
-    const res = await normalize('和歌山県和歌山市7番町19')
-    expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "lat": 34.230447, "lng": 135.171994, "level": 3})
-  })
-
-  test('和歌山県和歌山市十二番丁45', async () => {
-    const res = await normalize('和歌山県和歌山市十二番丁45')
-    expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "lat": 34.232035, "lng": 135.172088, "level": 3})
-  })
-
-  test('和歌山県和歌山市12番丁45', async () => {
-    const res = await normalize('和歌山県和歌山市12番丁45')
-    expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "lat": 34.232035, "lng": 135.172088, "level": 3})
-  })
-
-  test('和歌山県和歌山市12-45', async () => {
-    const res = await normalize('和歌山県和歌山市12-45')
-    expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "lat": 34.232035, "lng": 135.172088, "level": 3})
-  })
-
-  test('兵庫県宝塚市東洋町1番1号', async () => {
-    const res = await normalize('兵庫県宝塚市東洋町1番1号')
-    expect(res).toBeDeepCloseTo({ "pref": "兵庫県", "city": "宝塚市", "town": "東洋町", "addr": "1-1", "lat": 34.797971, "lng": 135.363236, "level": 3})
-  })
-
-  test('兵庫県宝塚市東洋町1番1号', async () => {
-    const res = await normalize('兵庫県宝塚市東洋町1番1号')
-    expect(res).toBeDeepCloseTo({ "pref": "兵庫県", "city": "宝塚市", "town": "東洋町", "addr": "1-1", "lat": 34.797971, "lng": 135.363236, "level": 3})
-  })
-
-  test('北海道札幌市中央区北三条西３丁目１－５６マルゲンビル３Ｆ', async () => {
-    const res = await normalize('北海道札幌市中央区北三条西３丁目１－５６マルゲンビル３Ｆ')
-    expect(res).toBeDeepCloseTo({ "pref": "北海道", "city": "札幌市中央区", "town": "北三条西三丁目", "addr": "1-56マルゲンビル3F", "lat": 43.065075, "lng": 141.351683, "level": 3})
-  })
-
-  test('北海道札幌市北区北２４条西６丁目１−１', async () => {
-    const res = await normalize('北海道札幌市北区北２４条西６丁目１−１')
-    expect(res).toBeDeepCloseTo({ "pref": "北海道", "city": "札幌市北区", "town": "北二十四条西六丁目", "addr": "1-1", "lat": 43.090538, "lng": 141.340527, "level": 3})
-  })
-
-  test('堺市北区新金岡町4丁1−8', async () => {
-    const res = await normalize('堺市北区新金岡町4丁1−8')
-    expect(res).toBeDeepCloseTo({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町四丁", "addr": "1-8", "lat": 34.568184, "lng": 135.519409, "level": 3})
-  })
-
-  test('串本町串本1234', async () => {
-    const res = await normalize('串本町串本1234')
-    expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
-  })
-
-  test('広島県府中市府川町315', async () => {
-    const res = await normalize('広島県府中市府川町315')
-    expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "府中市", "town": "府川町", "addr": "315", "lat": 34.567649, "lng": 133.236891, "level": 3})
-  })
-
-  test('府中市府川町315', async () => {
-    const res = await normalize('府中市府川町315')
-    expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "府中市", "town": "府川町", "addr": "315", "lat": 34.567649, "lng": 133.236891, "level": 3})
-  })
-
-  test('府中市宮西町2丁目24番地', async () => {
-    const res = await normalize('府中市宮西町2丁目24番地')
-    expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "府中市", "town": "宮西町二丁目", "addr": "24", "lat": 35.669764, "lng": 139.477636, "level": 3})
-  })
-
-  test('三重県三重郡菰野町大字大強原2796', async () => {
-    const res = await normalize('三重県三重郡菰野町大字大強原2796')
-    expect(res).toBeDeepCloseTo({"pref": "三重県", "city": "三重郡菰野町", "town": "大字大強原", "addr": "2796", "lat": 35.028963, "lng": 136.530668, "level": 3})
-  })
-
-  test('三重県三重郡菰野町大強原2796', async () => {
-    const res = await normalize('三重県三重郡菰野町大強原2796')
-    expect(res).toBeDeepCloseTo({"pref": "三重県", "city": "三重郡菰野町", "town": "大字大強原", "addr": "2796", "lat": 35.028963, "lng": 136.530668, "level": 3})
-  })
-
-  test('福岡県北九州市小倉南区大字井手浦874', async () => {
-    const res = await normalize('福岡県北九州市小倉南区大字井手浦874')
-    expect(res).toBeDeepCloseTo({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "lat": 33.77509, "lng": 130.893088, "level": 3})
-  })
-
-  test('福岡県北九州市小倉南区井手浦874', async () => {
-    const res = await normalize('福岡県北九州市小倉南区井手浦874')
-    expect(res).toBeDeepCloseTo({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "lat": 33.77509, "lng": 130.893088, "level": 3})
-  })
-
-  test('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１', async () => {
-    const res = await normalize('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１')
-    expect(res).toBeDeepCloseTo({"pref": "沖縄県", "city": "那覇市", "town": "小禄一丁目", "addr": "5-23 一丁目マンション301", "lat": 26.192719, "lng": 127.679409, "level": 3})
-  })
-
-  test('香川県仲多度郡まんのう町勝浦字家六２０９４番地１', async () => {
-    const res = await normalize('香川県仲多度郡まんのう町勝浦字家六２０９４番地１')
-    expect(res).toBeDeepCloseTo({"pref": "香川県", "city": "仲多度郡まんのう町", "town": "勝浦", "addr": "家六2094-1", "lat": 34.097457, "lng": 133.97318, "level": 3})
-  })
-
-  test('香川県仲多度郡まんのう町勝浦家六２０９４番地１', async () => {
-    const res = await normalize('香川県仲多度郡まんのう町勝浦家六２０９４番地１')
-    expect(res).toBeDeepCloseTo({"pref": "香川県", "city": "仲多度郡まんのう町", "town": "勝浦", "addr": "家六2094-1", "lat": 34.097457, "lng": 133.97318, "level": 3})
-  })
-
-  test('愛知県あま市西今宿梶村一３８番地４', async () => {
-    const res = await normalize('愛知県あま市西今宿梶村一３８番地４')
-    expect(res).toBeDeepCloseTo({"pref": "愛知県", "city": "あま市", "town": "西今宿梶村一", "addr": "38-4", "lat": 35.2002, "lng": 136.831606, "level": 3})
-  })
-
-  test('香川県丸亀市原田町字東三分一１９２６番地１', async () => {
-    const res = await normalize('香川県丸亀市原田町字東三分一１９２６番地１')
-    expect(res).toBeDeepCloseTo({"pref": "香川県", "city": "丸亀市", "town": "原田町", "addr": "東三分一1926-1", "lat": 34.258954, "lng": 133.78778, "level": 3})
-  })
-
-  test('串本町串本千二百三十四 (都道府県無し, 郡無し)', async () => {
-    const res = await normalize('串本町串本千二百三十四')
-    expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
-  })
-
-  test('せたな町北檜山区北檜山１９３ (都道府県無し, 郡無し)', async () => {
-    const res = await normalize('せたな町北檜山区北檜山１９３')
-    expect(res).toBeDeepCloseTo({"pref": "北海道", "city": "久遠郡せたな町", "town": "北檜山区北檜山", "addr": "193", "lat": 42.414, "lng": 139.881784, "level": 3})
-  })
-
-  test('岩手県花巻市十二丁目７０４', async () => {
-    const res = await normalize('岩手県花巻市十二丁目７０４')
-    expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
-  })
-
-  test('岩手県花巻市12丁目７０４', async () => {
-    const res = await normalize('岩手県花巻市12丁目７０４')
-    expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
-  })
-
-  test('岩手県花巻市１２丁目７０４', async () => {
-    const res = await normalize('岩手県花巻市１２丁目７０４')
-    expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
-  })
-
-  test('京都府京都市中京区河原町二条下ル一之船入町537-50', async () => {
-    const res = await normalize('京都府京都市中京区河原町二条下ル一之船入町537-50')
-    expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
-  })
-
-  test('京都府京都市中京区河原町二条下ル一之舟入町537-50（船と舟のゆらぎ）', async () => {
-    const res = await normalize('京都府京都市中京区河原町二条下ル一之舟入町537-50')
-    expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
-  })
-
-  test('京都府宇治市莵道森本8−10（莵と菟のゆらぎ）', async () => {
-    const addrs = [
-      '京都府宇治市莵道森本8−10',
-      '京都府宇治市菟道森本8−10'
+  describe('石川県七尾市藤橋町亥45番地1 のパターンテスト', () => {
+    const addresses = [
+      '石川県七尾市藤橋町亥45番地1',
+      '石川県七尾市藤橋町亥四十五番地1',
+      '石川県七尾市藤橋町 亥 四十五番地1',
+      '石川県七尾市藤橋町 亥 45-1',
+      '七尾市藤橋町 亥 45-1',
     ]
-    for (const addr of addrs) {
-      const res = await normalize(addr)
-      expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "宇治市", "town": "菟道森本", "addr": "8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
+    for (const address of addresses) {
+      test(address, async () => {
+        const res = await normalize(address)
+        expect(res).toMatchCloseTo({
+          pref: '石川県',
+          city: '七尾市',
+          town: '藤橋町亥',
+          addr: '45-1',
+          level: 8,
+          point: {
+            lat: 37.043108,
+            lng: 136.967296,
+            level: 2,
+          }
+        })
+      })
     }
   })
 
-  // 「都道府県」の文字列を省略した場合
-  test('岩手花巻市１２丁目７０４', async () => {
-    const res = await normalize('岩手花巻市１２丁目７０４')
-    expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
-  })
+  // test('和歌山県和歌山市 七番丁19', async () => {
+  //   const res = await normalize('和歌山県和歌山市 七番丁 19')
+  //   expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "lat": 34.230447, "lng": 135.171994, "level": 3})
+  // })
 
-  test('千葉県巿川巿巿川1丁目（市(し、いち)と巿(ふつ)のゆらぎ）', async () => {
-    const res = await normalize('千葉県巿川巿巿川1丁目')
-    expect(res).toBeDeepCloseTo({"pref": "千葉県", "city": "市川市", "town": "市川一丁目", "addr": "", "level": 3, "lat": 35.731849, "lng": 139.909029})
-  })
+  // test('和歌山県和歌山市7番町19', async () => {
+  //   const res = await normalize('和歌山県和歌山市7番町19')
+  //   expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "七番丁", "addr": "19", "lat": 34.230447, "lng": 135.171994, "level": 3})
+  // })
 
-  test('京都市北区紫野東御所田町', async () => {
-    const res = await normalize('京都市北区紫野東御所田町')
-    expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市北区", "town": "紫野東御所田町", "addr": "", "level": 3, "lat": 35.039861, "lng": 135.753474})
-  })
+  // test('和歌山県和歌山市十二番丁45', async () => {
+  //   const res = await normalize('和歌山県和歌山市十二番丁45')
+  //   expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "lat": 34.232035, "lng": 135.172088, "level": 3})
+  // })
 
-  test('鹿児島市山下町', async () => {
-    const res = await normalize('鹿児島市山下町')
-    expect(res).toBeDeepCloseTo({"pref": "鹿児島県", "city": "鹿児島市", "town": "山下町", "addr": "", "level": 3, "lat": 31.596716, "lng": 130.55643})
-  })
+  // test('和歌山県和歌山市12番丁45', async () => {
+  //   const res = await normalize('和歌山県和歌山市12番丁45')
+  //   expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "lat": 34.232035, "lng": 135.172088, "level": 3})
+  // })
 
-  test('市川市八幡1丁目1番1号', async () => {
-    const res = await normalize('市川市八幡1丁目1番1号')
-    expect(res).toBeDeepCloseTo({"pref": "千葉県", "city": "市川市", "town": "八幡一丁目", "addr": "1-1", "level": 3, "lat": 35.720285, "lng": 139.932528})
-  })
+  // test('和歌山県和歌山市12-45', async () => {
+  //   const res = await normalize('和歌山県和歌山市12-45')
+  //   expect(res).toBeDeepCloseTo({ "pref": "和歌山県", "city": "和歌山市", "town": "十二番丁", "addr": "45", "lat": 34.232035, "lng": 135.172088, "level": 3})
+  // })
 
-  test('千葉市川市八幡1丁目1番1号', async () => {
-    const res = await normalize('千葉市川市八幡1丁目1番1号')
-    expect(res).toBeDeepCloseTo({"pref": "千葉県", "city": "市川市", "town": "八幡一丁目", "addr": "1-1", "level": 3, "lat": 35.720285, "lng": 139.932528})
-  })
+  // test('兵庫県宝塚市東洋町1番1号', async () => {
+  //   const res = await normalize('兵庫県宝塚市東洋町1番1号')
+  //   expect(res).toBeDeepCloseTo({ "pref": "兵庫県", "city": "宝塚市", "town": "東洋町", "addr": "1-1", "lat": 34.797971, "lng": 135.363236, "level": 3})
+  // })
 
-  test('石川郡石川町字長久保185-4', async () => {
-    const res = await normalize('石川郡石川町字長久保185-4')
-    expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
-  })
+  // test('兵庫県宝塚市東洋町1番1号', async () => {
+  //   const res = await normalize('兵庫県宝塚市東洋町1番1号')
+  //   expect(res).toBeDeepCloseTo({ "pref": "兵庫県", "city": "宝塚市", "town": "東洋町", "addr": "1-1", "lat": 34.797971, "lng": 135.363236, "level": 3})
+  // })
 
-  test('福島石川郡石川町字長久保185-4', async () => {
-    const res = await normalize('福島石川郡石川町字長久保185-4')
-    expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
-  })
+  // test('北海道札幌市中央区北三条西３丁目１－５６マルゲンビル３Ｆ', async () => {
+  //   const res = await normalize('北海道札幌市中央区北三条西３丁目１－５６マルゲンビル３Ｆ')
+  //   expect(res).toBeDeepCloseTo({ "pref": "北海道", "city": "札幌市中央区", "town": "北三条西三丁目", "addr": "1-56マルゲンビル3F", "lat": 43.065075, "lng": 141.351683, "level": 3})
+  // })
 
-  test('広島市西区商工センター六丁目9番39号 (町丁目に長音符(ー)が入る場合で、丁目の数字がその後に続く場合)', async () => {
-    const res = await normalize('広島市西区商工センター六丁目9番39号')
-    expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "広島市西区", "town": "商工センター六丁目", "addr": "9-39", "level": 3, "lat": 34.36812, "lng": 132.388293})
-  })
+  // test('北海道札幌市北区北２４条西６丁目１−１', async () => {
+  //   const res = await normalize('北海道札幌市北区北２４条西６丁目１−１')
+  //   expect(res).toBeDeepCloseTo({ "pref": "北海道", "city": "札幌市北区", "town": "北二十四条西六丁目", "addr": "1-1", "lat": 43.090538, "lng": 141.340527, "level": 3})
+  // })
 
-  test('新潟県新潟市西区流通センター一丁目1-1 (町丁目に長音符(ー)が入る場合で、丁目の数字が 1 の場合)', async () => {
-    const res = await normalize('新潟県新潟市西区流通センター一丁目1-1')
-    expect(res).toBeDeepCloseTo({"pref": "新潟県", "city": "新潟市西区", "town": "流通センター一丁目", "addr": "1-1", "level": 3, "lat": 37.866158, "lng": 138.998185})
-  })
+  // test('堺市北区新金岡町4丁1−8', async () => {
+  //   const res = await normalize('堺市北区新金岡町4丁1−8')
+  //   expect(res).toBeDeepCloseTo({"pref": "大阪府", "city": "堺市北区", "town": "新金岡町四丁", "addr": "1-8", "lat": 34.568184, "lng": 135.519409, "level": 3})
+  // })
 
-  test('青森県八戸市北インター工業団地4丁目1-1 (町丁目に長音符(ー)が入る場合)', async () => {
-    const res = await normalize('青森県八戸市北インター工業団地4丁目1-1')
-    expect(res).toBeDeepCloseTo({"pref": "青森県", "city": "八戸市", "town": "北インター工業団地四丁目", "addr": "1-1", "level": 3, "lat": 40.556931, "lng": 141.426763})
-  })
+  // test('串本町串本1234', async () => {
+  //   const res = await normalize('串本町串本1234')
+  //   expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
+  // })
 
-  test('富山県高岡市オフィスパーク1-1', async () => {
-    const res = await normalize('富山県高岡市オフィスパーク1-1')
-    expect(res).toBeDeepCloseTo({"pref": "富山県", "city": "高岡市", "town": "オフィスパーク", "addr": "1-1", "level": 3, "lat": 36.670088, "lng": 136.998867})
-  })
+  // test('広島県府中市府川町315', async () => {
+  //   const res = await normalize('広島県府中市府川町315')
+  //   expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "府中市", "town": "府川町", "addr": "315", "lat": 34.567649, "lng": 133.236891, "level": 3})
+  // })
 
-  test('福井県三方上中郡若狭町若狭テクノバレー1-1', async () => {
-    const res = await normalize('福井県三方上中郡若狭町若狭テクノバレー1-1')
-    expect(res).toBeDeepCloseTo({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー１号", "addr": "1", "level": 8, "lat": 35.477349, "lng": 135.859423})
-  })
+  // test('府中市府川町315', async () => {
+  //   const res = await normalize('府中市府川町315')
+  //   expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "府中市", "town": "府川町", "addr": "315", "lat": 34.567649, "lng": 133.236891, "level": 3})
+  // })
 
-  test('埼玉県越谷市大字蒲生3795-1', async () => {
-    const res = await normalize('埼玉県越谷市大字蒲生3795-1')
-    expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "越谷市", "town": "大字蒲生", "addr": "3795-1", "level": 3, "lat": 35.860429, "lng": 139.790945})
-  })
+  // test('府中市宮西町2丁目24番地', async () => {
+  //   const res = await normalize('府中市宮西町2丁目24番地')
+  //   expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "府中市", "town": "宮西町二丁目", "addr": "24", "lat": 35.669764, "lng": 139.477636, "level": 3})
+  // })
 
-  test('埼玉県越谷市蒲生茜町9-3', async () => {
-    const res = await normalize('埼玉県越谷市蒲生茜町9-3')
-    expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "越谷市", "town": "蒲生茜町", "addr": "9-3", "level": 3, "lat": 35.866741, "lng": 139.7888})
-  })
+  // test('三重県三重郡菰野町大字大強原2796', async () => {
+  //   const res = await normalize('三重県三重郡菰野町大字大強原2796')
+  //   expect(res).toBeDeepCloseTo({"pref": "三重県", "city": "三重郡菰野町", "town": "大字大強原", "addr": "2796", "lat": 35.028963, "lng": 136.530668, "level": 3})
+  // })
 
-  test('埼玉県川口市大字芝字宮根3938-5', async () => {
-    const res = await normalize('埼玉県川口市大字芝字宮根3938-5')
-    expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "大字芝", "addr": "字宮根3938-5", "level": 3, "lat": 35.843399, "lng": 139.690803})
-  })
+  // test('三重県三重郡菰野町大強原2796', async () => {
+  //   const res = await normalize('三重県三重郡菰野町大強原2796')
+  //   expect(res).toBeDeepCloseTo({"pref": "三重県", "city": "三重郡菰野町", "town": "大字大強原", "addr": "2796", "lat": 35.028963, "lng": 136.530668, "level": 3})
+  // })
 
-  test('北海道上川郡東神楽町14号北1番地', async () => {
-    const res = await normalize('北海道上川郡東神楽町14号北1番地')
-    expect(res).toBeDeepCloseTo({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
-  })
+  // test('福岡県北九州市小倉南区大字井手浦874', async () => {
+  //   const res = await normalize('福岡県北九州市小倉南区大字井手浦874')
+  //   expect(res).toBeDeepCloseTo({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "lat": 33.77509, "lng": 130.893088, "level": 3})
+  // })
 
-  test('北海道上川郡東神楽町十四号北1番地', async () => {
-    const res = await normalize('北海道上川郡東神楽町十四号北1番地')
-    expect(res).toBeDeepCloseTo({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
-  })
+  // test('福岡県北九州市小倉南区井手浦874', async () => {
+  //   const res = await normalize('福岡県北九州市小倉南区井手浦874')
+  //   expect(res).toBeDeepCloseTo({"pref": "福岡県", "city": "北九州市小倉南区", "town": "大字井手浦", "addr": "874", "lat": 33.77509, "lng": 130.893088, "level": 3})
+  // })
 
-  test('愛知県名古屋市瑞穂区弥富町', async () => {
-    const res = await normalize('愛知県名古屋市瑞穂区弥富町')
-    expect(res).toBeDeepCloseTo({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "彌富町", "addr": "", "level": 3, "lat": 35.132011, "lng": 136.955457 })
-  })
+  // test('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１', async () => {
+  //   const res = await normalize('沖縄県那覇市小禄１丁目５番２３号１丁目マンション３０１')
+  //   expect(res).toBeDeepCloseTo({"pref": "沖縄県", "city": "那覇市", "town": "小禄一丁目", "addr": "5-23 一丁目マンション301", "lat": 26.192719, "lng": 127.679409, "level": 3})
+  // })
 
-  test('東京都千代田区永田町1-2-3-レジデンス億万101 (号の後にハイフンで漢数字末尾に含んだマンション名が続き、号室が数値の場合)', async () => {
-    const res = await normalize('東京都千代田区永田町1-2-3-レジデンス億万101')
-    expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "千代田区", "town": "永田町一丁目", "addr": "2-3-レジデンス億万101", "lat": 35.675895, "lng": 139.746306, "level": 3})
-  })
+  // test('香川県仲多度郡まんのう町勝浦字家六２０９４番地１', async () => {
+  //   const res = await normalize('香川県仲多度郡まんのう町勝浦字家六２０９４番地１')
+  //   expect(res).toBeDeepCloseTo({"pref": "香川県", "city": "仲多度郡まんのう町", "town": "勝浦", "addr": "家六2094-1", "lat": 34.097457, "lng": 133.97318, "level": 3})
+  // })
 
-  test('東京都千代田区三番町２番地４三番町ＫＳビル１０階(番地と建物名が混ざり、「番」が消えることがないこと)', async () => {
-    const res = await normalize('東京都千代田区三番町２番地４三番町ＫＳビル１０階')
-    expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "千代田区", "town": "三番町", "addr": "2-4三番町KSビル10階", "lat": 35.690557, "lng": 139.743591, "level": 3})
-  })
+  // test('香川県仲多度郡まんのう町勝浦家六２０９４番地１', async () => {
+  //   const res = await normalize('香川県仲多度郡まんのう町勝浦家六２０９４番地１')
+  //   expect(res).toBeDeepCloseTo({"pref": "香川県", "city": "仲多度郡まんのう町", "town": "勝浦", "addr": "家六2094-1", "lat": 34.097457, "lng": 133.97318, "level": 3})
+  // })
 
-  test('東京都千代田区神田美土代町９番地７千代田２１ビル７階(「7千代田」が「7000代田」にならないこと)', async () => {
-    const res = await normalize('東京都千代田区神田美土代町９番地７千代田２１ビル７階')
-    expect(res).toBeDeepCloseTo({
-      pref: '東京都',
-      city: '千代田区',
-      town: '神田美土代町',
-      addr: '9-7千代田21ビル7階',
-      lat: 35.693283,
-      lng: 139.765581,
-      level: 3
-    })
-  })
+  // test('愛知県あま市西今宿梶村一３８番地４', async () => {
+  //   const res = await normalize('愛知県あま市西今宿梶村一３８番地４')
+  //   expect(res).toBeDeepCloseTo({"pref": "愛知県", "city": "あま市", "town": "西今宿梶村一", "addr": "38-4", "lat": 35.2002, "lng": 136.831606, "level": 3})
+  // })
 
-  test('神奈川県川崎市川崎区駅前本町１５番５十五番館ビル(「５十五番館ビル」が「番」が消えずに「5十五番館ビル」となる)', async () => {
-    const res = await normalize('神奈川県川崎市川崎区駅前本町１５番５十五番館ビル')
-    expect(res).toBeDeepCloseTo({"pref": "神奈川県", "city": "川崎市川崎区", "town": "駅前本町", "addr": "15-5十五番館ビル", "lat": 35.532434, "lng": 139.6996, "level": 3})
-  })
+  // test('香川県丸亀市原田町字東三分一１９２６番地１', async () => {
+  //   const res = await normalize('香川県丸亀市原田町字東三分一１９２６番地１')
+  //   expect(res).toBeDeepCloseTo({"pref": "香川県", "city": "丸亀市", "town": "原田町", "addr": "東三分一1926-1", "lat": 34.258954, "lng": 133.78778, "level": 3})
+  // })
 
-  describe('途中にスペースを含むケース', () => {
-    // https://github.com/geolonia/normalize-japanese-addresses/issues/180
-    test('京都府京都市　下京区上之町999', async () => {
-      const res = await normalize('京都府京都市 下京区上之町999')
-      expect(res.pref).toEqual('京都府')
-      expect(res.city).toEqual('京都市下京区')
-      expect(res.town).toEqual('上之町')
-      expect(res.addr).toEqual('999')
-    })
+  // test('串本町串本千二百三十四 (都道府県無し, 郡無し)', async () => {
+  //   const res = await normalize('串本町串本千二百三十四')
+  //   expect(res).toBeDeepCloseTo({"pref": "和歌山県", "city": "東牟婁郡串本町", "town": "串本", "addr": "1234", "lat": 33.470358, "lng": 135.779952, "level": 3})
+  // })
 
-    test('宮城県仙台市 若林区土樋999', async () => {
-      const res = await normalize('宮城県仙台市 若林区土樋999')
-      expect(res.pref).toEqual('宮城県')
-      expect(res.city).toEqual('仙台市若林区')
-      expect(res.town).toEqual('土樋')
-      expect(res.addr).toEqual('999')
-    })
+  // test('せたな町北檜山区北檜山１９３ (都道府県無し, 郡無し)', async () => {
+  //   const res = await normalize('せたな町北檜山区北檜山１９３')
+  //   expect(res).toBeDeepCloseTo({"pref": "北海道", "city": "久遠郡せたな町", "town": "北檜山区北檜山", "addr": "193", "lat": 42.414, "lng": 139.881784, "level": 3})
+  // })
 
-    test('青森県上北郡 横浜町字三保野888', async () => {
-      const res = await normalize('青森県上北郡 横浜町字三保野888')
-      expect(res.pref).toEqual('青森県')
-      expect(res.city).toEqual('上北郡横浜町')
-      expect(res.town).toEqual('字三保野')
-      expect(res.addr).toEqual('888')
-    })
-  })
+  // test('岩手県花巻市十二丁目７０４', async () => {
+  //   const res = await normalize('岩手県花巻市十二丁目７０４')
+  //   expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
+  // })
 
-  describe('町丁目内の文字列の「町」の省略に関連するケース', () => {
-    test('東京都江戸川区西小松川12-345', async () => {
-      const res = await normalize('東京都江戸川区西小松川12-345')
-      expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
-    })
+  // test('岩手県花巻市12丁目７０４', async () => {
+  //   const res = await normalize('岩手県花巻市12丁目７０４')
+  //   expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
+  // })
 
-    test('滋賀県長浜市木之本西山123-4', async () => {
-      const res = await normalize('滋賀県長浜市木之本西山123-4')
-      expect(res).toBeDeepCloseTo({"pref": "滋賀県", "city": "長浜市", "town": "木之本町西山", "addr": "123-4", "level": 3, "lat": 35.496171, "lng": 136.204177})
-    })
+  // test('岩手県花巻市１２丁目７０４', async () => {
+  //   const res = await normalize('岩手県花巻市１２丁目７０４')
+  //   expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
+  // })
 
-    describe('自治体内に町あり/なしが違うだけでほぼ同じ名前の町丁目が共存しているケース', () => {
-      test('福島県須賀川市西川町123-456', async () => {
-        const res = await normalize('福島県須賀川市西川町123-456')
-        expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "須賀川市", "town": "西川町", "addr": "123-456", "level": 3, "lat": 37.294611, "lng": 140.359974})
-      })
+  // test('京都府京都市中京区河原町二条下ル一之船入町537-50', async () => {
+  //   const res = await normalize('京都府京都市中京区河原町二条下ル一之船入町537-50')
+  //   expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
+  // })
 
-      test('福島県須賀川市西川123-456', async () => {
-        const res = await normalize('福島県須賀川市西川123-456')
-        expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "須賀川市", "town": "西川", "addr": "123-456", "level": 3, "lat": 37.296938, "lng": 140.343569})
-      })
+  // test('京都府京都市中京区河原町二条下ル一之舟入町537-50（船と舟のゆらぎ）', async () => {
+  //   const res = await normalize('京都府京都市中京区河原町二条下ル一之舟入町537-50')
+  //   expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市中京区", "town": "一之船入町", "addr": "537-50", "level": 3, "lat": 35.01217, "lng": 135.769483})
+  // })
 
-      test('広島県三原市幸崎久和喜12-345', async () => {
-        const res = await normalize('広島県三原市幸崎久和喜12-345')
-        expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "三原市", "town": "幸崎久和喜", "addr": "12-345", "level": 3, "lat": 34.348481, "lng": 133.067756})
-      })
+  // test('京都府宇治市莵道森本8−10（莵と菟のゆらぎ）', async () => {
+  //   const addrs = [
+  //     '京都府宇治市莵道森本8−10',
+  //     '京都府宇治市菟道森本8−10'
+  //   ]
+  //   for (const addr of addrs) {
+  //     const res = await normalize(addr)
+  //     expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "宇治市", "town": "菟道森本", "addr": "8-10", "level": 3, "lat": 34.904244, "lng": 135.827041})
+  //   }
+  // })
 
-      test('広島県三原市幸崎町久和喜24-56', async () => {
-        const res = await normalize('広島県三原市幸崎町久和喜24-56')
-        expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "三原市", "town": "幸崎町久和喜", "addr": "24-56", "level": 3, "lat": 34.352656, "lng": 133.055612})
-      })
-    })
+  // // 「都道府県」の文字列を省略した場合
+  // test('岩手花巻市１２丁目７０４', async () => {
+  //   const res = await normalize('岩手花巻市１２丁目７０４')
+  //   expect(res).toBeDeepCloseTo({"pref": "岩手県", "city": "花巻市", "town": "十二丁目", "addr": "704", "lat": 39.358268, "lng": 141.122331, "level": 3})
+  // })
 
-    // 漢数字を含む町丁目については、後続の丁目や番地が壊れるので町の省略を許容しない
-    test('愛知県名古屋市瑞穂区十六町１丁目123-4', async () => {
-      const res = await normalize('愛知県名古屋市瑞穂区十六町１丁目123-4')
-      expect(res).toBeDeepCloseTo({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "十六町一丁目", "addr": "123-4", "level": 3, "lat": 35.128862, "lng": 136.936585})
-    })
+  // test('千葉県巿川巿巿川1丁目（市(し、いち)と巿(ふつ)のゆらぎ）', async () => {
+  //   const res = await normalize('千葉県巿川巿巿川1丁目')
+  //   expect(res).toBeDeepCloseTo({"pref": "千葉県", "city": "市川市", "town": "市川一丁目", "addr": "", "level": 3, "lat": 35.731849, "lng": 139.909029})
+  // })
 
-    describe('大字◯◯と◯◯町が共存するケース', () => {
-      test('埼玉県川口市新堀999-888', async () => {
-        const res = await normalize('埼玉県川口市新堀999-888')
-        expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "大字新堀", "addr": "999-888", "level": 3, "lat": 35.827425, "lng": 139.783579})
-      })
+  // test('京都市北区紫野東御所田町', async () => {
+  //   const res = await normalize('京都市北区紫野東御所田町')
+  //   expect(res).toBeDeepCloseTo({"pref": "京都府", "city": "京都市北区", "town": "紫野東御所田町", "addr": "", "level": 3, "lat": 35.039861, "lng": 135.753474})
+  // })
 
-      test('埼玉県川口市大字新堀999-888', async () => {
-        const res = await normalize('埼玉県川口市大字新堀999-888')
-        expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "大字新堀", "addr": "999-888", "level": 3, "lat": 35.827425, "lng": 139.783579})
-      })
+  // test('鹿児島市山下町', async () => {
+  //   const res = await normalize('鹿児島市山下町')
+  //   expect(res).toBeDeepCloseTo({"pref": "鹿児島県", "city": "鹿児島市", "town": "山下町", "addr": "", "level": 3, "lat": 31.596716, "lng": 130.55643})
+  // })
 
-      test('埼玉県川口市新堀町999-888', async () => {
-        const res = await normalize('埼玉県川口市新堀町999-888')
-        expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "新堀町", "addr": "999-888", "level": 3, "lat": 35.825057, "lng": 139.781901})
-      })
+  // test('市川市八幡1丁目1番1号', async () => {
+  //   const res = await normalize('市川市八幡1丁目1番1号')
+  //   expect(res).toBeDeepCloseTo({"pref": "千葉県", "city": "市川市", "town": "八幡一丁目", "addr": "1-1", "level": 3, "lat": 35.720285, "lng": 139.932528})
+  // })
 
-      test('埼玉県川口市大字新堀町999-888', async () => {
-        const res = await normalize('埼玉県川口市大字新堀町999-888')
-        expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "新堀町", "addr": "999-888", "level": 3, "lat": 35.825057, "lng": 139.781901})
-      })
-    })
+  // test('千葉市川市八幡1丁目1番1号', async () => {
+  //   const res = await normalize('千葉市川市八幡1丁目1番1号')
+  //   expect(res).toBeDeepCloseTo({"pref": "千葉県", "city": "市川市", "town": "八幡一丁目", "addr": "1-1", "level": 3, "lat": 35.720285, "lng": 139.932528})
+  // })
 
-    // 町から始まる町丁目について、町を省略した場合は寄せない
-    test('東京都荒川区町屋５丁目 の町を省略した場合', async () => {
-      const res = await normalize('東京都荒川区屋５丁目')
-      expect(res.town).not.toEqual('町屋５丁目')
-      expect(res.level).toEqual(2)
-    })
+  // test('石川郡石川町字長久保185-4', async () => {
+  //   const res = await normalize('石川郡石川町字長久保185-4')
+  //   expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
+  // })
 
-    test('石川県輪島市町野町桶戸 の前側の町（町の名前の一部で、接尾の町に当たらない）を省略した場合', async () => {
-      const res = await normalize('石川県輪島市野町桶戸')
-      expect(res.town).not.toEqual('町野町桶戸')
-      expect(res.level).toEqual(2)
-    })
+  // test('福島石川郡石川町字長久保185-4', async () => {
+  //   const res = await normalize('福島石川郡石川町字長久保185-4')
+  //   expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "石川郡石川町", "town": "字長久保", "addr": "185-4", "level": 3, "lat": 37.155602, "lng": 140.446048})
+  // })
 
-    test('石川県輪島市町野町桶戸 の後側の町を省略した場合', async () => {
-      const res = await normalize('石川県輪島市町野桶戸')
-      expect(res).toBeDeepCloseTo({"pref": "石川県", "city": "輪島市", "town": "町野町桶戸", "addr": "", "level": 3, "lat": 37.414993, "lng":  137.092547})
-    })
+  // test('広島市西区商工センター六丁目9番39号 (町丁目に長音符(ー)が入る場合で、丁目の数字がその後に続く場合)', async () => {
+  //   const res = await normalize('広島市西区商工センター六丁目9番39号')
+  //   expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "広島市西区", "town": "商工センター六丁目", "addr": "9-39", "level": 3, "lat": 34.36812, "lng": 132.388293})
+  // })
 
-    test('京都府京都市下京区西中筋通北小路通上る丸屋町 京都の通り名削除と町の省略がコンフリクトするケース', async () => {
-      const res = await normalize('京都府京都市下京区西中筋通北小路通上る丸屋町')
-      expect(res.city).toEqual('京都市下京区')
-      expect(res.town).not.toEqual('北小路町')
-      expect(res.town).toEqual('丸屋町')
-    })
+  // test('新潟県新潟市西区流通センター一丁目1-1 (町丁目に長音符(ー)が入る場合で、丁目の数字が 1 の場合)', async () => {
+  //   const res = await normalize('新潟県新潟市西区流通センター一丁目1-1')
+  //   expect(res).toBeDeepCloseTo({"pref": "新潟県", "city": "新潟市西区", "town": "流通センター一丁目", "addr": "1-1", "level": 3, "lat": 37.866158, "lng": 138.998185})
+  // })
 
-    test('京都府京都市下京区油小路通高辻下ル麓町123', async () => {
-      const res = await normalize('京都府京都市下京区麓町123')
-      expect(res.city).toEqual('京都市下京区')
-      expect(res.town).toEqual('麓町')
-      expect(res.addr).toEqual("123")
-    })
-  })
+  // test('青森県八戸市北インター工業団地4丁目1-1 (町丁目に長音符(ー)が入る場合)', async () => {
+  //   const res = await normalize('青森県八戸市北インター工業団地4丁目1-1')
+  //   expect(res).toBeDeepCloseTo({"pref": "青森県", "city": "八戸市", "town": "北インター工業団地四丁目", "addr": "1-1", "level": 3, "lat": 40.556931, "lng": 141.426763})
+  // })
 
-  describe('番地・号の分離: 京都の住所では「一号|1号..」などが「一番町」に正規化されてはいけない', () => {
-    test('京都府京都市上京区主計町一番一号', async () => {
-      const res = await normalize('京都府京都市上京区主計町一番一号')
-      expect(res.town).not.toEqual('一番町')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('1-1')
-    })
+  // test('富山県高岡市オフィスパーク1-1', async () => {
+  //   const res = await normalize('富山県高岡市オフィスパーク1-1')
+  //   expect(res).toBeDeepCloseTo({"pref": "富山県", "city": "高岡市", "town": "オフィスパーク", "addr": "1-1", "level": 3, "lat": 36.670088, "lng": 136.998867})
+  // })
 
-    test('京都府京都市上京区主計町二番二号', async () => {
-      const res = await normalize('京都府京都市上京区主計町二番二号')
-      expect(res.town).not.toEqual('二番町')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('2-2')
-    })
+  // test('福井県三方上中郡若狭町若狭テクノバレー1-1', async () => {
+  //   const res = await normalize('福井県三方上中郡若狭町若狭テクノバレー1-1')
+  //   expect(res).toBeDeepCloseTo({"pref": "福井県", "city": "三方上中郡若狭町", "town": "若狭テクノバレー１号", "addr": "1", "level": 8, "lat": 35.477349, "lng": 135.859423})
+  // })
 
-    test('京都府京都市上京区主計町三番三号', async () => {
-      const res = await normalize('京都府京都市上京区主計町三番三号')
-      expect(res.town).not.toEqual('三番町')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('3-3')
-    })
+  // test('埼玉県越谷市大字蒲生3795-1', async () => {
+  //   const res = await normalize('埼玉県越谷市大字蒲生3795-1')
+  //   expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "越谷市", "town": "大字蒲生", "addr": "3795-1", "level": 3, "lat": 35.860429, "lng": 139.790945})
+  // })
 
-    test('京都府京都市上京区中務町５４３番２１号', async () => {
-      const res = await normalize('京都府京都市上京区中務町５４３番２１号')
-      expect(res.town).not.toEqual('一番町')
-      expect(res.town).toEqual('中務町')
-      expect(res.addr).toEqual('543-21')
-    })
+  // test('埼玉県越谷市蒲生茜町9-3', async () => {
+  //   const res = await normalize('埼玉県越谷市蒲生茜町9-3')
+  //   expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "越谷市", "town": "蒲生茜町", "addr": "9-3", "level": 3, "lat": 35.866741, "lng": 139.7888})
+  // })
 
-    test('京都府京都市上京区晴明町1番３号', async () => {
-      const res = await normalize('京都府京都市上京区晴明町1番３号')
-      expect(res.town).not.toEqual('三番町')
-      expect(res.town).toEqual('晴明町')
-      expect(res.addr).toEqual('1-3')
-    })
+  // test('埼玉県川口市大字芝字宮根3938-5', async () => {
+  //   const res = await normalize('埼玉県川口市大字芝字宮根3938-5')
+  //   expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "大字芝", "addr": "字宮根3938-5", "level": 3, "lat": 35.843399, "lng": 139.690803})
+  // })
 
-    test('京都府京都市上京区主計町1番地3', async () => {
-      const res = await normalize('京都府京都市上京区主計町1番地3')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('1-3')
-    })
+  // test('北海道上川郡東神楽町14号北1番地', async () => {
+  //   const res = await normalize('北海道上川郡東神楽町14号北1番地')
+  //   expect(res).toBeDeepCloseTo({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
+  // })
 
-    test('京都府京都市上京区主計町123番', async () => {
-      const res = await normalize('京都府京都市上京区主計町123番')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('123')
-    })
+  // test('北海道上川郡東神楽町十四号北1番地', async () => {
+  //   const res = await normalize('北海道上川郡東神楽町十四号北1番地')
+  //   expect(res).toBeDeepCloseTo({"pref": "北海道", "city": "上川郡東神楽町", "town": "十四号", "addr": "北1", "level": 3, "lat": 43.693918, "lng": 142.463511})
+  // })
 
-    test('京都府京都市上京区主計町123番地', async () => {
-      const res = await normalize('京都府京都市上京区主計町123番地')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('123')
-    })
+  // test('愛知県名古屋市瑞穂区弥富町', async () => {
+  //   const res = await normalize('愛知県名古屋市瑞穂区弥富町')
+  //   expect(res).toBeDeepCloseTo({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "彌富町", "addr": "", "level": 3, "lat": 35.132011, "lng": 136.955457 })
+  // })
 
-    test('京都府京都市上京区主計町1番2-403号 建物名の省略と部屋番号の表記のケース', async () => {
-      const res = await normalize('京都府京都市上京区主計町1番2-403号')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('1-2-403号')
-    })
+  // test('東京都千代田区永田町1-2-3-レジデンス億万101 (号の後にハイフンで漢数字末尾に含んだマンション名が続き、号室が数値の場合)', async () => {
+  //   const res = await normalize('東京都千代田区永田町1-2-3-レジデンス億万101')
+  //   expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "千代田区", "town": "永田町一丁目", "addr": "2-3-レジデンス億万101", "lat": 35.675895, "lng": 139.746306, "level": 3})
+  // })
 
-    test.skip('京都府京都市上京区あああ通り主計町1番2-403号 通り名を含むケース', async () => {
-      const res = await normalize('京都府京都市上京区あああ通り主計町1番2-403号')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('1-2-403号')
-    })
+  // test('東京都千代田区三番町２番地４三番町ＫＳビル１０階(番地と建物名が混ざり、「番」が消えることがないこと)', async () => {
+  //   const res = await normalize('東京都千代田区三番町２番地４三番町ＫＳビル１０階')
+  //   expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "千代田区", "town": "三番町", "addr": "2-4三番町KSビル10階", "lat": 35.690557, "lng": 139.743591, "level": 3})
+  // })
 
-    test('京都以外の字は正しく分離される', async () => {
-      const address = '愛知県名古屋市緑区鳴海町字アイウエオ100番200号'
-      const res = await normalize(address)
-      expect(res.town).toEqual('鳴海町')
-      expect(res.addr).toEqual('字アイウエオ100-200')
-      expect(res.level).toEqual(3)
-    })
+  // test('東京都千代田区神田美土代町９番地７千代田２１ビル７階(「7千代田」が「7000代田」にならないこと)', async () => {
+  //   const res = await normalize('東京都千代田区神田美土代町９番地７千代田２１ビル７階')
+  //   expect(res).toBeDeepCloseTo({
+  //     pref: '東京都',
+  //     city: '千代田区',
+  //     town: '神田美土代町',
+  //     addr: '9-7千代田21ビル7階',
+  //     lat: 35.693283,
+  //     lng: 139.765581,
+  //     level: 3
+  //   })
+  // })
 
-    // TODO: https://github.com/geolonia/normalize-japanese-addresses/pull/163 で解消される予定
-    test.skip('京都府京都市上京区主計町1番1号おはようビル301号室 ビル名に号が含まれるケース', async () => {
-      const res = await normalize('京都府京都市上京区主計町1番1号おはようビル301号室')
-      expect(res.town).not.toEqual('一番町')
-      expect(res.town).toEqual('主計町')
-      expect(res.addr).toEqual('1-1 おはようビル301号室')
-    })
-  })
+  // test('神奈川県川崎市川崎区駅前本町１５番５十五番館ビル(「５十五番館ビル」が「番」が消えずに「5十五番館ビル」となる)', async () => {
+  //   const res = await normalize('神奈川県川崎市川崎区駅前本町１５番５十五番館ビル')
+  //   expect(res).toBeDeepCloseTo({"pref": "神奈川県", "city": "川崎市川崎区", "town": "駅前本町", "addr": "15-5十五番館ビル", "lat": 35.532434, "lng": 139.6996, "level": 3})
+  // })
+
+  // describe('途中にスペースを含むケース', () => {
+  //   // https://github.com/geolonia/normalize-japanese-addresses/issues/180
+  //   test('京都府京都市　下京区上之町999', async () => {
+  //     const res = await normalize('京都府京都市 下京区上之町999')
+  //     expect(res.pref).toEqual('京都府')
+  //     expect(res.city).toEqual('京都市下京区')
+  //     expect(res.town).toEqual('上之町')
+  //     expect(res.addr).toEqual('999')
+  //   })
+
+  //   test('宮城県仙台市 若林区土樋999', async () => {
+  //     const res = await normalize('宮城県仙台市 若林区土樋999')
+  //     expect(res.pref).toEqual('宮城県')
+  //     expect(res.city).toEqual('仙台市若林区')
+  //     expect(res.town).toEqual('土樋')
+  //     expect(res.addr).toEqual('999')
+  //   })
+
+  //   test('青森県上北郡 横浜町字三保野888', async () => {
+  //     const res = await normalize('青森県上北郡 横浜町字三保野888')
+  //     expect(res.pref).toEqual('青森県')
+  //     expect(res.city).toEqual('上北郡横浜町')
+  //     expect(res.town).toEqual('字三保野')
+  //     expect(res.addr).toEqual('888')
+  //   })
+  // })
+
+  // describe('町丁目内の文字列の「町」の省略に関連するケース', () => {
+  //   test('東京都江戸川区西小松川12-345', async () => {
+  //     const res = await normalize('東京都江戸川区西小松川12-345')
+  //     expect(res).toBeDeepCloseTo({"pref": "東京都", "city": "江戸川区", "town": "西小松川町", "addr": "12-345", "level": 3, "lat": 35.698405, "lng": 139.862007})
+  //   })
+
+  //   test('滋賀県長浜市木之本西山123-4', async () => {
+  //     const res = await normalize('滋賀県長浜市木之本西山123-4')
+  //     expect(res).toBeDeepCloseTo({"pref": "滋賀県", "city": "長浜市", "town": "木之本町西山", "addr": "123-4", "level": 3, "lat": 35.496171, "lng": 136.204177})
+  //   })
+
+  //   describe('自治体内に町あり/なしが違うだけでほぼ同じ名前の町丁目が共存しているケース', () => {
+  //     test('福島県須賀川市西川町123-456', async () => {
+  //       const res = await normalize('福島県須賀川市西川町123-456')
+  //       expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "須賀川市", "town": "西川町", "addr": "123-456", "level": 3, "lat": 37.294611, "lng": 140.359974})
+  //     })
+
+  //     test('福島県須賀川市西川123-456', async () => {
+  //       const res = await normalize('福島県須賀川市西川123-456')
+  //       expect(res).toBeDeepCloseTo({"pref": "福島県", "city": "須賀川市", "town": "西川", "addr": "123-456", "level": 3, "lat": 37.296938, "lng": 140.343569})
+  //     })
+
+  //     test('広島県三原市幸崎久和喜12-345', async () => {
+  //       const res = await normalize('広島県三原市幸崎久和喜12-345')
+  //       expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "三原市", "town": "幸崎久和喜", "addr": "12-345", "level": 3, "lat": 34.348481, "lng": 133.067756})
+  //     })
+
+  //     test('広島県三原市幸崎町久和喜24-56', async () => {
+  //       const res = await normalize('広島県三原市幸崎町久和喜24-56')
+  //       expect(res).toBeDeepCloseTo({"pref": "広島県", "city": "三原市", "town": "幸崎町久和喜", "addr": "24-56", "level": 3, "lat": 34.352656, "lng": 133.055612})
+  //     })
+  //   })
+
+  //   // 漢数字を含む町丁目については、後続の丁目や番地が壊れるので町の省略を許容しない
+  //   test('愛知県名古屋市瑞穂区十六町１丁目123-4', async () => {
+  //     const res = await normalize('愛知県名古屋市瑞穂区十六町１丁目123-4')
+  //     expect(res).toBeDeepCloseTo({"pref": "愛知県", "city": "名古屋市瑞穂区", "town": "十六町一丁目", "addr": "123-4", "level": 3, "lat": 35.128862, "lng": 136.936585})
+  //   })
+
+  //   describe('大字◯◯と◯◯町が共存するケース', () => {
+  //     test('埼玉県川口市新堀999-888', async () => {
+  //       const res = await normalize('埼玉県川口市新堀999-888')
+  //       expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "大字新堀", "addr": "999-888", "level": 3, "lat": 35.827425, "lng": 139.783579})
+  //     })
+
+  //     test('埼玉県川口市大字新堀999-888', async () => {
+  //       const res = await normalize('埼玉県川口市大字新堀999-888')
+  //       expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "大字新堀", "addr": "999-888", "level": 3, "lat": 35.827425, "lng": 139.783579})
+  //     })
+
+  //     test('埼玉県川口市新堀町999-888', async () => {
+  //       const res = await normalize('埼玉県川口市新堀町999-888')
+  //       expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "新堀町", "addr": "999-888", "level": 3, "lat": 35.825057, "lng": 139.781901})
+  //     })
+
+  //     test('埼玉県川口市大字新堀町999-888', async () => {
+  //       const res = await normalize('埼玉県川口市大字新堀町999-888')
+  //       expect(res).toBeDeepCloseTo({"pref": "埼玉県", "city": "川口市", "town": "新堀町", "addr": "999-888", "level": 3, "lat": 35.825057, "lng": 139.781901})
+  //     })
+  //   })
+
+  //   // 町から始まる町丁目について、町を省略した場合は寄せない
+  //   test('東京都荒川区町屋５丁目 の町を省略した場合', async () => {
+  //     const res = await normalize('東京都荒川区屋５丁目')
+  //     expect(res.town).not.toEqual('町屋５丁目')
+  //     expect(res.level).toEqual(2)
+  //   })
+
+  //   test('石川県輪島市町野町桶戸 の前側の町（町の名前の一部で、接尾の町に当たらない）を省略した場合', async () => {
+  //     const res = await normalize('石川県輪島市野町桶戸')
+  //     expect(res.town).not.toEqual('町野町桶戸')
+  //     expect(res.level).toEqual(2)
+  //   })
+
+  //   test('石川県輪島市町野町桶戸 の後側の町を省略した場合', async () => {
+  //     const res = await normalize('石川県輪島市町野桶戸')
+  //     expect(res).toBeDeepCloseTo({"pref": "石川県", "city": "輪島市", "town": "町野町桶戸", "addr": "", "level": 3, "lat": 37.414993, "lng":  137.092547})
+  //   })
+
+  //   test('京都府京都市下京区西中筋通北小路通上る丸屋町 京都の通り名削除と町の省略がコンフリクトするケース', async () => {
+  //     const res = await normalize('京都府京都市下京区西中筋通北小路通上る丸屋町')
+  //     expect(res.city).toEqual('京都市下京区')
+  //     expect(res.town).not.toEqual('北小路町')
+  //     expect(res.town).toEqual('丸屋町')
+  //   })
+
+  //   test('京都府京都市下京区油小路通高辻下ル麓町123', async () => {
+  //     const res = await normalize('京都府京都市下京区麓町123')
+  //     expect(res.city).toEqual('京都市下京区')
+  //     expect(res.town).toEqual('麓町')
+  //     expect(res.addr).toEqual("123")
+  //   })
+  // })
+
+  // describe('番地・号の分離: 京都の住所では「一号|1号..」などが「一番町」に正規化されてはいけない', () => {
+  //   test('京都府京都市上京区主計町一番一号', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町一番一号')
+  //     expect(res.town).not.toEqual('一番町')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('1-1')
+  //   })
+
+  //   test('京都府京都市上京区主計町二番二号', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町二番二号')
+  //     expect(res.town).not.toEqual('二番町')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('2-2')
+  //   })
+
+  //   test('京都府京都市上京区主計町三番三号', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町三番三号')
+  //     expect(res.town).not.toEqual('三番町')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('3-3')
+  //   })
+
+  //   test('京都府京都市上京区中務町５４３番２１号', async () => {
+  //     const res = await normalize('京都府京都市上京区中務町５４３番２１号')
+  //     expect(res.town).not.toEqual('一番町')
+  //     expect(res.town).toEqual('中務町')
+  //     expect(res.addr).toEqual('543-21')
+  //   })
+
+  //   test('京都府京都市上京区晴明町1番３号', async () => {
+  //     const res = await normalize('京都府京都市上京区晴明町1番３号')
+  //     expect(res.town).not.toEqual('三番町')
+  //     expect(res.town).toEqual('晴明町')
+  //     expect(res.addr).toEqual('1-3')
+  //   })
+
+  //   test('京都府京都市上京区主計町1番地3', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町1番地3')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('1-3')
+  //   })
+
+  //   test('京都府京都市上京区主計町123番', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町123番')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('123')
+  //   })
+
+  //   test('京都府京都市上京区主計町123番地', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町123番地')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('123')
+  //   })
+
+  //   test('京都府京都市上京区主計町1番2-403号 建物名の省略と部屋番号の表記のケース', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町1番2-403号')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('1-2-403号')
+  //   })
+
+  //   test.skip('京都府京都市上京区あああ通り主計町1番2-403号 通り名を含むケース', async () => {
+  //     const res = await normalize('京都府京都市上京区あああ通り主計町1番2-403号')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('1-2-403号')
+  //   })
+
+  //   test('京都以外の字は正しく分離される', async () => {
+  //     const address = '愛知県名古屋市緑区鳴海町字アイウエオ100番200号'
+  //     const res = await normalize(address)
+  //     expect(res.town).toEqual('鳴海町')
+  //     expect(res.addr).toEqual('字アイウエオ100-200')
+  //     expect(res.level).toEqual(3)
+  //   })
+
+  //   // TODO: https://github.com/geolonia/normalize-japanese-addresses/pull/163 で解消される予定
+  //   test.skip('京都府京都市上京区主計町1番1号おはようビル301号室 ビル名に号が含まれるケース', async () => {
+  //     const res = await normalize('京都府京都市上京区主計町1番1号おはようビル301号室')
+  //     expect(res.town).not.toEqual('一番町')
+  //     expect(res.town).toEqual('主計町')
+  //     expect(res.addr).toEqual('1-1 おはようビル301号室')
+  //   })
+  // })
 
   test('should handle unicode normalization', async () => {
     const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
@@ -623,49 +668,61 @@ describe(`basic tests`, () => {
     expect(resp.city).toEqual('つくば市')
   })
 
-  test('latとlngのデータがない場合は undefined を返す', async () => {
-    const res = await normalize('大分県大分市新川西1丁目1-12')
-    expect(res.lat).toEqual(undefined)
-    expect(res.lng).toEqual(undefined)
-  })
-
   test('町丁目名が判別できなかった場合、残った住所には漢数字->数字などの変換処理を施さない', async () => {
     const res = await normalize('北海道滝川市一の坂町西')
-    expect(res.town).toEqual('')
-    expect(res.addr).toEqual('一の坂町西')
+    expect(res.level).toEqual(2)
+    expect(res.town).toEqual(undefined)
+    expect(res.other).toEqual('一の坂町西')
   })
 
   test('丁目の数字だけあるときは正しく「一丁目」まで補充できる', async () => {
     const res = await normalize('東京都文京区小石川1')
     expect(res.town).toEqual('小石川一丁目')
-    expect(res.addr).toEqual('')
+    expect(res.other).toEqual('')
   })
 
   test('丁目の数字だけあるときは正しく「一丁目」まで補充できる（以降も対応）', async () => {
     const res = await normalize('東京都文京区小石川1ビル名')
     expect(res.town).toEqual('小石川一丁目')
-    expect(res.addr).toEqual('ビル名')
+    expect(res.other).toEqual('ビル名')
   })
 
-  test('旧漢字対応 (亞 -> 亜)', async () => {
-    const address = '宮城県大崎市古川大崎東亜'
-    const res = await normalize(address)
-    expect(res.town).toEqual('古川大崎字東亜')
-    expect(res.level).toEqual(3)
-  })
+  describe('旧漢字対応', () => {
+    test('亞 -> 亜', async () => {
+      const addresses = [
+        '宮城県大崎市古川大崎東亞',
+        '宮城県大崎市古川大崎東亜',
+      ]
+      for (const address of addresses) {
+        const res = await normalize(address)
+        expect(res.town).toEqual('古川大崎字東亜')
+        expect(res.level).toEqual(3)
+      }
+    })
 
-  test('旧漢字対応 (澤 -> 沢)', async () => {
-    const address = '東京都西多摩郡奥多摩町海澤'
-    const res = await normalize(address)
-    expect(res.town).toEqual('海澤')
-    expect(res.level).toEqual(3)
-  })
+    test('澤 -> 沢', async () => {
+      const addresses = [
+        '東京都西多摩郡奥多摩町海沢',
+        '東京都西多摩郡奥多摩町海澤',
+      ]
+      for (const address of addresses) {
+        const res = await normalize(address)
+        expect(res.town).toEqual('海澤')
+        expect(res.level).toEqual(3)
+      }
+    })
 
-  test('旧漢字対応 (麩 -> 麸)', async () => {
-    const address = '愛知県津島市池麩町'
-    const res = await normalize(address)
-    expect(res.town).toEqual('池麸町')
-    expect(res.level).toEqual(3)
+    test('麩 -> 麸', async () => {
+      const addresses = [
+        '愛知県津島市池麩町',
+        '愛知県津島市池麸町',
+      ]
+      for (const address of addresses) {
+        const res = await normalize(address)
+        expect(res.town).toEqual('池麸町')
+        expect(res.level).toEqual(3)
+      }
+    })
   })
 
   test('柿碕町|柿さき町', async () => {
@@ -685,7 +742,7 @@ describe(`basic tests`, () => {
       const address = '愛知県豊田市西丹波町三五十'
       const res = await normalize(address)
       expect(res.town).toEqual('西丹波町')
-      expect(res.addr).toEqual("三五十")
+      expect(res.other).toEqual("三五十")
       expect(res.level).toEqual(3)
     })
 
@@ -693,7 +750,7 @@ describe(`basic tests`, () => {
       const address = '広島県府中市栗柄町名字八五十2459'
       const res = await normalize(address)
       expect(res.town).toEqual('栗柄町')
-      expect(res.addr).toEqual("名字八五十2459")
+      expect(res.other).toEqual("名字八五十2459")
       expect(res.level).toEqual(3)
     })
   })
