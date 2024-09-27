@@ -6,6 +6,7 @@ export const kan2num = (string: string) => {
     try {
       // @ts-ignore
       string = string.replace(kanjiNumbers[i], kanji2number(kanjiNumbers[i]))
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // ignore
     }

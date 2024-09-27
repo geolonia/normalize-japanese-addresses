@@ -171,10 +171,7 @@ export const normalize: Normalizer = async (
 ) => {
   const option = { ...defaultOption, ..._option }
 
-  if (option.geoloniaApiKey || config.geoloniaApiKey) {
-    option.level = 8
-    option.geoloniaApiKey && (config.geoloniaApiKey = option.geoloniaApiKey)
-  }
+  option.geoloniaApiKey ??= config.geoloniaApiKey
 
   // other に入っている文字列は正規化するときに
   let other = prenormalize(address)
@@ -190,9 +187,8 @@ export const normalize: Normalizer = async (
 
   const prefectures = await getPrefectures()
   const prefPatterns = getPrefectureRegexPatterns(prefectures)
-  const sameNamedPrefectureCityRegexPatterns = getSameNamedPrefectureCityRegexPatterns(
-    prefectures,
-  )
+  const sameNamedPrefectureCityRegexPatterns =
+    getSameNamedPrefectureCityRegexPatterns(prefectures)
 
   // 県名が省略されており、かつ市の名前がどこかの都道府県名と同じ場合(例.千葉県千葉市)、
   // あらかじめ県名を補完しておく。
@@ -354,11 +350,11 @@ export const normalize: Normalizer = async (
 
   const normalizedAddrPart = await normalizeAddrPart(
     other,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     pref!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     city!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     town!,
   )
   // TODO: rsdtと地番を両方対応した時に両方返すけど、今はrsdtを優先する

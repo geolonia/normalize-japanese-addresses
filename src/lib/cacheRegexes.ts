@@ -39,7 +39,7 @@ const cache = new LRUCache({
   max: currentConfig.cacheSize,
 })
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 async function fetchFromCache<T extends {}>(
   key: string,
   fetcher: () => Promise<T>,
@@ -53,15 +53,13 @@ async function fetchFromCache<T extends {}>(
   return data
 }
 
-let cachedPrefecturePatterns:
-  | [SinglePrefecture, string][]
-  | undefined = undefined
+let cachedPrefecturePatterns: [SinglePrefecture, string][] | undefined =
+  undefined
 const cachedCityPatterns: Map<number, [SingleCity, string][]> = new Map()
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-let cachedSameNamedPrefectureCityRegexPatterns:
-  | [string, string][]
-  | undefined = undefined
+let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
+  undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
