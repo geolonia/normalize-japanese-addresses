@@ -1,6 +1,7 @@
 import { Config } from './normalize'
 
-export const defaultEndpoint = 'http://127.0.0.1:8080/api/ja'
+export const defaultEndpoint =
+  'https://japanese-addresses-v2.geoloniamaps.com/api/ja'
 
 export const currentConfig: Config = {
   japaneseAddressesApi: defaultEndpoint,
@@ -12,12 +13,16 @@ export type FetchOptions = {
   length?: number
 }
 
+export type FetchResponseLike = {
+  json: () => Promise<unknown>
+  text: () => Promise<string>
+  ok: boolean
+}
+
 export type FetchLike = (
   input: string,
   options?: FetchOptions,
-) => Promise<
-  Response | { json: () => Promise<unknown>; text: () => Promise<string> }
->
+) => Promise<FetchResponseLike>
 
 /**
  * @internal

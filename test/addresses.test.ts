@@ -1,6 +1,6 @@
 import { normalize } from '../src/main-node'
 
-import fs from 'fs'
+import fs from 'node:fs'
 import path from 'path'
 import Papa from 'papaparse'
 import { toMatchCloseTo } from 'jest-matcher-deep-close-to'

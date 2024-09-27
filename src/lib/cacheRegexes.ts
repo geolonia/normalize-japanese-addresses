@@ -158,6 +158,10 @@ async function fetchMetadata(
         length: 50_000,
       },
     )
+    if (!resp.ok) {
+      hasMore = false
+      continue
+    }
     const part = await resp.text()
     if (part.length === 0) {
       hasMore = false

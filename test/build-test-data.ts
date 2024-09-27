@@ -1,6 +1,6 @@
 import { normalize } from '../src/main-node'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import Papa from 'papaparse'
 
 const list = fs.readFileSync(path.join(path.dirname(__filename), '/list.txt'), {

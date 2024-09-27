@@ -1,6 +1,6 @@
 import * as Normalize from './normalize'
-import { __internals, FetchOptions } from './config'
-import { promises as fs } from 'fs'
+import { __internals, FetchOptions, FetchResponseLike } from './config'
+import { promises as fs } from 'node:fs'
 import { fetch } from 'undici'
 
 export const requestHandlers = {
@@ -11,12 +11,14 @@ export const requestHandlers = {
         ? decodeURI(fileURL.pathname).substring(1)
         : decodeURI(fileURL.pathname)
     const f = await fs.open(filePath, 'rb')
-    let contents: Buffer
+    let contents: Buffer, ok: boolean
     if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
       contents = Buffer.alloc(o.length)
-      await f.read(contents, 0, o.length, o.offset)
+      const resp = await f.read(contents, 0, o.length, o.offset)
+      ok = resp.bytesRead === o.length
     } else {
       contents = await f.readFile()
+      ok = true
     }
     await f.close()
     return {
@@ -26,6 +28,7 @@ export const requestHandlers = {
       text: async () => {
         return contents.toString('utf-8')
       },
+      ok,
     }
   },
   http: (fileURL: URL, options?: FetchOptions) => {
@@ -54,7 +57,7 @@ export const requestHandlers = {
 const fetchOrReadFile = async (
   input: string,
   options?: FetchOptions,
-): Promise<{ json: () => Promise<unknown>; text: () => Promise<string> }> => {
+): Promise<FetchResponseLike> => {
   const fileURL = new URL(`${Normalize.config.japaneseAddressesApi}${input}`)
   if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
     return requestHandlers.http(fileURL, options)
