@@ -1,5 +1,10 @@
 import * as Normalize from './normalize'
-import { __internals, FetchOptions, FetchResponseLike } from './config'
+import {
+  __internals,
+  fetchWithTimeoutRetry,
+  FetchOptions,
+  FetchResponseLike,
+} from './config'
 import { promises as fs } from 'node:fs'
 import { fetch } from 'undici'
 
@@ -43,9 +48,14 @@ export const requestHandlers = {
     if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
       headers['Range'] = `bytes=${o.offset}-${o.offset + o.length - 1}`
     }
-    return fetch(fileURL.toString(), {
-      headers,
-    })
+    return fetchWithTimeoutRetry(
+      // 私達が使う場所の undici fetch インタフェースはDOMのfetchと同等なので、型キャストしても問題ない
+      fetch as unknown as (typeof Window.prototype)['fetch'],
+      fileURL.toString(),
+      {
+        headers,
+      },
+    )
   },
 }
 

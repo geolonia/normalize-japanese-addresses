@@ -52,6 +52,15 @@ export interface Config {
   /** 内部キャッシュの最大サイズ。デフォルトでは 1,000 件 */
   cacheSize: number
 
+  /**
+   * バックエンドへのリクエストのタイムアウト。
+   * デフォルト 600ms
+   * タイムアウトした場合、数回リトライを行います。
+   * リトライ回数は {@link backendTries} で設定します。
+   */
+  backendTimeout: number
+  backendTries: number
+
   geoloniaApiKey?: string
 }
 export const config: Config = currentConfig
