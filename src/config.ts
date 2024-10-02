@@ -6,8 +6,8 @@ export const defaultEndpoint =
 export const currentConfig: Config = {
   japaneseAddressesApi: defaultEndpoint,
   cacheSize: 1_000,
-  backendTimeout: 800,
-  backendTries: 4,
+  backendTimeout: 1_500,
+  backendTries: 3,
 }
 
 export type FetchOptions = {
