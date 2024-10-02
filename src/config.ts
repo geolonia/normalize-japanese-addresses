@@ -32,10 +32,10 @@ const timeoutableFetch = async (
   init: RequestInit | undefined,
   timeout: number,
 ) => {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
-  const response = await fetch(input, { ...init, signal: controller.signal })
-  clearTimeout(timeoutId)
+  const response = await fetch(input, {
+    ...init,
+    signal: AbortSignal.timeout(timeout),
+  })
   return response
 }
 

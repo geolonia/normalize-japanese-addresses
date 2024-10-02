@@ -14,6 +14,7 @@ on:
 
 jobs:
   build:
+    name: "ビルド・リント"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +28,7 @@ jobs:
       - run: npm run lint
 
   test:
+    name: "テスト"
     needs:
       - build
 
@@ -51,6 +53,7 @@ jobs:
 
   # アドレステストは時間かかるし、環境依存が無いので、matrixにいれる必要無い
   test-addresses:
+    name: "詳細住所テスト"
     needs:
       - build
     runs-on: ubuntu-latest
@@ -66,7 +69,7 @@ jobs:
       - run: npm run test:addresses
 
   publish:
-    name: 'Publish npm package'
+    name: 'npm 公開'
     runs-on: ubuntu-latest
     needs:
       - test
