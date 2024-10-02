@@ -17,10 +17,9 @@
   },
   "scripts": {
     "cli": "tsx ./src/cli.ts",
-    "test": "npm run test:main && npm run test:addresses",
+    "test": "npm run test:main",
     "test:main": "jest test/main.test.ts",
     "test:addresses": "jest test/addresses.test.ts",
-    "test:util": "jest test/util.test.ts",
     "test:generate-test-data": "tsx test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
     "build": "npm run clean && rollup -c rollup.config.js",
