@@ -6,7 +6,7 @@ export const defaultEndpoint =
 export const currentConfig: Config = {
   japaneseAddressesApi: defaultEndpoint,
   cacheSize: 1_000,
-  backendTimeout: 1_000,
+  backendTimeout: 800,
   backendTries: 4,
 }
 
@@ -47,7 +47,14 @@ export async function fetchWithTimeoutRetry(
   let tries = 0
   while (true) {
     try {
-      return timeoutableFetch(fetch, input, init, currentConfig.backendTimeout)
+      // await needs to be in this try block, otherwise it won't be caught
+      const resp = await timeoutableFetch(
+        fetch,
+        input,
+        init,
+        currentConfig.backendTimeout,
+      )
+      return resp
     } catch (error) {
       tries++
       if (tries >= currentConfig.backendTries) {
