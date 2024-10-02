@@ -32,6 +32,7 @@ export const toRegexPattern = (string: string) => {
     .replace(/舟|船/g, '(舟|船)')
     .replace(/莵|菟/g, '(莵|菟)')
     .replace(/市|巿/g, '(市|巿)')
+    .replace(/崎|﨑/g, '(崎|﨑)')
 
   _str = convert(_str)
 
