@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import Papa from 'papaparse'
 
-const list = fs.readFileSync(path.join(path.dirname(__filename), '/list.txt'), {
+const list = fs.readFileSync(path.join(import.meta.dirname, 'list.txt'), {
   encoding: 'utf-8',
 })
 const data = Papa.parse<string[]>(list).data

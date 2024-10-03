@@ -1,5 +1,6 @@
 import { Config } from './normalize'
 
+// export const defaultEndpoint = 'http://localhost:8080/api/ja'
 export const defaultEndpoint =
   'https://japanese-addresses-v2.geoloniamaps.com/api/ja'
 
