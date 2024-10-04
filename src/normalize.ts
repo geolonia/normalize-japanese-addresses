@@ -102,9 +102,10 @@ const normalizeTownName = async (
   input: string,
   pref: SinglePrefecture,
   city: SingleCity,
+  apiVersion: number,
 ) => {
   input = input.trim().replace(/^大字/, '')
-  const townPatterns = await getTownRegexPatterns(pref, city)
+  const townPatterns = await getTownRegexPatterns(pref, city, apiVersion)
 
   const regexPrefixes = ['^']
   if (city.city === '京都市') {
@@ -136,6 +137,7 @@ async function normalizeAddrPart(
   pref: SinglePrefecture,
   city: SingleCity,
   town: SingleMachiAza,
+  apiVersion: number,
 ): Promise<NormalizedAddrPart> {
   const match = addr.match(
     /^([1-9][0-9]*)(?:-([1-9][0-9]*))?(?:-([1-9][0-9]*))?/,
@@ -147,7 +149,7 @@ async function normalizeAddrPart(
   }
   // TODO: rsdtの場合はrsdtと地番を両方取得する
   if (town.rsdt) {
-    const res = await getRsdt(pref, city, town)
+    const res = await getRsdt(pref, city, town, apiVersion)
     for (const rsdt of res) {
       const addrPart = rsdtToString(rsdt)
       if (match[0] === addrPart) {
@@ -158,7 +160,7 @@ async function normalizeAddrPart(
       }
     }
   } else {
-    const res = await getChiban(pref, city, town)
+    const res = await getChiban(pref, city, town, apiVersion)
     for (const chiban of res) {
       const addrPart = chibanToString(chiban)
       if (match[0] === addrPart) {
@@ -195,6 +197,7 @@ export const normalize: Normalizer = async (
   // 都道府県名の正規化
 
   const prefectures = await getPrefectures()
+  const apiVersion = prefectures.meta.updated
   const prefPatterns = getPrefectureRegexPatterns(prefectures)
   const sameNamedPrefectureCityRegexPatterns =
     getSameNamedPrefectureCityRegexPatterns(prefectures)
@@ -226,7 +229,7 @@ export const normalize: Normalizer = async (
       city: SingleCity
       other: string
     }[] = []
-    for (const _pref of prefectures) {
+    for (const _pref of prefectures.data) {
       const cityPatterns = getCityRegexPatterns(_pref)
 
       other = other.trim()
@@ -247,7 +250,12 @@ export const normalize: Normalizer = async (
       pref = matched[0].pref
     } else {
       for (const m of matched) {
-        const normalized = await normalizeTownName(m.other, m.pref, m.city)
+        const normalized = await normalizeTownName(
+          m.other,
+          m.pref,
+          m.city,
+          apiVersion,
+        )
         if (normalized) {
           pref = m.pref
           city = m.city
@@ -276,7 +284,7 @@ export const normalize: Normalizer = async (
 
   // 町丁目以降の正規化
   if (pref && city && option.level >= 3) {
-    const normalized = await normalizeTownName(other, pref, city)
+    const normalized = await normalizeTownName(other, pref, city, apiVersion)
     if (normalized) {
       town = normalized.town
       other = normalized.other
@@ -359,12 +367,10 @@ export const normalize: Normalizer = async (
 
   const normalizedAddrPart = await normalizeAddrPart(
     other,
-
     pref!,
-
     city!,
-
     town!,
+    apiVersion,
   )
   // TODO: rsdtと地番を両方対応した時に両方返すけど、今はrsdtを優先する
   if (normalizedAddrPart.rsdt) {

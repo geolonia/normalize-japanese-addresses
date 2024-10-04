@@ -17,12 +17,20 @@ export function prefectureName(pref: SinglePrefecture): string {
   return pref.pref
 }
 
+type Api<T> = {
+  meta: {
+    /// データ更新日(UNIX時間; 秒)
+    updated: number
+  }
+  data: T
+}
+
 /**
  * 都道府県、市区町村一覧API
  * 政令都市の場合は区で区切ります
  * @file api/ja.json
  */
-export type PrefectureApi = SinglePrefecture[]
+export type PrefectureApi = Api<SinglePrefecture[]>
 
 export type SingleCity = {
   /// 全国地方公共団体コード
@@ -46,7 +54,7 @@ export function cityName(city: SingleCity): string {
  * 市区町村一覧API
  * @file api/ja/{都道府県名}.json
  */
-export type CityApi = SingleCity[]
+export type CityApi = Api<SingleCity[]>
 
 export type SingleMachiAza = {
   /// ABR上の「町字ID」
@@ -74,7 +82,7 @@ export function machiAzaName(m: SingleMachiAza): string {
  * 町字一覧API
  * @file api/ja/{都道府県名}/{市区町村名}.json
  */
-export type MachiAzaApi = SingleMachiAza[]
+export type MachiAzaApi = Api<SingleMachiAza[]>
 
 export type SingleRsdt = {
   /// 街区符号

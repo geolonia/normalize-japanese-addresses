@@ -75,11 +75,12 @@ export const cachePrefectures = (data: PrefectureList) => {
   return (cachedPrefectures = data)
 }
 
-export const getPrefectureRegexPatterns = (data: PrefectureApi) => {
+export const getPrefectureRegexPatterns = (api: PrefectureApi) => {
   if (cachedPrefecturePatterns) {
     return cachedPrefecturePatterns
   }
 
+  const data = api.data
   cachedPrefecturePatterns = data.map<[SinglePrefecture, string]>((pref) => {
     const _pref = pref.pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
     const pattern = `^${_pref}(都|道|府|県)?`
@@ -117,6 +118,7 @@ export const getCityRegexPatterns = (pref: SinglePrefecture) => {
 export const getTowns = async (
   prefObj: SinglePrefecture,
   cityObj: SingleCity,
+  apiVersion: number,
 ) => {
   const pref = prefectureName(prefObj)
   const city = cityName(cityObj)
@@ -128,7 +130,7 @@ export const getTowns = async (
   }
 
   const townsResp = await __internals.fetch(
-    ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
+    ['', encodeURI(pref), encodeURI(city) + `.json?v=${apiVersion}`].join('/'),
     {},
   )
   const towns = (await townsResp.json()) as MachiAzaApi
@@ -139,6 +141,7 @@ async function fetchMetadata(
   kind: '地番' | '住居表示',
   pref: SinglePrefecture,
   city: SingleCity,
+  apiVersion: number,
 ) {
   const prefN = prefectureName(pref)
   const cityN = cityName(city)
@@ -150,7 +153,11 @@ async function fetchMetadata(
       throw new Error('metadata fetch failure')
     }
     const resp = await __internals.fetch(
-      ['', encodeURI(prefN), encodeURI(`${cityN}-${kind}.txt`)].join('/'),
+      [
+        '',
+        encodeURI(prefN),
+        encodeURI(`${cityN}-${kind}.txt?v=${apiVersion}`),
+      ].join('/'),
       {
         offset: tries * 50_000,
         length: 50_000,
@@ -259,11 +266,12 @@ export const getRsdt = async (
   pref: SinglePrefecture,
   city: SingleCity,
   town: SingleTown,
+  apiVersion: number,
 ) => {
   const metadataParsed = await fetchFromCache(
     `住居表示-${pref.code}-${city.code}`,
     async () => {
-      const metadata = await fetchMetadata('住居表示', pref, city)
+      const metadata = await fetchMetadata('住居表示', pref, city, apiVersion)
       return parseMetadata(metadata)
     },
   )
@@ -296,11 +304,12 @@ export const getChiban = async (
   pref: SinglePrefecture,
   city: SingleCity,
   town: SingleTown,
+  apiVersion: number,
 ) => {
   const metadataParsed = await fetchFromCache(
     `地番-${pref.code}-${city.code}`,
     async () => {
-      const metadata = await fetchMetadata('地番', pref, city)
+      const metadata = await fetchMetadata('地番', pref, city, apiVersion)
       return parseMetadata(metadata)
     },
   )
@@ -341,11 +350,13 @@ const isKanjiNumberFollewedByCho = (targetTownName: string) => {
 export const getTownRegexPatterns = async (
   pref: SinglePrefecture,
   city: SingleCity,
+  apiVersion: number,
 ) =>
   fetchFromCache<[SingleTown, string][]>(
     `${pref.code}-${city.code}`,
     async () => {
-      const pre_towns = await getTowns(pref, city)
+      const api = await getTowns(pref, city, apiVersion)
+      const pre_towns = api.data
       const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
       const towns: (
         | SingleMachiAza
@@ -467,12 +478,13 @@ export const getTownRegexPatterns = async (
   )
 
 export const getSameNamedPrefectureCityRegexPatterns = (
-  prefList: PrefectureList,
+  prefApi: PrefectureApi,
 ) => {
   if (typeof cachedSameNamedPrefectureCityRegexPatterns !== 'undefined') {
     return cachedSameNamedPrefectureCityRegexPatterns
   }
 
+  const prefList = prefApi.data
   const _prefs = prefList.map((pref) => {
     return pref.pref.replace(/[都|道|府|県]$/, '')
   })
