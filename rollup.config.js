@@ -1,6 +1,7 @@
 import typescript from '@rollup/plugin-typescript'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
+import terser from '@rollup/plugin-terser'
 
 export default [
   {
@@ -10,7 +11,7 @@ export default [
       name: 'normalize',
       format: 'umd',
     },
-    plugins: [typescript(), resolve({ browser: true }), commonjs()],
+    plugins: [typescript(), resolve({ browser: true }), commonjs(), terser()],
   },
   {
     input: 'src/main-browser.ts',
@@ -19,7 +20,7 @@ export default [
       name: 'normalize',
       format: 'esm',
     },
-    plugins: [typescript(), resolve({ browser: true }), commonjs()],
+    plugins: [typescript(), resolve({ browser: true }), commonjs(), terser()],
   },
   {
     input: 'src/main-node.ts',
@@ -28,7 +29,6 @@ export default [
       'papaparse',
       'undici',
       'lru-cache',
-      'unzipper',
       'node:fs',
     ],
     output: {
@@ -44,7 +44,6 @@ export default [
       'papaparse',
       'undici',
       'lru-cache',
-      'unzipper',
       'node:fs',
     ],
     output: {
