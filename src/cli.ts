@@ -1,7 +1,11 @@
 import { normalize } from './main-node'
 
 async function main(args: string[]) {
-  const result = await normalize(args[0])
+  let options = {}
+  if (args.length > 1) {
+    options = JSON.parse(args[1])
+  }
+  const result = await normalize(args[0], options)
   console.log(JSON.stringify(result, null, 2))
 }
 

@@ -28,7 +28,20 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3').then(result => {
-  console.log(result); // {"pref": "北海道", "city": "札幌市西区", "town": "二十四軒二条二丁目", "addr": "3-3", "lat": 43.074273, "lng": 141.315099, "level"; 3}
+  console.log(result);
+  // {
+  //   "pref": "北海道", // 都道府県名
+  //   "city": "札幌市西区", // 市区町村名
+  //   "town": "二十四軒二条二丁目", // 大字・丁目名
+  //   "addr": "3-3", // 街区符号・住居符号または地番
+  //   "level": 8, // 正規化レベル
+  //   "point": {
+  //     "lat": 43.074206115, // 緯度
+  //     "lng": 141.315540696, // 軽度
+  //     "level": 8 // 位置情報データレベル
+  //   },
+  //   "other": "" // 正規化できなかった文字列
+  // }
 })
 ```
 
@@ -37,14 +50,27 @@ normalize('北海道札幌市西区24-2-2-3-3').then(result => {
 * `0` - 都道府県も判別できなかった。
 * `1` - 都道府県まで判別できた。
 * `2` - 市区町村まで判別できた。
-* `3` - 町丁目まで判別できた。
+* `3` - 大字・丁目まで判別できた。
+* `8` - 住居表示住所の街区符号・住居符号または地番住所の地番まで判別できた。
 
-例えば都道府県名のみを正規化したい場合、`level` オプションで指定することで処理を速くすることができます。
+`point` に位置情報データ (EPSG:4326) が入っています。位置情報の精度を表す `level` プロパティを参照してください。住所正規化レベルと位置情報データのレベルが異なる場合は主には、住居表示または地番情報（レベル8）は存在しましたが、位置情報データが存在しなかった場合。この場合は、大字・丁目の代表点の位置情報データを返却します。
+
+レベルの上限を設定することも可能です。例えば都道府県名のみを正規化したい場合、`level` オプションで指定することで処理を速くすることができます。
 
 ```javascript
 const { normalize } = require('@geolonia/normalize-japanese-addresses')
 normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
-  console.log(result); // {"pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "lat": null, "lng": null, "level"; 1}
+  console.log(result);
+  // {
+  //   "pref": "北海道",
+  //   "other": "札幌市西区24-2-2-3-3",
+  //   "level": 1,
+  //   "point": {
+  //     "lat": 43.0639406375,
+  //     "lng": 141.347906782,
+  //     "level": 1
+  //   }
+  // }
 })
 ```
 
@@ -52,33 +78,12 @@ normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
 
 以下のパラメーターを変更することでライブラリの動作全体に関わる設定が変更できます。
 
-#### `config.townCacheSize: number`
-
-＠geolonia/normalize-japanese-addresses は市区町村毎の最新の町丁目のデータを web API から取得し住所の正規化を行います。`townCacheSize` オプションはキャッシュする市区町村の数を変更します。デフォルトは 1,000 件になっています。
 
 #### `config.japaneseAddressesApi: string`
 
-町丁目データを配信する web API のエンドポイントを指定します。デフォルトは `https://geolonia.github.io/japanese-addresses/api/ja` です。この API から配信されるデータのディレクトリ構成は [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses/tree/develop/api)を参考にしてください。
+住所データを配信する Web API のエンドポイントを指定します。デフォルトは `https://japanese-addresses-v2.geoloniamaps.com/api/ja` です。この API から配信されるデータのディレクトリ構成は [Geolonia 住所データ](https://github.com/geolonia/japanese-addresses-v2/) を参考にしてください。
 
-このオプションに対して `file://` 形式の URL を指定することで、ローカルファイルとして保存したファイルを参照することができます。
-
-##### 使用例
-
-```shell
-# Geolonia 住所データのダウンロード
-$ curl -sL https://github.com/geolonia/japanese-addresses/archive/refs/heads/master.tar.gz | tar xvfz -
-```
-
-```javascript
-const { config, normalize } = require('@geolonia/normalize-japanese-addresses')
-config.japaneseAddressesApi = 'file:///path/to/japanese-addresses-master/api/ja'
-
-(function(){
-  for (address of addresses) {
-    await normalize(address)
-  }
-})()
-```
+NodeJS環境のみ、このオプションに対して `file://` 形式の URL を指定することで、ローカルファイルとして保存したファイルを参照することができます。
 
 ## 正規化の内容
 
@@ -120,7 +125,19 @@ dist フォルダ以下に main-node.js など必要なファイルが生成さ�
 // sample.js
 const { normalize } = require('./dist/main-node.js');
 normalize('北海道札幌市西区24-2-2-3-3', { level: 3 }).then(result => {
-  console.log(result); // { "pref": "北海道", "city": "", "town": "", "addr": "札幌市西区二十四軒二条二丁目3-3", "level": 1 }
+  console.log(result);
+  // {
+  //   "pref": "北海道",
+  //   "city": "札幌市西区",
+  //   "town": "二十四軒二条二丁目",
+  //   "other": "3-3",
+  //   "level": 3,
+  //   "point": {
+  //     "lat": 43.074273,
+  //     "lng": 141.315099,
+  //     "level": 3
+  //   }
+  // }
 })
 ```
 
@@ -136,7 +153,7 @@ $ node sample.js
 
 * この正規化エンジンは、住所の「名寄せ」を目的としており、たとえば京都の「通り名」は削除します。
   * 郵便や宅急便などに使用される住所としては、問題ないと考えています。
-* この正規化エンジンは、町丁目及び小字レベルまでは対応していますが、それ以降については対応しておりません。
+* 正規化に利用するデータは、 [`japanese-addresses-v2`](https://github.com/geolonia/japanese-addresses-v2) で作成されます。元データに関してはそのレポジトリを御覧ください。
 * 住居表示が未整備の地域については全体的に苦手です。
 
 ### 貢献方法
