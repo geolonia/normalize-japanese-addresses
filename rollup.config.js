@@ -1,7 +1,22 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import typescript from '@rollup/plugin-typescript'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import terser from '@rollup/plugin-terser'
+import replace from '@rollup/plugin-replace'
+
+const packageJson = JSON.parse(
+  fs.readFileSync(path.join(import.meta.dirname, 'package.json'), 'utf-8'),
+)
+
+const replacePlugin = replace({
+  preventAssignment: true,
+  values: {
+    __VERSION__: `'${packageJson.version}'`,
+  },
+})
 
 export default [
   {
@@ -11,7 +26,13 @@ export default [
       name: 'normalize',
       format: 'umd',
     },
-    plugins: [typescript(), resolve({ browser: true }), commonjs(), terser()],
+    plugins: [
+      typescript(),
+      replacePlugin,
+      resolve({ browser: true }),
+      commonjs(),
+      terser(),
+    ],
   },
   {
     input: 'src/main-browser.ts',
@@ -20,7 +41,13 @@ export default [
       name: 'normalize',
       format: 'esm',
     },
-    plugins: [typescript(), resolve({ browser: true }), commonjs(), terser()],
+    plugins: [
+      typescript(),
+      replacePlugin,
+      resolve({ browser: true }),
+      commonjs(),
+      terser(),
+    ],
   },
   {
     input: 'src/main-node.ts',
@@ -35,7 +62,7 @@ export default [
       file: './dist/main-node-esm.js',
       format: 'esm',
     },
-    plugins: [typescript()],
+    plugins: [typescript(), replacePlugin],
   },
   {
     input: 'src/main-node.ts',
@@ -50,6 +77,6 @@ export default [
       file: './dist/main-node-cjs.cjs',
       format: 'cjs',
     },
-    plugins: [typescript()],
+    plugins: [typescript(), replacePlugin],
   },
 ]

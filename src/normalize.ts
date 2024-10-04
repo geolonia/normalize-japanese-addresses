@@ -42,6 +42,9 @@ export type TransformRequestQuery = {
   town?: string
 }
 
+const __VERSION__: string = 'dev'
+export const version = __VERSION__
+
 /**
  * normalize {@link Normalizer} の動作オプション。
  */

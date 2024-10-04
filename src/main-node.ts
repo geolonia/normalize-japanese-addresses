@@ -79,5 +79,6 @@ const fetchOrReadFile = async (
 }
 
 __internals.fetch = fetchOrReadFile
+export const version = Normalize.version
 export const config = Normalize.config
 export const normalize = Normalize.normalize

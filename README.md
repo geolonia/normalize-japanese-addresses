@@ -26,7 +26,10 @@ $ npm install @geolonia/normalize-japanese-addresses -S
 住所を正規化します。
 
 ```javascript
-const { normalize } = require('@geolonia/normalize-japanese-addresses')
+import { normalize } from '@geolonia/normalize-japanese-addresses';
+// ESMを利用しない場合は下記
+// const { normalize } = require('@geolonia/normalize-japanese-addresses');
+
 normalize('北海道札幌市西区24-2-2-3-3').then(result => {
   console.log(result);
   // {
@@ -123,7 +126,10 @@ dist フォルダ以下に main-node.js など必要なファイルが生成さ�
 
 ```javascript
 // sample.js
-const { normalize } = require('./dist/main-node.js');
+import { normalize } from './dist/main-node-esm.js';
+// ESMを利用しない場合は下記
+// const { normalize } = require('./dist/main-node-cjs.cjs');
+
 normalize('北海道札幌市西区24-2-2-3-3', { level: 3 }).then(result => {
   console.log(result);
   // {
