@@ -137,77 +137,25 @@ export const getTowns = async (
   return (cachedTowns[cacheKey] = towns)
 }
 
-async function fetchMetadata(
-  kind: '地番' | '住居表示',
-  pref: SinglePrefecture,
-  city: SingleCity,
-  apiVersion: number,
-) {
-  const prefN = prefectureName(pref)
-  const cityN = cityName(city)
-  const metadataParts: string[] = []
-  let hasMore = true
-  let tries = 0
-  while (hasMore === true) {
-    if (tries > 10) {
-      throw new Error('metadata fetch failure')
-    }
-    const resp = await __internals.fetch(
-      [
-        '',
-        encodeURI(prefN),
-        encodeURI(`${cityN}-${kind}.txt?v=${apiVersion}`),
-      ].join('/'),
-      {
-        offset: tries * 50_000,
-        length: 50_000,
-      },
-    )
-    if (!resp.ok) {
-      hasMore = false
-      continue
-    }
-    const part = await resp.text()
-    if (part.length === 0) {
-      hasMore = false
-      continue
-    }
-    let trimmed = part.trimEnd()
-    if (trimmed.endsWith('=END=')) {
-      trimmed = trimmed.slice(0, -5)
-      hasMore = false
-    }
-    tries += 1
-    metadataParts.push(trimmed)
-  }
-  return metadataParts.join('')
-}
-
-type MetadataRow = { offset: number; length: number }
-function parseMetadata(metadata: string): { [name: string]: MetadataRow } {
-  const lines = Papaparse.parse<[string, string, string]>(metadata, {
-    header: false,
-  }).data
-  const result: { [key: string]: MetadataRow } = {}
-  for (const line of lines) {
-    const [key, offset, length] = line
-    result[key] = { offset: parseInt(offset, 10), length: parseInt(length, 10) }
-  }
-  return result
-}
+type MetadataRow = { start: number; length: number }
 
 async function fetchSubresource(
   kind: '地番' | '住居表示',
   pref: SinglePrefecture,
   city: SingleCity,
   row: MetadataRow,
+  apiVersion: number,
 ) {
   const prefN = prefectureName(pref)
   const cityN = cityName(city)
   const resp = await __internals.fetch(
-    ['', encodeURI(prefN), encodeURI(`${cityN}-${kind}.txt`)].join('/'),
+    [
+      '',
+      encodeURI(prefN),
+      encodeURI(`${cityN}-${kind}.txt?v=${apiVersion}`),
+    ].join('/'),
     {
-      offset: row.offset,
+      offset: row.start,
       length: row.length,
     },
   )
@@ -268,14 +216,7 @@ export const getRsdt = async (
   town: SingleTown,
   apiVersion: number,
 ) => {
-  const metadataParsed = await fetchFromCache(
-    `住居表示-${pref.code}-${city.code}`,
-    async () => {
-      const metadata = await fetchMetadata('住居表示', pref, city, apiVersion)
-      return parseMetadata(metadata)
-    },
-  )
-  const row = metadataParsed[machiAzaName(town)]
+  const row = town.csv_ranges?.住居表示
   if (!row) {
     return []
   }
@@ -283,7 +224,13 @@ export const getRsdt = async (
   const parsed = await fetchFromCache(
     `住居表示-${pref.code}-${city.code}-${machiAzaName(town)}`,
     async () => {
-      const data = await fetchSubresource('住居表示', pref, city, row)
+      const data = await fetchSubresource(
+        '住居表示',
+        pref,
+        city,
+        row,
+        apiVersion,
+      )
       const parsed = parseSubresource<SingleRsdt>(data)
       parsed.sort((a, b) => {
         const aStr = [a.blk_num, a.rsdt_num, a.rsdt_num2]
@@ -306,14 +253,7 @@ export const getChiban = async (
   town: SingleTown,
   apiVersion: number,
 ) => {
-  const metadataParsed = await fetchFromCache(
-    `地番-${pref.code}-${city.code}`,
-    async () => {
-      const metadata = await fetchMetadata('地番', pref, city, apiVersion)
-      return parseMetadata(metadata)
-    },
-  )
-  const row = metadataParsed[machiAzaName(town)]
+  const row = town.csv_ranges?.地番
   if (!row) {
     return []
   }
@@ -321,7 +261,7 @@ export const getChiban = async (
   const parsed = await fetchFromCache(
     `地番-${pref.code}-${city.code}-${machiAzaName(town)}`,
     async () => {
-      const data = await fetchSubresource('地番', pref, city, row)
+      const data = await fetchSubresource('地番', pref, city, row, apiVersion)
       const parsed = parseSubresource<SingleChiban>(data)
       parsed.sort((a, b) => {
         const aStr = [a.prc_num1, a.prc_num2, a.prc_num3]
