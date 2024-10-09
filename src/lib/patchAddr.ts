@@ -23,15 +23,19 @@ const addrPatches = [
 ]
 
 export const patchAddr = (
-  pref: string,
-  city: string,
-  town: string,
+  prefName: string,
+  cityName: string,
+  townName: string,
   addr: string,
 ): string => {
   let _addr = addr
   for (let i = 0; i < addrPatches.length; i++) {
     const patch = addrPatches[i]
-    if (patch.pref === pref && patch.city === city && patch.town === town) {
+    if (
+      patch.pref === prefName &&
+      patch.city === cityName &&
+      patch.town === townName
+    ) {
       _addr = _addr.replace(new RegExp(patch.pattern), patch.result)
     }
   }

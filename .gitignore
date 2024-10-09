@@ -29,3 +29,6 @@ yarn-error.log*
 yarn.lock
 
 test/japanese-addresses-master
+
+# version
+src/version.ts

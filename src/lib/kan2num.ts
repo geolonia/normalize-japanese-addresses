@@ -5,7 +5,8 @@ export const kan2num = (string: string) => {
   for (let i = 0; i < kanjiNumbers.length; i++) {
     try {
       // @ts-ignore
-      string = string.replace(kanjiNumbers[i], kanji2number(kanjiNumbers[i]));
+      string = string.replace(kanjiNumbers[i], kanji2number(kanjiNumbers[i]))
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // ignore
     }

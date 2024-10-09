@@ -1,26 +1,61 @@
 import * as Normalize from './normalize'
-import { promises as fs } from 'fs'
-import unfetch from 'isomorphic-unfetch'
-import { TransformRequestQuery } from './normalize'
+import {
+  __internals,
+  fetchWithTimeoutRetry,
+  FetchOptions,
+  FetchResponseLike,
+} from './config'
+import { promises as fs } from 'node:fs'
+import { fetch } from 'undici'
 
 export const requestHandlers = {
-  file: (fileURL: URL) => {
+  file: async (fileURL: URL, options?: FetchOptions) => {
+    const o = options || {}
     const filePath =
       process.platform === 'win32'
-        ? decodeURI(fileURL.pathname).substr(1)
+        ? decodeURI(fileURL.pathname).substring(1)
         : decodeURI(fileURL.pathname)
+    const f = await fs.open(filePath, 'rb')
+    let contents: Buffer, ok: boolean
+    if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
+      contents = Buffer.alloc(o.length)
+      const resp = await f.read(contents, 0, o.length, o.offset)
+      ok = resp.bytesRead === o.length
+    } else {
+      contents = await f.readFile()
+      ok = true
+    }
+    await f.close()
     return {
       json: async () => {
-        const contents = await fs.readFile(filePath)
         return JSON.parse(contents.toString('utf-8'))
       },
+      text: async () => {
+        return contents.toString('utf-8')
+      },
+      ok,
     }
   },
-  http: (fileURL: URL) => {
+  http: (fileURL: URL, options?: FetchOptions) => {
+    const o = options || {}
     if (Normalize.config.geoloniaApiKey) {
       fileURL.search = `?geolonia-api-key=${Normalize.config.geoloniaApiKey}`
     }
-    return unfetch(fileURL.toString())
+    const headers: HeadersInit = {
+      'User-Agent':
+        'normalize-japanese-addresses/0.1 (+https://github.com/geolonia/normalize-japanese-addresses/)',
+    }
+    if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
+      headers['Range'] = `bytes=${o.offset}-${o.offset + o.length - 1}`
+    }
+    return fetchWithTimeoutRetry(
+      // 私達が使う場所の undici fetch インタフェースはDOMのfetchと同等なので、型キャストしても問題ない
+      fetch as unknown as (typeof Window.prototype)['fetch'],
+      fileURL.toString(),
+      {
+        headers,
+      },
+    )
   },
 }
 
@@ -31,28 +66,19 @@ export const requestHandlers = {
  */
 const fetchOrReadFile = async (
   input: string,
-  requestOptions: TransformRequestQuery = { level: -1 },
-): Promise<Response | { json: () => Promise<unknown> }> => {
+  options?: FetchOptions,
+): Promise<FetchResponseLike> => {
   const fileURL = new URL(`${Normalize.config.japaneseAddressesApi}${input}`)
-  if (Normalize.config.transformRequest && requestOptions.level !== -1) {
-    const result = await Normalize.config.transformRequest(
-      fileURL,
-      requestOptions,
-    )
-    return {
-      json: async () => Promise.resolve(result),
-    }
+  if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
+    return requestHandlers.http(fileURL, options)
+  } else if (fileURL.protocol === 'file:') {
+    return requestHandlers.file(fileURL, options)
   } else {
-    if (fileURL.protocol === 'http:' || fileURL.protocol === 'https:') {
-      return requestHandlers.http(fileURL)
-    } else if (fileURL.protocol === 'file:') {
-      return requestHandlers.file(fileURL)
-    } else {
-      throw new Error(`Unknown URL schema: ${fileURL.protocol}`)
-    }
+    throw new Error(`Unknown URL schema: ${fileURL.protocol}`)
   }
 }
 
-Normalize.__internals.fetch = fetchOrReadFile
+__internals.fetch = fetchOrReadFile
+export const version = Normalize.version
 export const config = Normalize.config
 export const normalize = Normalize.normalize

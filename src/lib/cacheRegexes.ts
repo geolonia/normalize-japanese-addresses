@@ -1,62 +1,73 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
-import LRU from 'lru-cache'
-import { currentConfig } from '../config'
-import { __internals } from '../normalize'
-import { findKanjiNumbers } from '@geolonia/japanese-numeral'
+import Papaparse from 'papaparse'
+import { LRUCache } from 'lru-cache'
+import { currentConfig, __internals } from '../config'
+import { findKanjiNumbers, kanji2number } from '@geolonia/japanese-numeral'
+import {
+  cityName,
+  LngLat,
+  MachiAzaApi,
+  machiAzaName,
+  PrefectureApi,
+  prefectureName,
+  SingleChiban,
+  SingleCity,
+  SingleMachiAza,
+  SinglePrefecture,
+  SingleRsdt,
+} from '@geolonia/japanese-addresses-v2'
 
-export type PrefectureList = { [key: string]: string[] }
-interface SingleTown {
-  town: string
-  originalTown?: string
-  koaza: string
-  lat: string
-  lng: string
-}
-export type TownList = SingleTown[]
+export type PrefectureList = PrefectureApi
+// interface SingleTown {
+//   town: string
+//   originalTown?: string
+//   koaza: string
+//   lat: string
+//   lng: string
+// }
+type SingleTown = SingleMachiAza
+export type TownList = MachiAzaApi
 interface SingleAddr {
   addr: string
   lat: string | null
   lng: string | null
 }
 export type AddrList = SingleAddr[]
-interface GaikuListItem {
-  gaiku: string
-  lat: string
-  lng: string
-}
 
-interface SingleResidential {
-  gaiku: string
-  jyukyo: string
-  lat: string
-  lng: string
-}
-type ResidentialList = SingleResidential[]
-
-const cachedTownRegexes = new LRU<string, [SingleTown, string][]>({
-  max: currentConfig.townCacheSize,
-  maxAge: 60 * 60 * 24 * 7 * 1000, // 7日間
+const cache = new LRUCache({
+  max: currentConfig.cacheSize,
 })
 
-let cachedPrefecturePatterns: [string, string][] | undefined = undefined
-const cachedCityPatterns: { [key: string]: [string, string][] } = {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+async function fetchFromCache<T extends {}>(
+  key: string,
+  fetcher: () => Promise<T>,
+): Promise<T> {
+  let data = cache.get(key) as T | undefined
+  if (typeof data !== 'undefined') {
+    return data
+  }
+  data = await fetcher()
+  cache.set(key, data)
+  return data
+}
+
+let cachedPrefecturePatterns: [SinglePrefecture, string][] | undefined =
+  undefined
+const cachedCityPatterns: Map<number, [SingleCity, string][]> = new Map()
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-const cachedGaikuListItem: { [key: string]: GaikuListItem[] } = {}
-const cachedResidentials: { [key: string]: ResidentialList } = {}
-const cachedAddrs: { [key: string]: AddrList } = {} // TODO: use LRU
-let cachedSameNamedPrefectureCityRegexPatterns:
-  | [string, string][]
-  | undefined = undefined
+let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
+  undefined
 
 export const getPrefectures = async () => {
   if (typeof cachedPrefectures !== 'undefined') {
     return cachedPrefectures
   }
 
-  const prefsResp = await __internals.fetch('.json', { level: 1 }) // ja.json
-  const data = (await prefsResp.json()) as PrefectureList
+  const prefsResp = await __internals.fetch('.json', {}) // ja.json
+  const data = (await prefsResp.json()) as PrefectureApi
   return cachePrefectures(data)
 }
 
@@ -64,13 +75,14 @@ export const cachePrefectures = (data: PrefectureList) => {
   return (cachedPrefectures = data)
 }
 
-export const getPrefectureRegexPatterns = (prefs: string[]) => {
+export const getPrefectureRegexPatterns = (api: PrefectureApi) => {
   if (cachedPrefecturePatterns) {
     return cachedPrefecturePatterns
   }
 
-  cachedPrefecturePatterns = prefs.map((pref) => {
-    const _pref = pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
+  const data = api.data
+  cachedPrefecturePatterns = data.map<[SinglePrefecture, string]>((pref) => {
+    const _pref = pref.pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
     const pattern = `^${_pref}(都|道|府|県)?`
     return [pref, pattern]
   })
@@ -78,30 +90,39 @@ export const getPrefectureRegexPatterns = (prefs: string[]) => {
   return cachedPrefecturePatterns
 }
 
-export const getCityRegexPatterns = (pref: string, cities: string[]) => {
-  const cachedResult = cachedCityPatterns[pref]
+export const getCityRegexPatterns = (pref: SinglePrefecture) => {
+  const cachedResult = cachedCityPatterns.get(pref.code)
   if (typeof cachedResult !== 'undefined') {
     return cachedResult
   }
 
+  const cities = pref.cities
   // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
-  cities.sort((a: string, b: string) => {
-    return b.length - a.length
+  cities.sort((a, b) => {
+    return cityName(a).length - cityName(b).length
   })
 
-  const patterns = cities.map((city) => {
-    let pattern = `^${toRegexPattern(city)}`
-    if (city.match(/(町|村)$/)) {
-      pattern = `^${toRegexPattern(city).replace(/(.+?)郡/, '($1郡)?')}` // 郡が省略されてるかも
+  const patterns = cities.map<[SingleCity, string]>((city) => {
+    const name = cityName(city)
+    let pattern = `^${toRegexPattern(name)}`
+    if (name.match(/(町|村)$/)) {
+      pattern = `^${toRegexPattern(name).replace(/(.+?)郡/, '($1郡)?')}` // 郡が省略されてるかも
     }
-    return [city, pattern] as [string, string]
+    return [city, pattern]
   })
 
-  cachedCityPatterns[pref] = patterns
+  cachedCityPatterns.set(pref.code, patterns)
   return patterns
 }
 
-export const getTowns = async (pref: string, city: string) => {
+export const getTowns = async (
+  prefObj: SinglePrefecture,
+  cityObj: SingleCity,
+  apiVersion: number,
+) => {
+  const pref = prefectureName(prefObj)
+  const city = cityName(cityObj)
+
   const cacheKey = `${pref}-${city}`
   const cachedTown = cachedTowns[cacheKey]
   if (typeof cachedTown !== 'undefined') {
@@ -109,110 +130,153 @@ export const getTowns = async (pref: string, city: string) => {
   }
 
   const townsResp = await __internals.fetch(
-    ['', encodeURI(pref), encodeURI(city) + '.json'].join('/'),
-    { level: 3, pref, city },
+    ['', encodeURI(pref), encodeURI(city) + `.json?v=${apiVersion}`].join('/'),
+    {},
   )
-  const towns = (await townsResp.json()) as TownList
+  const towns = (await townsResp.json()) as MachiAzaApi
   return (cachedTowns[cacheKey] = towns)
 }
 
-export const getGaikuList = async (
-  pref: string,
-  city: string,
-  town: string,
-) => {
-  if (currentConfig.interfaceVersion > 1) {
-    throw new Error(
-      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
-    )
-  }
+type MetadataRow = { start: number; length: number }
 
-  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
-  const cache = cachedGaikuListItem[cacheKey]
-  if (typeof cache !== 'undefined') {
-    return cache
-  }
-  const gaikuResp = await __internals.fetch(
-    ['', encodeURI(pref), encodeURI(city), encodeURI(town + '.json')].join('/'),
-  )
-  let gaikuListItem: GaikuListItem[]
-  try {
-    gaikuListItem = (await gaikuResp.json()) as GaikuListItem[]
-  } catch {
-    gaikuListItem = []
-  }
-  return (cachedGaikuListItem[cacheKey] = gaikuListItem)
-}
-
-export const getResidentials = async (
-  pref: string,
-  city: string,
-  town: string,
-) => {
-  if (currentConfig.interfaceVersion > 1) {
-    throw new Error(
-      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 1.`,
-    )
-  }
-
-  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
-  const cache = cachedResidentials[cacheKey]
-  if (typeof cache !== 'undefined') {
-    return cache
-  }
-
-  const residentialsResp = await __internals.fetch(
+async function fetchSubresource(
+  kind: '地番' | '住居表示',
+  pref: SinglePrefecture,
+  city: SingleCity,
+  row: MetadataRow,
+  apiVersion: number,
+) {
+  const prefN = prefectureName(pref)
+  const cityN = cityName(city)
+  const resp = await __internals.fetch(
     [
       '',
-      encodeURI(pref),
-      encodeURI(city),
-      encodeURI(town),
-      encodeURI('住居表示.json'),
+      encodeURI(prefN),
+      encodeURI(`${cityN}-${kind}.txt?v=${apiVersion}`),
     ].join('/'),
+    {
+      offset: row.start,
+      length: row.length,
+    },
   )
-  let residentials: ResidentialList
-  try {
-    residentials = (await residentialsResp.json()) as ResidentialList
-  } catch {
-    residentials = []
-  }
-
-  residentials.sort(
-    (res1, res2) =>
-      `${res2.gaiku}-${res2.jyukyo}`.length -
-      `${res1.gaiku}-${res1.jyukyo}`.length,
-  )
-  return (cachedResidentials[cacheKey] = residentials)
+  return resp.text()
 }
 
-export const getAddrs = async (pref: string, city: string, town: string) => {
-  if (currentConfig.interfaceVersion < 2) {
-    throw new Error(
-      `Invalid config.interfaceVersion: ${currentConfig.interfaceVersion}'}. Please set config.interfaceVersion to 2 or higher`,
-    )
+type RsdtDataRow = {
+  blk_num: string
+  rsdt_num: string
+  rsdt_num2: string
+  lng: string
+  lat: string
+}
+type ChibanDataRow = {
+  prc_num1: string
+  prc_num2: string
+  prc_num3: string
+  lng: string
+  lat: string
+}
+function parseSubresource<T extends SingleRsdt | SingleChiban>(
+  data: string,
+): T[] {
+  const firstLineEnd = data.indexOf('\n')
+  // const firstLine = data.slice(0, firstLineEnd)
+  const rest = data.slice(firstLineEnd + 1)
+  const lines = Papaparse.parse<RsdtDataRow | ChibanDataRow>(rest, {
+    header: true,
+  }).data
+  const out: T[] = []
+  for (const line of lines) {
+    const point: LngLat | undefined =
+      line.lng && line.lat
+        ? [parseFloat(line.lng), parseFloat(line.lat)]
+        : undefined
+    if ('blk_num' in line) {
+      out.push({
+        blk_num: line.blk_num,
+        rsdt_num: line.rsdt_num,
+        rsdt_num2: line.rsdt_num2,
+        point: point,
+      } as T)
+    } else if ('prc_num1' in line) {
+      out.push({
+        prc_num1: line.prc_num1,
+        prc_num2: line.prc_num2,
+        prc_num3: line.prc_num3,
+        point: point,
+      } as T)
+    }
+  }
+  return out
+}
+
+export const getRsdt = async (
+  pref: SinglePrefecture,
+  city: SingleCity,
+  town: SingleTown,
+  apiVersion: number,
+) => {
+  const row = town.csv_ranges?.住居表示
+  if (!row) {
+    return []
   }
 
-  const cacheKey = `${pref}-${city}-${town}-v${currentConfig.interfaceVersion}`
-  const cache = cachedAddrs[cacheKey]
-  if (typeof cache !== 'undefined') {
-    return cache
-  }
-
-  const addrsResp = await __internals.fetch(
-    ['', encodeURI(pref), encodeURI(city), encodeURI(town) + '.json'].join('/'),
-    { level: 8, pref, city, town },
+  const parsed = await fetchFromCache(
+    `住居表示-${pref.code}-${city.code}-${machiAzaName(town)}`,
+    async () => {
+      const data = await fetchSubresource(
+        '住居表示',
+        pref,
+        city,
+        row,
+        apiVersion,
+      )
+      const parsed = parseSubresource<SingleRsdt>(data)
+      parsed.sort((a, b) => {
+        const aStr = [a.blk_num, a.rsdt_num, a.rsdt_num2]
+          .filter((a) => !!a)
+          .join('-')
+        const bStr = [b.blk_num, b.rsdt_num, b.rsdt_num2]
+          .filter((a) => !!a)
+          .join('-')
+        return bStr.length - aStr.length
+      })
+      return parsed
+    },
   )
-  let addrs: AddrList
-  try {
-    addrs = (await addrsResp.json()) as AddrList
-  } catch {
-    addrs = []
+  return parsed
+}
+
+export const getChiban = async (
+  pref: SinglePrefecture,
+  city: SingleCity,
+  town: SingleTown,
+  apiVersion: number,
+) => {
+  const row = town.csv_ranges?.地番
+  if (!row) {
+    return []
   }
 
-  // 文字数が多い順に並び替えします。
-  // 長い順に並び替えしないと、短い住所がマッチしてしまう。
-  addrs.sort((res1, res2) => res2.addr.length - res1.addr.length)
-  return (cachedAddrs[cacheKey] = addrs)
+  const parsed = await fetchFromCache(
+    `地番-${pref.code}-${city.code}-${machiAzaName(town)}`,
+    async () => {
+      const data = await fetchSubresource('地番', pref, city, row, apiVersion)
+      const parsed = parseSubresource<SingleChiban>(data)
+      parsed.sort((a, b) => {
+        const aStr = [a.prc_num1, a.prc_num2, a.prc_num3]
+          .filter((a) => !!a)
+          .join('-')
+        const bStr = [b.prc_num1, b.prc_num2, b.prc_num3]
+          .filter((a) => !!a)
+          .join('-')
+        return bStr.length - aStr.length
+      })
+      return parsed
+    },
+  )
+
+  return parsed
 }
 
 // 十六町 のように漢数字と町が連結しているか
@@ -223,142 +287,159 @@ const isKanjiNumberFollewedByCho = (targetTownName: string) => {
   return kanjiNumbers.length > 0
 }
 
-export const getTownRegexPatterns = async (pref: string, city: string) => {
-  const cachedResult = cachedTownRegexes.get(`${pref}-${city}`)
-  if (typeof cachedResult !== 'undefined') {
-    return cachedResult
-  }
+export const getTownRegexPatterns = async (
+  pref: SinglePrefecture,
+  city: SingleCity,
+  apiVersion: number,
+) =>
+  fetchFromCache<[SingleTown, string][]>(
+    `${pref.code}-${city.code}`,
+    async () => {
+      const api = await getTowns(pref, city, apiVersion)
+      const pre_towns = api.data
+      const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
+      const towns: (
+        | SingleMachiAza
+        | (SingleMachiAza & { originalTown: SingleMachiAza })
+      )[] = []
 
-  const pre_towns = await getTowns(pref, city)
-  const townSet = new Set(pre_towns.map((town) => town.town))
-  const towns = []
+      const isKyoto = city.city === '京都市'
 
-  const isKyoto = city.match(/^京都市/)
+      // 町丁目に「○○町」が含まれるケースへの対応
+      // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
+      // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
+      // 更に、「愛知県名古屋市瑞穂区十六町1丁目」漢数字を含むケースだと丁目や番地・号の正規化が不可能になる。このようなケースも除外。
+      for (const town of pre_towns) {
+        towns.push(town)
 
-  // 町丁目に「○○町」が含まれるケースへの対応
-  // 通常は「○○町」のうち「町」の省略を許容し同義語として扱うが、まれに自治体内に「○○町」と「○○」が共存しているケースがある。
-  // この場合は町の省略は許容せず、入力された住所は書き分けられているものとして正規化を行う。
-  // 更に、「愛知県名古屋市瑞穂区十六町1丁目」漢数字を含むケースだと丁目や番地・号の正規化が不可能になる。このようなケースも除外。
-  for (const town of pre_towns) {
-    towns.push(town)
+        const originalTown = machiAzaName(town)
+        if (originalTown.indexOf('町') === -1) continue
+        const townAbbr = originalTown.replace(/(?!^町)町/g, '') // NOTE: 冒頭の「町」は明らかに省略するべきではないので、除外
+        if (
+          !isKyoto && // 京都は通り名削除の処理があるため、意図しないマッチになるケースがある。これを除く
+          !townSet.has(townAbbr) &&
+          !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
+          !isKanjiNumberFollewedByCho(originalTown)
+        ) {
+          // エイリアスとして町なしのパターンを登録
+          towns.push({
+            machiaza_id: town.machiaza_id,
+            point: town.point,
+            oaza_cho: townAbbr,
+            originalTown: town,
+          })
+        }
+      }
 
-    const originalTown = town.town
-    if (originalTown.indexOf('町') === -1) continue
-    const townAbbr = originalTown.replace(/(?!^町)町/g, '') // NOTE: 冒頭の「町」は明らかに省略するべきではないので、除外
-    if (
-      !isKyoto && // 京都は通り名削除の処理があるため、意図しないマッチになるケースがある。これを除く
-      !townSet.has(townAbbr) &&
-      !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
-      !isKanjiNumberFollewedByCho(originalTown)
-    ) {
-      // エイリアスとして町なしのパターンを登録
-      towns.push({
-        ...town,
-        originalTown,
-        town: townAbbr,
+      // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
+      towns.sort((a, b) => {
+        let aLen = machiAzaName(a).length
+        let bLen = machiAzaName(b).length
+
+        // 大字で始まる場合、優先度を低く設定する。
+        // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
+        if (machiAzaName(a).startsWith('大字')) aLen -= 2
+        if (machiAzaName(b).startsWith('大字')) bLen -= 2
+
+        return bLen - aLen
       })
-    }
-  }
 
-  // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
-  towns.sort((a, b) => {
-    let aLen = a.town.length
-    let bLen = b.town.length
+      const patterns = towns.map<[SingleMachiAza, string]>((town) => {
+        const pattern = toRegexPattern(
+          machiAzaName(town)
+            // 横棒を含む場合（流通センター、など）に対応
+            .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
+            .replace(/大?字/g, '(大?字)?')
+            // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
+            // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
+            .replace(
+              /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
+              (match: string) => {
+                const patterns = []
 
-    // 大字で始まる場合、優先度を低く設定する。
-    // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
-    if (a.town.startsWith('大字')) aLen -= 2
-    if (b.town.startsWith('大字')) bLen -= 2
+                patterns.push(
+                  match
+                    .toString()
+                    .replace(
+                      /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                      '',
+                    ),
+                ) // 漢数字
 
-    return bLen - aLen
-  })
+                if (match.match(/^壱/)) {
+                  patterns.push('一')
+                  patterns.push('1')
+                  patterns.push('１')
+                } else {
+                  const num = match
+                    .replace(/([一二三四五六七八九十]+)/g, (match) => {
+                      return kan2num(match)
+                    })
+                    .replace(/([１２３４５６７８９０]+)/g, (match) => {
+                      return kanji2number(match).toString()
+                    })
+                    .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
 
-  const patterns = towns.map((town) => {
-    const pattern = toRegexPattern(
-      town.town
-        // 横棒を含む場合（流通センター、など）に対応
-        .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
-        .replace(/大?字/g, '(大?字)?')
-        // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
-        .replace(
-          /([壱一二三四五六七八九十]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
-          (match: string) => {
-            const patterns = []
+                  patterns.push(num.toString()) // 半角アラビア数字
+                }
 
-            patterns.push(
-              match
-                .toString()
-                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, ''),
-            ) // 漢数字
+                // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+                const _pattern = `(${patterns.join(
+                  '|',
+                )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+                // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
+                //   console.log(_pattern)
+                // }
+                return _pattern // デバッグのときにめんどくさいので変数に入れる。
+              },
+            ),
+        )
+        return ['originalTown' in town ? town.originalTown : town, pattern]
+      })
 
-            if (match.match(/^壱/)) {
-              patterns.push('一')
-              patterns.push('1')
-              patterns.push('１')
-            } else {
-              const num = match
-                .replace(/([一二三四五六七八九十]+)/g, (match) => {
-                  return kan2num(match)
-                })
-                .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
+      // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
+      for (const town of towns) {
+        const chomeMatch = machiAzaName(town).match(
+          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
+        )
+        if (!chomeMatch) {
+          continue
+        }
+        const chomeNamePart = chomeMatch[1]
+        const chomeNum = chomeMatch[2]
+        const pattern = toRegexPattern(
+          `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
+        )
+        patterns.push([town, pattern])
+      }
 
-              patterns.push(num.toString()) // 半角アラビア数字
-            }
-
-            // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
-            const _pattern = `(${patterns.join(
-              '|',
-            )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
-            return _pattern // デバッグのときにめんどくさいので変数に入れる。
-          },
-        ),
-    )
-    return [town, pattern]
-  }) as [SingleTown, string][]
-
-  // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
-  for (const town of towns) {
-    const chomeMatch = town.town.match(
-      /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-    )
-    if (!chomeMatch) {
-      continue
-    }
-    const chomeNamePart = chomeMatch[1]
-    const chomeNum = chomeMatch[2]
-    const pattern = toRegexPattern(
-      `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
-    )
-    patterns.push([town, pattern])
-  }
-
-  cachedTownRegexes.set(`${pref}-${city}`, patterns)
-  return patterns
-}
+      return patterns
+    },
+  )
 
 export const getSameNamedPrefectureCityRegexPatterns = (
-  prefs: string[],
-  prefList: PrefectureList,
+  prefApi: PrefectureApi,
 ) => {
   if (typeof cachedSameNamedPrefectureCityRegexPatterns !== 'undefined') {
     return cachedSameNamedPrefectureCityRegexPatterns
   }
 
-  const _prefs = prefs.map((pref) => {
-    return pref.replace(/[都|道|府|県]$/, '')
+  const prefList = prefApi.data
+  const _prefs = prefList.map((pref) => {
+    return pref.pref.replace(/[都|道|府|県]$/, '')
   })
 
   cachedSameNamedPrefectureCityRegexPatterns = []
-  for (const pref in prefList) {
-    for (let i = 0; i < prefList[pref].length; i++) {
-      const city = prefList[pref][i]
+  for (const pref of prefList) {
+    for (const city of pref.cities) {
+      const cityN = cityName(city)
 
       // 「福島県石川郡石川町」のように、市の名前が別の都道府県名から始まっているケースも考慮する。
       for (let j = 0; j < _prefs.length; j++) {
-        if (city.indexOf(_prefs[j]) === 0) {
+        if (cityN.indexOf(_prefs[j]) === 0) {
           cachedSameNamedPrefectureCityRegexPatterns.push([
-            `${pref}${city}`,
-            `^${city}`,
+            `${pref.pref}${cityN}`,
+            `^${cityN}`,
           ])
         }
       }
