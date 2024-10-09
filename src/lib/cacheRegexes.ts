@@ -16,7 +16,7 @@ import {
   SingleMachiAza,
   SinglePrefecture,
   SingleRsdt,
-} from '../japanese-addresses-v2'
+} from '@geolonia/japanese-addresses-v2'
 
 export type PrefectureList = PrefectureApi
 // interface SingleTown {

@@ -4,7 +4,7 @@ import {
   SingleMachiAza,
   SinglePrefecture,
   SingleRsdt,
-} from './japanese-addresses-v2'
+} from '@geolonia/japanese-addresses-v2'
 
 /**
  * 正規化対象の住所の位置情報

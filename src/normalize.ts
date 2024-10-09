@@ -23,7 +23,7 @@ import {
   SingleMachiAza,
   SinglePrefecture,
   SingleRsdt,
-} from './japanese-addresses-v2'
+} from '@geolonia/japanese-addresses-v2'
 import { prenormalize } from './lib/normalizeHelpers'
 import {
   cityToResultPoint,
