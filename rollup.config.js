@@ -25,6 +25,7 @@ export default [
       file: './dist/main-browser-umd.js',
       name: 'normalize',
       format: 'umd',
+      sourcemap: true,
     },
     plugins: [
       typescript(),
@@ -40,6 +41,7 @@ export default [
       file: './dist/main-browser-esm.js',
       name: 'normalize',
       format: 'esm',
+      sourcemap: true,
     },
     plugins: [
       typescript(),
@@ -61,6 +63,7 @@ export default [
     output: {
       file: './dist/main-node-esm.js',
       format: 'esm',
+      sourcemap: true,
     },
     plugins: [typescript(), replacePlugin],
   },
@@ -76,6 +79,7 @@ export default [
     output: {
       file: './dist/main-node-cjs.cjs',
       format: 'cjs',
+      sourcemap: true,
     },
     plugins: [typescript(), replacePlugin],
   },
