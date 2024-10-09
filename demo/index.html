@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>@geolonia/normalize-japanese-addresses</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <script src="https://cdn.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
+</head>
+<body>
+  <div class="container py-4">
+    <h1>住所正規化デモ</h1>
+  </div>
+
+  <div id="root"></div>
+
+  <div class="container" style="margin-top: 80px; border-top: 3px solid #dedede; padding: 8px;">
+    <p style="text-align: center;">By <a href="https://github.com/geolonia/normalize-japanese-addresses">@geolonia/normalize-japanese-addresses</a></p>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script type="module">
+    import { normalize } from './main-browser-esm.js';
+    import htm from 'https://unpkg.com/htm@3.1.1/dist/htm.module.js?module';
+    const html = htm.bind(React.createElement);
+
+    const LEVELS = {
+      0: '都道府県も判別できなかった。',
+      1: '都道府県名まで判別できた。',
+      2: '市区町村名まで判別できた。',
+      3: '町丁目まで判別できた。',
+      8: '住居表示住所の街区符号・住居符号または地番住所の地番まで判別できた。',
+    };
+
+    const POINT_LEVELS = {
+      1: "都道府県庁所在地",
+      2: "市区町村役所（役場）所在地",
+      3: "大字・丁目の代表点",
+      8: "住居表示住所の場合はフロンテージ位置多い。地番住所の場合は地番の中央点。",
+    };
+
+    const useStorage = (key, defaultValue) => {
+      const [value, setValue] = React.useState(() => {
+        const storedValue = window.localStorage.getItem(key)
+        return (storedValue && JSON.parse(storedValue)) || defaultValue
+      });
+
+      React.useEffect(() => {
+        window.localStorage?.setItem(key, JSON.stringify(value))
+      }, [key, value]);
+
+      return [value, setValue];
+    }
+
+    const Map = (props) => {
+      const [loadedMap, setLoadedMap] = React.useState(false);
+      const mapRef = React.useRef(null);
+      const point = props.point;
+
+      React.useLayoutEffect(() => {
+        const map = new geolonia.Map({
+          container: mapRef.current,
+          center: [139.7673068, 35.6809591],
+          zoom: 10,
+        });
+
+        map.on('load', () => {
+          setLoadedMap(map);
+        });
+
+        return () => {
+          map.remove();
+        }
+      }, []);
+
+      React.useEffect(() => {
+        if (!loadedMap || !point) return;
+
+        const marker = new geolonia.Marker()
+          .setLngLat([point.lng, point.lat])
+          .addTo(loadedMap);
+
+        loadedMap.jumpTo({
+          center: [point.lng, point.lat],
+          zoom: 16,
+        });
+
+        return () => {
+          marker.remove();
+        }
+      }, [point]);
+
+      return html`<div ref=${mapRef} data-lang="ja" style=${{"height": "400px"}}></div>`;
+    }
+
+    const App = () => {
+      const [ historyList, setHistoryList ] = useStorage('njaHistory', []);
+      const [ point, setPoint ] = React.useState(undefined);
+      const [ result, setResult ] = React.useState(undefined);
+      const inputRef = React.useRef(null);
+      const resultDivRef = React.useRef(null);
+
+      const onSubmit = React.useCallback(async (ev) => {
+        ev.preventDefault();
+        const inputText = inputRef.current.value;
+        if (!inputText) return;
+        setHistoryList((prev) => {
+          const next = [...prev];
+          if (next.includes(inputText)) {
+            next.splice(next.indexOf(inputText), 1);
+            next.push(inputText);
+          } else if (next.length >= 5) {
+            next.shift();
+            next.push(inputText);
+          } else {
+            next.push(inputText);
+          }
+          return next;
+        });
+        const normalized = await normalize(inputText);
+
+        setResult({
+          input: inputText,
+          normalized,
+        });
+        setPoint(normalized.point);
+        resultDivRef.current.scrollIntoView();
+      }, [])
+
+      return (html`
+        <div className="container">
+          ${ historyList.length > 0 && html`
+            <div>
+              <h2>履歴</h2>
+              <div className="list-group">
+                ${ historyList.map((item, idx) => html`
+                  <button key=${idx} className="list-group-item list-group-item-action" onClick=${(ev) => {inputRef.current.value = item; onSubmit(ev);}}>
+                    ${item}
+                  </button>
+                `) }
+              </div>
+              <button className="btn btn-danger mt-3" onClick=${() => setHistoryList([])}>履歴をクリア</button>
+            </div>
+          `}
+          <form onSubmit=${onSubmit} className="mb-3 mt-5">
+            <div className="mb-3">
+              <input type="text" name="input" className="form-control" placeholder="住所を入力してください。" ref=${inputRef} />
+            </div>
+            <button type="submit" className="btn btn-primary">実行</button>
+          </form>
+          <div ref=${resultDivRef}>
+            ${ typeof result !== 'undefined' && html`<div>
+              <p>入力: ${result.input}</p>
+              <pre>${JSON.stringify(result.normalized, undefined, 2)}</pre>
+              <p>正規化レベル: [${result.normalized.level}] ${LEVELS[result.normalized.level]}</p>
+              <p>位置情報レベル: [${result.normalized.point?.level || 'n/a'}] ${POINT_LEVELS[result.normalized.point?.level] || ''}</p>
+            </div>` }
+          </div>
+
+          <div className="map-container">
+            <${Map} point=${point} />
+          </div>
+        </div>
+      `);
+    }
+
+    ReactDOM.render(html`<${App} />`, document.getElementById("root"));
+
+    // const address = '鹿児島県熊毛郡屋久島町安房1068-24';
+    // const normalized = await normalize(address);
+    // console.log(normalized);
+  </script>
+</body>

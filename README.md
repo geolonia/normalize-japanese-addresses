@@ -8,7 +8,7 @@
 
 ## デモ
 
-近々公開予定
+[https://geolonia.github.io/normalize-japanese-addresses/](https://geolonia.github.io/normalize-japanese-addresses/)
 
 ##  インストール
 

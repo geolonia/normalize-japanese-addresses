@@ -22,7 +22,7 @@
     "test:addresses": "jest test/addresses.test.ts",
     "test:generate-test-data": "tsx test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
-    "build": "npm run clean && rollup -c rollup.config.js",
+    "build": "npm run clean && rollup -c rollup.config.js && shx cp ./dist/main-browser-esm.js* ./demo/",
     "clean": "shx rm -rf dist"
   },
   "engines": {
