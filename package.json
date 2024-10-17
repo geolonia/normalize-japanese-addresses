@@ -18,8 +18,8 @@
   "scripts": {
     "cli": "tsx ./src/cli.ts",
     "test": "npm run test:main",
-    "test:main": "jest test/main.test.ts",
-    "test:addresses": "jest test/addresses.test.ts",
+    "test:main": "node --test --import tsx test/main.test.ts",
+    "test:addresses": "node --test --import tsx ./test/addresses.test.ts",
     "test:generate-test-data": "tsx test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
     "build": "npm run clean && rollup -c rollup.config.js && shx cp ./dist/main-browser-esm.js* ./demo/",
@@ -36,7 +36,6 @@
     "@rollup/plugin-replace": "^6.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.0",
-    "@types/jest": "^29.5.13",
     "@types/node": "^22",
     "@types/papaparse": "^5.3.14",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
@@ -45,28 +44,12 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-tsdoc": "^0.3.0",
-    "jest": "^29.7.0",
     "jest-matcher-deep-close-to": "^3.0.2",
     "prettier": "^3.3.3",
     "rollup": "^4.22.4",
     "shx": "^0.3.4",
-    "ts-jest": "^29.2.5",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.ts$": [
-        "ts-jest",
-        {
-          "tsconfig": "tsconfig.json"
-        }
-      ]
-    }
   },
   "dependencies": {
     "@geolonia/japanese-addresses-v2": "^0.0.3",

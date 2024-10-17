@@ -1,22 +1,31 @@
+import { describe, test } from 'node:test'
+import assert from 'node:assert'
+
 import { normalize } from '../src/main-node'
 
 import fs from 'node:fs'
-import path from 'path'
+import path from 'node:path'
 import Papa from 'papaparse'
 import { toMatchCloseTo } from 'jest-matcher-deep-close-to'
 import { NormalizeResult } from '../src/types'
 
-expect.extend({ toMatchCloseTo })
+function assertMatchCloseTo(
+  received: NormalizeResult,
+  expected: NormalizeResult,
+) {
+  const result = toMatchCloseTo(received, expected)
+  assert.ok(result.pass, result.message())
+}
 
 const input = fs.readFileSync(
-  path.join(path.dirname(__filename), '/addresses.csv'),
+  path.join(import.meta.dirname, '/addresses.csv'),
   {
     encoding: 'utf-8',
   },
 )
 const lines = Papa.parse<string[]>(input).data
 
-describe(`address tests`, () => {
+describe(`address tests`, { concurrency: 4 }, () => {
   for (const line of lines) {
     const addr = line[0]
     if (addr === '住所') {
@@ -46,7 +55,7 @@ describe(`address tests`, () => {
           level: parseInt(line[8]),
         }
       }
-      expect(res).toMatchCloseTo(match)
+      assertMatchCloseTo(res, match)
     })
   }
 })
