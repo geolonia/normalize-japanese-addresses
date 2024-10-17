@@ -1,10 +1,19 @@
 /* eslint-disable prettier/prettier */
+import { describe, test } from 'node:test'
+import assert from 'node:assert'
 
 import { toMatchCloseTo } from 'jest-matcher-deep-close-to';
 
 import { normalize } from '../src/main-node'
+import { NormalizeResult } from '../src/types';
 
-expect.extend({ toMatchCloseTo })
+function assertMatchCloseTo(
+  received: NormalizeResult,
+  expected: Partial<NormalizeResult>,
+) {
+  const result = toMatchCloseTo(received, expected)
+  assert.ok(result.pass, result.message())
+}
 
 describe(`basic tests`, () => {
 
@@ -12,7 +21,7 @@ describe(`basic tests`, () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
       level: 1
     })
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       pref: '神奈川県',
       level: 1,
     })
@@ -22,7 +31,7 @@ describe(`basic tests`, () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
       level: 2
     })
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       pref: '神奈川県',
       city: '横浜市港北区',
       level: 2,
@@ -33,7 +42,7 @@ describe(`basic tests`, () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
       level: 3
     })
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       pref: '神奈川県',
       city: '横浜市港北区',
       town: '大豆戸町',
@@ -46,7 +55,7 @@ describe(`basic tests`, () => {
     const res = await normalize('神奈川県横浜市港北区', {
       level: 3
     })
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       pref: '神奈川県',
       city: '横浜市港北区',
       level: 2,
@@ -57,7 +66,7 @@ describe(`basic tests`, () => {
     const res = await normalize('神奈川県', {
       level: 3
     })
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       pref: '神奈川県',
       level: 1,
     })
@@ -65,7 +74,7 @@ describe(`basic tests`, () => {
 
   test('It should get the level `1` with `神奈川県あいうえお市`', async () => {
     const res = await normalize('神奈川県あいうえお市')
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       pref: '神奈川県',
       level: 1,
     })
@@ -73,7 +82,7 @@ describe(`basic tests`, () => {
 
   test('It should get the level `2` with `東京都港区あいうえお`', async () => {
     const res = await normalize('東京都港区あいうえお')
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       pref: '東京都',
       city: '港区',
       level: 2,
@@ -82,7 +91,7 @@ describe(`basic tests`, () => {
 
   test('It should get the level `0` with `あいうえお`', async () => {
     const res = await normalize('あいうえお')
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       other: 'あいうえお',
       level: 0,
     })
@@ -101,7 +110,7 @@ describe(`basic tests`, () => {
     for (const address of addresses) {
       test(address, async () => {
         const res = await normalize(address)
-        expect(res).toMatchCloseTo({
+        assertMatchCloseTo(res, {
           pref: '東京都',
           city: '江東区',
           town: '豊洲一丁目',
@@ -119,21 +128,21 @@ describe(`basic tests`, () => {
 
   test('東京都町田市木曽東4丁目14-イ２２ ジオロニアマンション', async () => {
     const res = await normalize('東京都町田市木曽東四丁目１４ーイ２２ ジオロニアマンション')
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       other: '14-イ22 ジオロニアマンション',
     })
   })
 
   test('東京都町田市木曽東4丁目14-Ａ２２ ジオロニアマンション', async () => {
     const res = await normalize('東京都町田市木曽東四丁目１４ーＡ２２ ジオロニアマンション')
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       other: '14-A22 ジオロニアマンション',
     })
   })
 
   test('東京都町田市木曽東4丁目一四━Ａ二二 ジオロニアマンション', async () => {
     const res = await normalize('東京都町田市木曽東四丁目一四━Ａ二二 ジオロニアマンション')
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       other: '14-A22 ジオロニアマンション',
     })
   })
@@ -141,7 +150,7 @@ describe(`basic tests`, () => {
 
   test('東京都江東区豊洲 四-2-27', async () => {
     const res = await normalize('東京都江東区豊洲 四-2-27')
-    expect(res).toMatchCloseTo({
+    assertMatchCloseTo(res, {
       town: '豊洲四丁目',
     })
   })
@@ -157,7 +166,7 @@ describe(`basic tests`, () => {
     for (const address of addresses) {
       test(address, async () => {
         const res = await normalize(address)
-        expect(res).toMatchCloseTo({
+        assertMatchCloseTo(res, {
           pref: '石川県',
           city: '七尾市',
           town: '藤橋町亥',
@@ -176,26 +185,26 @@ describe(`basic tests`, () => {
   test('should handle unicode normalization', async () => {
     const address = `茨城県つくば市筑穂１丁目１０−４`.normalize('NFKD')
     const resp = await normalize(address)
-    expect(resp.city).toEqual('つくば市')
+    assert.strictEqual(resp.city, 'つくば市')
   })
 
   test('町丁目名が判別できなかった場合、残った住所には漢数字->数字などの変換処理を施さない', async () => {
     const res = await normalize('北海道滝川市一の坂町西')
-    expect(res.level).toEqual(2)
-    expect(res.town).toEqual(undefined)
-    expect(res.other).toEqual('一の坂町西')
+    assert.strictEqual(res.level, 2)
+    assert.strictEqual(res.town, undefined)
+    assert.strictEqual(res.other, '一の坂町西')
   })
 
   test('丁目の数字だけあるときは正しく「一丁目」まで補充できる', async () => {
     const res = await normalize('東京都文京区小石川1')
-    expect(res.town).toEqual('小石川一丁目')
-    expect(res.other).toEqual('')
+    assert.strictEqual(res.town, '小石川一丁目')
+    assert.strictEqual(res.other, '')
   })
 
   test('丁目の数字だけあるときは正しく「一丁目」まで補充できる（以降も対応）', async () => {
     const res = await normalize('東京都文京区小石川1ビル名')
-    expect(res.town).toEqual('小石川一丁目')
-    expect(res.other).toEqual('ビル名')
+    assert.strictEqual(res.town, '小石川一丁目')
+    assert.strictEqual(res.other, 'ビル名')
   })
 
   describe('旧漢字対応', () => {
@@ -206,8 +215,8 @@ describe(`basic tests`, () => {
       ]
       for (const address of addresses) {
         const res = await normalize(address)
-        expect(res.town).toEqual('古川大崎字東亜')
-        expect(res.level).toEqual(3)
+        assert.strictEqual(res.town, '古川大崎字東亜')
+        assert.strictEqual(res.level, 3)
       }
     })
 
@@ -218,8 +227,8 @@ describe(`basic tests`, () => {
       ]
       for (const address of addresses) {
         const res = await normalize(address)
-        expect(res.town).toEqual('海澤')
-        expect(res.level).toEqual(3)
+        assert.strictEqual(res.town, '海澤')
+        assert.strictEqual(res.level, 3)
       }
     })
 
@@ -230,8 +239,8 @@ describe(`basic tests`, () => {
       ]
       for (const address of addresses) {
         const res = await normalize(address)
-        expect(res.town).toEqual('池麸町')
-        expect(res.level).toEqual(3)
+        assert.strictEqual(res.town, '池麸町')
+        assert.strictEqual(res.level, 3)
       }
     })
   })
@@ -243,8 +252,8 @@ describe(`basic tests`, () => {
     ]
     for (const address of addresses) {
       const res = await normalize(address)
-      expect(res.town).toEqual('柿碕町')
-      expect(res.level).toEqual(3)
+      assert.strictEqual(res.town, '柿碕町')
+      assert.strictEqual(res.level, 3)
     }
   })
 
@@ -252,17 +261,21 @@ describe(`basic tests`, () => {
     test('愛知県豊田市西丹波町三五十', async () => {
       const address = '愛知県豊田市西丹波町三五十'
       const res = await normalize(address)
-      expect(res.town).toEqual('西丹波町')
-      expect(res.other).toEqual("三五十")
-      expect(res.level).toEqual(3)
+      assertMatchCloseTo(res, {
+        town: '西丹波町',
+        other: '三五十',
+        level: 3,
+      })
     })
 
     test('広島県府中市栗柄町名字八五十2459 小字以降は現在のところ無視される', async () => {
       const address = '広島県府中市栗柄町名字八五十2459'
       const res = await normalize(address)
-      expect(res.town).toEqual('栗柄町')
-      expect(res.other).toEqual("名字八五十2459")
-      expect(res.level).toEqual(3)
+      assertMatchCloseTo(res, {
+        town: '栗柄町',
+        other: '名字八五十2459',
+        level: 3,
+      })
     })
   })
 })
