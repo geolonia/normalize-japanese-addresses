@@ -3,14 +3,16 @@
   "version": "3.0.0",
   "description": "",
   "type": "module",
+  "main": "./dist/main-node-cjs.cjs",
+  "types": "./dist/main-node.d.ts",
   "exports": {
     "node": {
-      "import": "./dist/main-node-esm.js",
+      "import": "./dist/main-node-esm.mjs",
       "require": "./dist/main-node-cjs.cjs",
       "types": "./dist/main-node.d.ts"
     },
     "browser": {
-      "import": "./dist/main-browser-esm.js",
+      "import": "./dist/main-browser-esm.mjs",
       "default": "./dist/main-browser-umd.js",
       "types": "./dist/main-browser.d.ts"
     }
@@ -22,7 +24,7 @@
     "test:addresses": "node --test --import tsx ./test/addresses.test.ts",
     "test:generate-test-data": "tsx test/build-test-data.ts > test/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
-    "build": "npm run clean && rollup -c rollup.config.js && shx cp ./dist/main-browser-esm.js* ./demo/",
+    "build": "npm run clean && rollup -c rollup.config.js && shx cp ./dist/main-browser-esm.mjs* ./demo/",
     "clean": "shx rm -rf dist"
   },
   "engines": {
@@ -52,7 +54,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "@geolonia/japanese-addresses-v2": "^0.0.3",
+    "@geolonia/japanese-addresses-v2": "0.0.5",
     "@geolonia/japanese-numeral": "^1.0.2",
     "lru-cache": "^11.0.1",
     "papaparse": "^5.4.1",
