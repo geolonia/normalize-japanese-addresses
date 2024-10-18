@@ -3,6 +3,8 @@
   "version": "3.0.0",
   "description": "",
   "type": "module",
+  "main": "./dist/main-node-cjs.cjs",
+  "types": "./dist/main-node.d.ts",
   "exports": {
     "node": {
       "import": "./dist/main-node-esm.js",
