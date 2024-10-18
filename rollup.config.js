@@ -38,7 +38,7 @@ export default [
   {
     input: 'src/main-browser.ts',
     output: {
-      file: './dist/main-browser-esm.js',
+      file: './dist/main-browser-esm.mjs',
       name: 'normalize',
       format: 'esm',
       sourcemap: true,
@@ -55,13 +55,14 @@ export default [
     input: 'src/main-node.ts',
     external: [
       '@geolonia/japanese-numeral',
+      '@geolonia/japanese-addresses-v2',
       'papaparse',
       'undici',
       'lru-cache',
       'node:fs',
     ],
     output: {
-      file: './dist/main-node-esm.js',
+      file: './dist/main-node-esm.mjs',
       format: 'esm',
       sourcemap: true,
     },
@@ -71,6 +72,7 @@ export default [
     input: 'src/main-node.ts',
     external: [
       '@geolonia/japanese-numeral',
+      '@geolonia/japanese-addresses-v2',
       'papaparse',
       'undici',
       'lru-cache',

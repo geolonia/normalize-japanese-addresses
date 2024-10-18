@@ -10,7 +10,7 @@
 
 # production
 /build
-/demo/main-browser-esm.js*
+/demo/main-browser-esm.mjs*
 
 # misc
 .DS_Store
