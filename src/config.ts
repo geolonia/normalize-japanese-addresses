@@ -82,7 +82,15 @@ export const __internals: { fetch: FetchLike } = {
     if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
       headers['Range'] = `bytes=${o.offset}-${o.offset + o.length - 1}`
     }
-    return fetchWithTimeoutRetry(window.fetch, url, {
+    let globalFetch: typeof fetch;
+    if (typeof fetch !== 'undefined') {
+      globalFetch = fetch;
+    } else if (typeof window !== 'undefined') {
+      globalFetch = window.fetch;
+    } else {
+      throw new Error('fetch is not available in this environment');
+    }
+    return fetchWithTimeoutRetry(globalFetch, url, {
       headers,
     })
   },
