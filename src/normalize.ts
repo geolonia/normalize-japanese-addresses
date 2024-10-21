@@ -364,6 +364,12 @@ export const normalize: Normalizer = async (
       other: other,
       level,
       point,
+      metadata: {
+        input: address,
+        prefecture: pref,
+        city: city,
+        machiAza: town,
+      },
     }
     return result
   }
@@ -401,6 +407,14 @@ export const normalize: Normalizer = async (
     level,
     point,
     other,
+    metadata: {
+      input: address,
+      prefecture: pref,
+      city: city,
+      machiAza: town,
+      rsdt: normalizedAddrPart.rsdt,
+      chiban: normalizedAddrPart.chiban,
+    },
   }
   return result
 }
