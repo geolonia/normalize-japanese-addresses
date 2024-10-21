@@ -4,8 +4,8 @@ import assert from 'node:assert'
 
 import { toMatchCloseTo } from 'jest-matcher-deep-close-to';
 
-import { normalize } from '../src/main-node'
-import { NormalizeResult } from '../src/types';
+import { normalize } from '../../src/main-node'
+import { NormalizeResult } from '../../src/types';
 
 function assertMatchCloseTo(
   received: NormalizeResult,

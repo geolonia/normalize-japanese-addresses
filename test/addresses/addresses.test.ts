@@ -1,13 +1,13 @@
 import { describe, test } from 'node:test'
 import assert from 'node:assert'
 
-import { normalize } from '../src/main-node'
+import { normalize } from '../../src/main-node'
 
 import fs from 'node:fs'
 import path from 'node:path'
 import Papa from 'papaparse'
 import { toMatchCloseTo } from 'jest-matcher-deep-close-to'
-import { NormalizeResult } from '../src/types'
+import { NormalizeResult } from '../../src/types'
 
 function assertMatchCloseTo(
   received: NormalizeResult,
