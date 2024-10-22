@@ -1,0 +1,6 @@
+{
+  "name": "nja-test-cjs",
+  "dependencies": {
+    "@geolonia/normalize-japanese-addresses": "file:../../.."
+  }
+}

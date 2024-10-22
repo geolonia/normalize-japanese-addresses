@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+  <script type="module">
+    import { normalize } from './main-esm.mjs';
+    try {
+      const res = await normalize('渋谷区道玄坂1-10-8');
+      if (res.pref !== '東京都') {
+        throw new Error(`Expected 東京都 but got ${res.pref}`);
+      }
+      const resDiv = document.createElement('div');
+      resDiv.id = 'result';
+      resDiv.textContent = 'OK';
+      document.body.appendChild(resDiv);
+    } catch (e) {
+      const errDiv = document.createElement('div');
+      errDiv.id = 'error';
+      errDiv.textContent = e.message;
+      document.body.appendChild(errDiv);
+    }
+  </script>
+</body>
+</html>

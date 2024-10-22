@@ -1,21 +1,19 @@
 {
   "name": "@geolonia/normalize-japanese-addresses",
   "version": "3.0.1",
-  "description": "",
+  "description": "日本の住所を正規化するライブラリ",
   "type": "module",
   "main": "./dist/main-node-cjs.cjs",
   "types": "./dist/main-node.d.ts",
   "exports": {
     "node": {
       "import": "./dist/main-node-esm.mjs",
-      "require": "./dist/main-node-cjs.cjs",
-      "types": "./dist/main-node.d.ts"
+      "types": "./dist/main-node.d.ts",
+      "require": "./dist/main-node-cjs.cjs"
     },
-    "browser": {
-      "import": "./dist/main-browser-esm.mjs",
-      "default": "./dist/main-browser-umd.js",
-      "types": "./dist/main-browser.d.ts"
-    }
+    "import": "./dist/main-esm.mjs",
+    "types": "./dist/main.d.ts",
+    "default": "./dist/main-umd.cjs"
   },
   "scripts": {
     "cli": "tsx ./src/cli.ts",
@@ -23,8 +21,9 @@
     "test:main": "tsx ./test/run.ts main",
     "test:addresses": "tsx ./test/run.ts addresses",
     "test:generate-test-data": "tsx test/addresses/build-test-data.ts > test/addresses/addresses.csv",
+    "test:integration": "tsx ./test/run.ts integration",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
-    "build": "npm run clean && rollup -c rollup.config.js && shx cp ./dist/main-browser-esm.mjs* ./demo/",
+    "build": "npm run clean && rollup -c rollup.config.js && shx cp ./dist/main-esm.mjs* ./demo/",
     "clean": "shx rm -rf dist"
   },
   "engines": {
@@ -49,6 +48,7 @@
     "glob": "^11.0.0",
     "jest-matcher-deep-close-to": "^3.0.2",
     "prettier": "^3.3.3",
+    "puppeteer": "^23.6.0",
     "rollup": "^4.22.4",
     "shx": "^0.3.4",
     "tsx": "^4.19.1",
