@@ -27,7 +27,7 @@
     "clean": "shx rm -rf dist"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "author": "Geolonia, Inc.",
   "license": "MIT",
