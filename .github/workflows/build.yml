@@ -24,8 +24,13 @@ jobs:
           node-version: '22.x'
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
       - run: npm run lint
+      - run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
 
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/master'
@@ -70,10 +75,13 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
-      - run: npm run build
       - run: npm test
 
-      - name: Integration Tests
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+      # 結合テストはビルドされたものが必要
+      - name: 結合テスト
         run: npm run test:integration
 
   # アドレステストは時間かかるし、環境依存が無いので、matrixにいれる必要無い
