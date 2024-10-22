@@ -105,6 +105,21 @@ export function upgradePoint(
   return b
 }
 
+export type NormalizeResultMetadata = {
+  input: string
+
+  /** 都道府県 */
+  prefecture?: SinglePrefecture
+  /** 市区町村 */
+  city?: SingleCity
+  /** 町字 */
+  machiAza?: SingleMachiAza
+  /** 丁目 */
+  chiban?: SingleChiban
+  /** 住居表示住所 */
+  rsdt?: SingleRsdt
+}
+
 export type NormalizeResult = {
   /** 都道府県 */
   pref?: string
@@ -136,4 +151,7 @@ export type NormalizeResult = {
    * - 8 - 住居表示住所または地番の判別ができた。
    */
   level: number
+
+  /** 追加情報 */
+  metadata: NormalizeResultMetadata
 }

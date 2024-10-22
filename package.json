@@ -20,9 +20,9 @@
   "scripts": {
     "cli": "tsx ./src/cli.ts",
     "test": "npm run test:main",
-    "test:main": "node --test --import tsx test/main.test.ts",
-    "test:addresses": "node --test --import tsx ./test/addresses.test.ts",
-    "test:generate-test-data": "tsx test/build-test-data.ts > test/addresses.csv",
+    "test:main": "tsx ./test/run.ts main",
+    "test:addresses": "tsx ./test/run.ts addresses",
+    "test:generate-test-data": "tsx test/addresses/build-test-data.ts > test/addresses/addresses.csv",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.test.ts\" --fix",
     "build": "npm run clean && rollup -c rollup.config.js && shx cp ./dist/main-browser-esm.mjs* ./demo/",
     "clean": "shx rm -rf dist"
@@ -46,6 +46,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-tsdoc": "^0.3.0",
+    "glob": "^11.0.0",
     "jest-matcher-deep-close-to": "^3.0.2",
     "prettier": "^3.3.3",
     "rollup": "^4.22.4",

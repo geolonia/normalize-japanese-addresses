@@ -1,25 +1,12 @@
-/* eslint-disable prettier/prettier */
 import { describe, test } from 'node:test'
 import assert from 'node:assert'
-
-import { toMatchCloseTo } from 'jest-matcher-deep-close-to';
-
-import { normalize } from '../src/main-node'
-import { NormalizeResult } from '../src/types';
-
-function assertMatchCloseTo(
-  received: NormalizeResult,
-  expected: Partial<NormalizeResult>,
-) {
-  const result = toMatchCloseTo(received, expected)
-  assert.ok(result.pass, result.message())
-}
+import { normalize } from '../../src/main-node'
+import { assertMatchCloseTo } from '../helpers'
 
 describe(`basic tests`, () => {
-
   test('It should get the level `1` with `神奈川県横浜市港北区大豆戸町１７番地１１`', async () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
-      level: 1
+      level: 1,
     })
     assertMatchCloseTo(res, {
       pref: '神奈川県',
@@ -29,7 +16,7 @@ describe(`basic tests`, () => {
 
   test('It should get the level `2` with `神奈川県横浜市港北区大豆戸町１７番地１１`', async () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
-      level: 2
+      level: 2,
     })
     assertMatchCloseTo(res, {
       pref: '神奈川県',
@@ -40,7 +27,7 @@ describe(`basic tests`, () => {
 
   test('It should get the level `3` with `神奈川県横浜市港北区大豆戸町１７番地１１`', async () => {
     const res = await normalize('神奈川県横浜市港北区大豆戸町１７番地１１', {
-      level: 3
+      level: 3,
     })
     assertMatchCloseTo(res, {
       pref: '神奈川県',
@@ -53,7 +40,7 @@ describe(`basic tests`, () => {
 
   test('It should get the level `2` with `神奈川県横浜市港北区`', async () => {
     const res = await normalize('神奈川県横浜市港北区', {
-      level: 3
+      level: 3,
     })
     assertMatchCloseTo(res, {
       pref: '神奈川県',
@@ -64,7 +51,7 @@ describe(`basic tests`, () => {
 
   test('It should get the level `1` with `神奈川県`', async () => {
     const res = await normalize('神奈川県', {
-      level: 3
+      level: 3,
     })
     assertMatchCloseTo(res, {
       pref: '神奈川県',
@@ -120,33 +107,38 @@ describe(`basic tests`, () => {
             lat: 35.661166758,
             lng: 139.793685144,
             level: 8,
-          }
+          },
         })
       })
     }
   })
 
   test('東京都町田市木曽東4丁目14-イ２２ ジオロニアマンション', async () => {
-    const res = await normalize('東京都町田市木曽東四丁目１４ーイ２２ ジオロニアマンション')
+    const res = await normalize(
+      '東京都町田市木曽東四丁目１４ーイ２２ ジオロニアマンション',
+    )
     assertMatchCloseTo(res, {
       other: '14-イ22 ジオロニアマンション',
     })
   })
 
   test('東京都町田市木曽東4丁目14-Ａ２２ ジオロニアマンション', async () => {
-    const res = await normalize('東京都町田市木曽東四丁目１４ーＡ２２ ジオロニアマンション')
+    const res = await normalize(
+      '東京都町田市木曽東四丁目１４ーＡ２２ ジオロニアマンション',
+    )
     assertMatchCloseTo(res, {
       other: '14-A22 ジオロニアマンション',
     })
   })
 
   test('東京都町田市木曽東4丁目一四━Ａ二二 ジオロニアマンション', async () => {
-    const res = await normalize('東京都町田市木曽東四丁目一四━Ａ二二 ジオロニアマンション')
+    const res = await normalize(
+      '東京都町田市木曽東四丁目一四━Ａ二二 ジオロニアマンション',
+    )
     assertMatchCloseTo(res, {
       other: '14-A22 ジオロニアマンション',
     })
   })
-
 
   test('東京都江東区豊洲 四-2-27', async () => {
     const res = await normalize('東京都江東区豊洲 四-2-27')
@@ -176,7 +168,7 @@ describe(`basic tests`, () => {
             lat: 37.043108,
             lng: 136.967296,
             level: 2,
-          }
+          },
         })
       })
     }
@@ -209,10 +201,7 @@ describe(`basic tests`, () => {
 
   describe('旧漢字対応', () => {
     test('亞 -> 亜', async () => {
-      const addresses = [
-        '宮城県大崎市古川大崎東亞',
-        '宮城県大崎市古川大崎東亜',
-      ]
+      const addresses = ['宮城県大崎市古川大崎東亞', '宮城県大崎市古川大崎東亜']
       for (const address of addresses) {
         const res = await normalize(address)
         assert.strictEqual(res.town, '古川大崎字東亜')
@@ -233,10 +222,7 @@ describe(`basic tests`, () => {
     })
 
     test('麩 -> 麸', async () => {
-      const addresses = [
-        '愛知県津島市池麩町',
-        '愛知県津島市池麸町',
-      ]
+      const addresses = ['愛知県津島市池麩町', '愛知県津島市池麸町']
       for (const address of addresses) {
         const res = await normalize(address)
         assert.strictEqual(res.town, '池麸町')
@@ -246,10 +232,7 @@ describe(`basic tests`, () => {
   })
 
   test('柿碕町|柿さき町', async () => {
-    const addresses = [
-      '愛知県安城市柿さき町',
-      '愛知県安城市柿碕町',
-    ]
+    const addresses = ['愛知県安城市柿さき町', '愛知県安城市柿碕町']
     for (const address of addresses) {
       const res = await normalize(address)
       assert.strictEqual(res.town, '柿碕町')

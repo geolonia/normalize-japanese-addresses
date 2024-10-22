@@ -1,21 +1,10 @@
 import { describe, test } from 'node:test'
-import assert from 'node:assert'
-
-import { normalize } from '../src/main-node'
-
+import { normalize } from '../../src/main-node'
 import fs from 'node:fs'
 import path from 'node:path'
 import Papa from 'papaparse'
-import { toMatchCloseTo } from 'jest-matcher-deep-close-to'
-import { NormalizeResult } from '../src/types'
-
-function assertMatchCloseTo(
-  received: NormalizeResult,
-  expected: NormalizeResult,
-) {
-  const result = toMatchCloseTo(received, expected)
-  assert.ok(result.pass, result.message())
-}
+import { NormalizeResult } from '../../src/types'
+import { assertMatchCloseTo } from '../helpers'
 
 const input = fs.readFileSync(
   path.join(import.meta.dirname, '/addresses.csv'),
@@ -40,7 +29,7 @@ describe(`address tests`, { concurrency: 4 }, () => {
     test(testName, async () => {
       const res = await normalize(addr)
       const point = line[7] ? line[7].split(',').map(parseFloat) : undefined
-      const match: NormalizeResult = {
+      const match: Partial<NormalizeResult> = {
         other: line[5],
         level: parseInt(line[6]),
       }
