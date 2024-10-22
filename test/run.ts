@@ -6,7 +6,7 @@ import path from 'node:path';
 import { glob } from 'glob';
 
 async function main(base: string, ...testNamePatterns: string[]) {
-  const files = await glob(path.join('test', base, '**', '*.test.ts'), {
+  const files = await glob(path.join('test', base, '**/*.test.ts'), {
     absolute: true,
   });
   const testStream = run({
