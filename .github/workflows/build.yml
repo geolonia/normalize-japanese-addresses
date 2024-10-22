@@ -70,7 +70,11 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      - run: npm run build
       - run: npm test
+
+      - name: Integration Tests
+        run: npm run test:integration
 
   # アドレステストは時間かかるし、環境依存が無いので、matrixにいれる必要無い
   test-addresses:
