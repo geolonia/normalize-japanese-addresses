@@ -73,13 +73,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-
       - uses: actions/download-artifact@v4
         with:
           name: dist
+          path: dist
+
+      - run: npm ci
+      - run: npm test
+
       # 結合テストはビルドされたものが必要
       - name: 結合テスト
         run: npm run test:integration
