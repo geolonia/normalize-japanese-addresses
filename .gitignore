@@ -31,3 +31,6 @@ yarn-error.log*
 yarn.lock
 
 test/japanese-addresses-master
+
+test/integration/browser/main-esm.mjs
+test/integration/browser/main-umd.cjs

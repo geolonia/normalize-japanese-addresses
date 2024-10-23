@@ -6,7 +6,9 @@ import path from 'node:path';
 import { glob } from 'glob';
 
 async function main(base: string, ...testNamePatterns: string[]) {
-  const files = await glob(path.join('test', base, '**/*.test.ts'), {
+  // node-glob doesn't work with Windows paths, but it does work on Windows
+  // if you give it a POSIX path.
+  const files = await glob(path.posix.join('test', base, '**/*.test.ts'), {
     absolute: true,
   });
   const testStream = run({
