@@ -109,7 +109,7 @@ export type NormalizeResultMetadata = {
   input: string
 
   /** 都道府県 */
-  prefecture?: SinglePrefecture
+  prefecture?: Omit<SinglePrefecture, 'cities'>
   /** 市区町村 */
   city?: SingleCity
   /** 町字 */
