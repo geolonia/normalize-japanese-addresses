@@ -133,7 +133,7 @@ dist フォルダ以下に main-node.js など必要なファイルが生成さ�
 
 ```javascript
 // sample.js
-import { normalize } from './dist/main-node-esm.js';
+import { normalize } from './dist/main-node-esm.mjs';
 // ESMを利用しない場合は下記
 // const { normalize } = require('./dist/main-node-cjs.cjs');
 
@@ -161,6 +161,16 @@ $ node sample.js
 ```
 
 でサンプルファイルを実行することができます。
+
+## NodeJS バージョン対応方針について
+
+`normalize-japanese-addresses` は現在、 NodeJS 18.x, 20.x, 22.x を対象としてテストを実施し、動作を確認しております。ビルド時は「開発環境」の NodeJS バージョンを利用ください。
+
+NodeJS 以外のブラウザの環境は、最新ブラウザを前提とした対応となります。fetchが利用可能な環境であれば動く可能性が高い。テストは最新の Chrome を使って実施しております。
+
+開発環境は、 `.tool-versions` にかかれているバージョンを利用してください。
+
+準拠としては [Node.js Releases](https://nodejs.org/en/about/previous-releases) を参照してください。基本的に動作環境は Maintenance, Active LTS をターゲットとし、開発環境は最新の Active LTS を利用しますが、更新のタイミング等でずれることがあります。
 
 ## 注意
 
