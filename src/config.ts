@@ -7,8 +7,6 @@ export const defaultEndpoint =
 export const currentConfig: Config = {
   japaneseAddressesApi: defaultEndpoint,
   cacheSize: 1_000,
-  backendTimeout: 1_500,
-  backendTries: 3,
 }
 
 export type FetchOptions = {
@@ -26,44 +24,6 @@ export type FetchLike = (
   input: string,
   options?: FetchOptions,
 ) => Promise<FetchResponseLike>
-
-const timeoutableFetch = async (
-  fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
-  input: RequestInfo,
-  init: RequestInit | undefined,
-  timeout: number,
-) => {
-  const response = await fetch(input, {
-    ...init,
-    signal: AbortSignal.timeout(timeout),
-  })
-  return response
-}
-
-export async function fetchWithTimeoutRetry(
-  fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
-  input: RequestInfo,
-  init?: RequestInit,
-) {
-  let tries = 0
-  while (true) {
-    try {
-      // await needs to be in this try block, otherwise it won't be caught
-      const resp = await timeoutableFetch(
-        fetch,
-        input,
-        init,
-        currentConfig.backendTimeout,
-      )
-      return resp
-    } catch (error) {
-      tries++
-      if (tries >= currentConfig.backendTries) {
-        throw error
-      }
-    }
-  }
-}
 
 /**
  * @internal
@@ -90,7 +50,7 @@ export const __internals: { fetch: FetchLike } = {
     } else {
       throw new Error('fetch is not available in this environment')
     }
-    return fetchWithTimeoutRetry(globalFetch, url, {
+    return globalFetch(url, {
       headers,
     })
   },
