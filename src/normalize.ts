@@ -34,6 +34,10 @@ import {
   rsdtOrChibanToResultPoint,
   upgradePoint,
 } from './types'
+import {
+  removeCitiesFromPrefecture,
+  removeExtraFromMachiAza,
+} from './lib/utils'
 
 export type TransformRequestQuery = {
   level: number //  level = -1 は旧 API。 transformRequestFunction を設定しても無視する
@@ -366,9 +370,9 @@ export const normalize: Normalizer = async (
       point,
       metadata: {
         input: address,
-        prefecture: pref,
+        prefecture: removeCitiesFromPrefecture(pref),
         city: city,
-        machiAza: town,
+        machiAza: removeExtraFromMachiAza(town),
       },
     }
     return result
@@ -409,9 +413,9 @@ export const normalize: Normalizer = async (
     other,
     metadata: {
       input: address,
-      prefecture: pref,
+      prefecture: removeCitiesFromPrefecture(pref),
       city: city,
-      machiAza: town,
+      machiAza: removeExtraFromMachiAza(town),
       rsdt: normalizedAddrPart.rsdt,
       chiban: normalizedAddrPart.chiban,
     },

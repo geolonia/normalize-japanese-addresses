@@ -11,7 +11,7 @@ describe(`metadata tests`, () => {
     assert.strictEqual(res.metadata.prefecture?.pref, '東京都')
     assert.strictEqual(res.metadata.prefecture?.pref_k, 'トウキョウト')
     assert.strictEqual(res.metadata.prefecture?.pref_r, 'Tokyo')
-    assert.ok(res.metadata.prefecture?.cities.length > 0)
+    assert.ok(!('cities' in res.metadata.prefecture))
 
     assert.strictEqual(res.metadata.city?.code, 131130)
     assert.strictEqual(res.metadata.city?.city, '渋谷区')
