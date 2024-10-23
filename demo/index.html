@@ -40,6 +40,41 @@
       8: "住居表示住所の場合はフロンテージ位置多い。地番住所の場合は地番の中央点。",
     };
 
+    const useQueryParam = (key) => {
+      const [ value, setValue ] = React.useState(() => {
+        const hash = window.location.hash.replace(/^#/, '');
+        const searchParams = new URLSearchParams(hash);
+        return searchParams.get(key);
+      });
+
+      React.useEffect(() => {
+        const hash = window.location.hash.replace(/^#/, '');
+        const searchParams = new URLSearchParams(hash);
+        if (value === searchParams.get(key)) {
+          return;
+        } else if (!value) {
+          searchParams.delete(key);
+        } else {
+          searchParams.set(key, value);
+        }
+        window.history.replaceState({}, '', `${window.location.pathname}#${searchParams.toString()}`);
+      }, [value]);
+
+      React.useEffect(() => {
+        const handler = () => {
+          const hash = window.location.hash.replace(/^#/, '');
+          const searchParams = new URLSearchParams(hash);
+          setValue(searchParams.get(key));
+        };
+        window.addEventListener('hashchange', handler);
+        return () => {
+          window.removeEventListener('hashchange', handler);
+        };
+      }, []);
+
+      return [value, setValue];
+    }
+
     const useStorage = (key, defaultValue) => {
       const [value, setValue] = React.useState(() => {
         const storedValue = window.localStorage.getItem(key)
@@ -96,15 +131,13 @@
 
     const App = () => {
       const [ historyList, setHistoryList ] = useStorage('njaHistory', []);
+      const [ query, setQuery ] = useQueryParam('q');
       const [ point, setPoint ] = React.useState(undefined);
       const [ result, setResult ] = React.useState(undefined);
       const inputRef = React.useRef(null);
       const resultDivRef = React.useRef(null);
 
-      const onSubmit = React.useCallback(async (ev) => {
-        ev.preventDefault();
-        const inputText = inputRef.current.value;
-        if (!inputText) return;
+      const normalizeString = React.useCallback(async (inputText) => {
         setHistoryList((prev) => {
           const next = [...prev];
           if (next.includes(inputText)) {
@@ -125,8 +158,23 @@
           normalized,
         });
         setPoint(normalized.point);
+        setQuery(inputText);
         resultDivRef.current.scrollIntoView();
-      }, [])
+      }, []);
+
+      const onSubmit = React.useCallback(async (ev) => {
+        ev.preventDefault();
+        const inputText = inputRef.current.value;
+        if (!inputText) return;
+        await normalizeString(inputText);
+      }, [normalizeString]);
+
+      React.useEffect(() => {
+        if (query) {
+          inputRef.current.value = query;
+          normalizeString(query);
+        }
+      }, [query, normalizeString]);
 
       return (html`
         <div className="container">
