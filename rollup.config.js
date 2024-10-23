@@ -20,9 +20,9 @@ const replacePlugin = replace({
 
 export default [
   {
-    input: 'src/main-browser.ts',
+    input: 'src/main.ts',
     output: {
-      file: './dist/main-browser-umd.js',
+      file: './dist/main-umd.cjs',
       name: 'normalize',
       format: 'umd',
       sourcemap: true,
@@ -36,9 +36,9 @@ export default [
     ],
   },
   {
-    input: 'src/main-browser.ts',
+    input: 'src/main.ts',
     output: {
-      file: './dist/main-browser-esm.mjs',
+      file: './dist/main-esm.mjs',
       name: 'normalize',
       format: 'esm',
       sourcemap: true,

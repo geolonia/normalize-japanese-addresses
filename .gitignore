@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+**/node_modules
 /.pnp
 .pnp.js
 
@@ -10,7 +11,7 @@
 
 # production
 /build
-/demo/main-browser-esm.mjs*
+/demo/main-esm.mjs*
 
 # misc
 .DS_Store
@@ -30,3 +31,6 @@ yarn-error.log*
 yarn.lock
 
 test/japanese-addresses-master
+
+test/integration/browser/main-esm.mjs
+test/integration/browser/main-umd.cjs
