@@ -10,7 +10,7 @@ export const requestHandlers = {
       process.platform === 'win32'
         ? decodeURI(fileURL.pathname).substring(1)
         : decodeURI(fileURL.pathname)
-    const f = await fs.open(filePath, 'rb')
+    const f = await fs.open(filePath, 'r')
     let contents: Buffer, ok: boolean
     if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
       contents = Buffer.alloc(o.length)
