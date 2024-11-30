@@ -229,6 +229,15 @@ describe(`basic tests`, () => {
         assert.strictEqual(res.level, 3)
       }
     })
+
+    test('驒 -> 騨', async () => {
+      const addresses = ['岐阜県飛驒市', '岐阜県飛騨市']
+      for (const address of addresses) {
+        const res = await normalize(address)
+        assert.strictEqual(res.city, '飛騨市')
+        assert.strictEqual(res.level, 2)
+      }
+    })
   })
 
   test('柿碕町|柿さき町', async () => {
