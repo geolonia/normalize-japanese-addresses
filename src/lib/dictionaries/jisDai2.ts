@@ -291,4 +291,5 @@ export const jisDai2Dictionary: Dictionary[] = [
   { src: '籠', dst: '篭' },
   { src: '彌', dst: '弥' },
   { src: '麩', dst: '麸' },
+  { src: '驒', dst: '騨' },
 ]
