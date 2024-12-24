@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import typescript from '@rollup/plugin-typescript'
+import { dts } from 'rollup-plugin-dts'
+import del from 'rollup-plugin-delete'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import terser from '@rollup/plugin-terser'
@@ -84,5 +86,31 @@ export default [
       sourcemap: true,
     },
     plugins: [typescript(), replacePlugin],
+  },
+  {
+    input: 'dist/main.d.ts',
+    output: [
+      {
+        file: './dist/main.d.ts',
+        format: 'es',
+      },
+    ],
+    plugins: [dts()],
+  },
+  {
+    input: 'dist/main-node.d.ts',
+    output: [
+      {
+        file: './dist/main-node.d.ts',
+        format: 'es',
+      },
+    ],
+    plugins: [
+      dts(),
+      del({
+        targets: ['dist/**/*.d.ts', '!dist/main.d.ts', '!dist/main-node.d.ts'],
+        hook: 'buildEnd',
+      }),
+    ],
   },
 ]
