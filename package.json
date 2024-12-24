@@ -50,6 +50,8 @@
     "prettier": "^3.3.3",
     "puppeteer": "^23.6.0",
     "rollup": "^4.24.0",
+    "rollup-plugin-delete": "^2.1.0",
+    "rollup-plugin-dts": "^6.1.1",
     "shx": "^0.3.4",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2"
