@@ -3,6 +3,8 @@ import { __internals, FetchOptions, FetchResponseLike } from './config'
 import { promises as fs } from 'node:fs'
 import { fetch } from 'undici'
 
+export type { NormalizeResult } from './types'
+
 export const requestHandlers = {
   file: async (fileURL: URL, options?: FetchOptions) => {
     const o = options || {}
