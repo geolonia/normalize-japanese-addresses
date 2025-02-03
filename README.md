@@ -110,7 +110,7 @@ NodeJS環境のみ、このオプションに対して `file://` 形式の URL �
 参考:
 
 * [ゆらぎを処理している文字列に関しては、ソースコードを御覧ください。](https://github.com/geolonia/normalize-japanese-addresses/blob/master/src/lib/dict.ts)
-* [変換前、変換後の住所の例はテストコードを御覧ください。](https://github.com/geolonia/normalize-japanese-addresses/blob/master/test/main.test.ts)
+* [変換前、変換後の住所の例はテストコードを御覧ください。](https://github.com/geolonia/normalize-japanese-addresses/blob/master/test/main/main.test.ts)
 
 
 ## 開発者向け情報
