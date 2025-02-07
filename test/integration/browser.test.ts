@@ -10,6 +10,7 @@ const runTest = (type: 'esm' | 'umd') => {
     const browser = await puppeteer.launch({
       args: [
         '--disable-web-security', // for loading files from file://
+        '--no-sandbox', // for running in CI
       ],
     })
     try {
