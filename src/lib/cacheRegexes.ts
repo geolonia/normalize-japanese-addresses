@@ -344,58 +344,78 @@ export const getTownRegexPatterns = async (
         return bLen - aLen
       })
 
-      const patterns = towns.map<[SingleMachiAza, string]>((town) => {
-        const pattern = toRegexPattern(
-          machiAzaName(town)
-            // 横棒を含む場合（流通センター、など）に対応
-            .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
-            .replace(/大?字/g, '(大?字)?')
-            // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
-            // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
-            .replace(
-              /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
-              (match: string) => {
-                const patterns = []
+      const patterns: [SingleMachiAza, string][] = [];
 
-                patterns.push(
-                  match
-                    .toString()
-                    .replace(
-                      /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
-                      '',
-                    ),
-                ) // 漢数字
+      for (const town of towns) {
+        {
+          const pattern = toRegexPattern(
+            machiAzaName(town)
+              // 横棒を含む場合（流通センター、など）に対応
+              .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
+              .replace(/大?字/g, '(大?字)?')
+              // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
+              // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
+              .replace(
+                /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
+                (match: string) => {
+                  const patterns = []
 
-                if (match.match(/^壱/)) {
-                  patterns.push('一')
-                  patterns.push('1')
-                  patterns.push('１')
-                } else {
-                  const num = match
-                    .replace(/([一二三四五六七八九十]+)/g, (match) => {
-                      return kan2num(match)
-                    })
-                    .replace(/([１２３４５６７８９０]+)/g, (match) => {
-                      return kanji2number(match).toString()
-                    })
-                    .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
+                  patterns.push(
+                    match
+                      .toString()
+                      .replace(
+                        /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                        '',
+                      ),
+                  ) // 漢数字
 
-                  patterns.push(num.toString()) // 半角アラビア数字
-                }
+                  if (match.match(/^壱/)) {
+                    patterns.push('一')
+                    patterns.push('1')
+                    patterns.push('１')
+                  } else {
+                    const num = match
+                      .replace(/([一二三四五六七八九十]+)/g, (match) => {
+                        return kan2num(match)
+                      })
+                      .replace(/([１２３４５６７８９０]+)/g, (match) => {
+                        return kanji2number(match).toString()
+                      })
+                      .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
 
-                // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
-                const _pattern = `(${patterns.join(
-                  '|',
-                )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
-                // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
-                //   console.log(_pattern)
-                // }
-                return _pattern // デバッグのときにめんどくさいので変数に入れる。
-              },
-            ),
-        )
-        return ['originalTown' in town ? town.originalTown : town, pattern]
-      })
+                    patterns.push(num.toString()) // 半角アラビア数字
+                  }
+
+                  // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+                  const _pattern = `(${patterns.join(
+                    '|',
+                  )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+                  // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
+                  //   console.log(_pattern)
+                  // }
+                  return _pattern // デバッグのときにめんどくさいので変数に入れる。
+                },
+              ),
+          )
+          patterns.push(['originalTown' in town ? town.originalTown : town, pattern])
+        }
+
+        // X丁目の丁目なしの数字だけの場合で、数字以外が続いたり終端が現れる場合は確度が高いので、先にマッチさせる
+        {
+          const chomeMatch = machiAzaName(town).match(
+            /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
+          )
+          if (!chomeMatch) {
+            continue
+          }
+          const chomeNamePart = chomeMatch[1]
+          const chomeNum = chomeMatch[2]
+          const pattern = toRegexPattern(
+            `^${chomeNamePart}${kan2num(chomeNum)}([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]|(?![0-9])|$)`,
+          )
+          patterns.push([town, pattern])
+        }
+      }
 
       // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
       for (const town of towns) {
