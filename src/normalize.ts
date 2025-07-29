@@ -220,7 +220,8 @@ export const normalize: Normalizer = async (
     }
   }
 
-  if (!pref) {
+  other = other.trim()
+  if (!pref && other.length > 0) {
     // 都道府県名が省略されている
     const matched: {
       pref: SinglePrefecture
@@ -230,7 +231,6 @@ export const normalize: Normalizer = async (
     for (const _pref of prefectures.data) {
       const cityPatterns = getCityRegexPatterns(_pref)
 
-      other = other.trim()
       for (const [_city, pattern] of cityPatterns) {
         const match = other.match(pattern)
         if (match) {
@@ -265,10 +265,10 @@ export const normalize: Normalizer = async (
     }
   }
 
-  if (pref && option.level >= 2) {
+  other = other.trim()
+  if (pref && option.level >= 2 && other.length > 0) {
     const cityPatterns = getCityRegexPatterns(pref)
 
-    other = other.trim()
     for (const [_city, pattern] of cityPatterns) {
       const match = other.match(pattern)
       if (match) {
@@ -281,7 +281,8 @@ export const normalize: Normalizer = async (
   }
 
   // 町丁目以降の正規化
-  if (pref && city && option.level >= 3) {
+  other = other.trim()
+  if (pref && city && option.level >= 3 && other.length > 0) {
     const normalized = await normalizeTownName(other, pref, city, apiVersion)
     if (normalized) {
       town = normalized.town
