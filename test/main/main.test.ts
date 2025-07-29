@@ -270,4 +270,35 @@ describe(`basic tests`, () => {
       })
     })
   })
+
+  describe('宮城県柴田郡大河原町字町 のパターンテスト(#260)', () => {
+    test('宮城県柴田郡大河原町 までの場合は字町が補完されない', async () => {
+      const addresses = ['宮城県柴田郡大河原町', '宮城県大河原町']
+      for (const address of addresses) {
+        const res = await normalize(address)
+        assert.strictEqual(res.pref, '宮城県')
+        assert.strictEqual(res.city, '柴田郡大河原町')
+        assert.strictEqual(res.town, '')
+        assert.strictEqual(res.other, '')
+        assert.strictEqual(res.level, 2)
+      }
+    })
+
+    test('宮城県柴田郡大河原町字町 までの場合は字町が補完される', async () => {
+      const addresses = [
+        '宮城県柴田郡大河原町字町',
+        '宮城県大河原町字町',
+        '宮城県柴田郡大河原町字',
+        '宮城県大河原町町',
+      ]
+      for (const address of addresses) {
+        const res = await normalize(address)
+        assert.strictEqual(res.pref, '宮城県')
+        assert.strictEqual(res.city, '柴田郡大河原町')
+        assert.strictEqual(res.town, '字町')
+        assert.strictEqual(res.other, '')
+        assert.strictEqual(res.level, 3)
+      }
+    })
+  })
 })
