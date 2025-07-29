@@ -278,7 +278,7 @@ describe(`basic tests`, () => {
         const res = await normalize(address)
         assert.strictEqual(res.pref, '宮城県')
         assert.strictEqual(res.city, '柴田郡大河原町')
-        assert.strictEqual(res.town, '')
+        assert.strictEqual(res.town, undefined)
         assert.strictEqual(res.other, '')
         assert.strictEqual(res.level, 2)
       }
