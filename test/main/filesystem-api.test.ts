@@ -9,18 +9,24 @@ import { normalize, config } from '../../src/main-node'
 import { assertMatchCloseTo } from '../helpers'
 
 async function downloadFile(file: string, destDir: string) {
-  const resp = await fetch(`https://japanese-addresses-v2.geoloniamaps.com/api/${file}`)
+  const resp = await fetch(
+    `https://japanese-addresses-v2.geoloniamaps.com/api/${file}`,
+  )
   const outputFile = path.join(destDir, file)
   await fs.promises.mkdir(path.dirname(outputFile), { recursive: true })
   const writer = fs.createWriteStream(outputFile)
-  if (!resp.body) { throw new Error('No body') }
+  if (!resp.body) {
+    throw new Error('No body')
+  }
   await pipeline(resp.body, writer)
 }
 
 describe(`API stored in filesystem`, () => {
   let tmpdir: string
   before(async () => {
-    tmpdir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'qtile-update-csv-'))
+    tmpdir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), 'qtile-update-csv-'),
+    )
     const files = [
       'ja.json',
       'ja/東京都/渋谷区.json',
