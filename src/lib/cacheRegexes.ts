@@ -344,7 +344,7 @@ export const getTownRegexPatterns = async (
         return bLen - aLen
       })
 
-      const patterns: [SingleMachiAza, string][] = [];
+      const patterns: [SingleMachiAza, string][] = []
 
       for (const town of towns) {
         {
@@ -381,7 +381,10 @@ export const getTownRegexPatterns = async (
                       .replace(/([１２３４５６７８９０]+)/g, (match) => {
                         return kanji2number(match).toString()
                       })
-                      .replace(/(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/, '')
+                      .replace(
+                        /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                        '',
+                      )
 
                     patterns.push(num.toString()) // 半角アラビア数字
                   }
@@ -397,7 +400,10 @@ export const getTownRegexPatterns = async (
                 },
               ),
           )
-          patterns.push(['originalTown' in town ? town.originalTown : town, pattern])
+          patterns.push([
+            'originalTown' in town ? town.originalTown : town,
+            pattern,
+          ])
         }
 
         // X丁目の丁目なしの数字だけの場合で、数字以外が続いたり終端が現れる場合は確度が高いので、先にマッチさせる
