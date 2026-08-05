@@ -27,10 +27,10 @@ async function downloadFile(file: string, destDir: string) {
   await pipeline(resp.body, writer)
 }
 
-/** 住居表示のサブリソースに対して、あと何回どのステータスを返すか */
-const subresourceFailure = { remaining: 0, status: 503 }
-/** 住居表示のサブリソースへのリクエスト回数 */
-let subresourceRequests = 0
+/** パスの末尾が target に一致する要求に対して、あと何回どのステータスを返すか */
+const failure = { target: '-住居表示.txt', remaining: 0, status: 503 }
+/** target に一致した要求の回数 */
+let targetRequests = 0
 
 describe(`データ取得に失敗したときの挙動`, () => {
   let tmpdir: string
@@ -44,6 +44,10 @@ describe(`データ取得に失敗したときの挙動`, () => {
       'ja.json',
       'ja/東京都/渋谷区.json',
       'ja/東京都/渋谷区-住居表示.txt',
+      // 町字データの取得を失敗させるテスト用。渋谷区は他のテストで
+      // 取得済みになりキャッシュから返るため、別の市区町村が必要
+      'ja/東京都/目黒区.json',
+      'ja/東京都/目黒区-住居表示.txt',
     ]) {
       await downloadFile(file, tmpdir)
     }
@@ -51,11 +55,11 @@ describe(`データ取得に失敗したときの挙動`, () => {
     server = http.createServer((req, res) => {
       const urlPath = decodeURIComponent((req.url ?? '/').split('?')[0])
 
-      if (urlPath.endsWith('-住居表示.txt')) {
-        subresourceRequests += 1
-        if (subresourceFailure.remaining > 0) {
-          subresourceFailure.remaining -= 1
-          res.writeHead(subresourceFailure.status, {
+      if (urlPath.endsWith(failure.target)) {
+        targetRequests += 1
+        if (failure.remaining > 0) {
+          failure.remaining -= 1
+          res.writeHead(failure.status, {
             'content-type': 'text/plain; charset=utf-8',
           })
           // エラーページの本文を返す CDN を模す。status に 200 を指定すると
@@ -104,27 +108,28 @@ describe(`データ取得に失敗したときの挙動`, () => {
   })
 
   beforeEach(() => {
-    subresourceFailure.remaining = 0
-    subresourceFailure.status = 503
-    subresourceRequests = 0
+    failure.target = '-住居表示.txt'
+    failure.remaining = 0
+    failure.status = 503
+    targetRequests = 0
   })
 
   // 町字ごとにキャッシュされるため、テストごとに異なる町字を使う
 
   test(`一過性の 5xx はリトライして回復する`, async () => {
-    subresourceFailure.remaining = 1
-    subresourceFailure.status = 503
+    failure.remaining = 1
+    failure.status = 503
 
     const res = await normalize('渋谷区道玄坂1-10-8')
 
     assert.strictEqual(res.level, 8)
     assert.strictEqual(res.addr, '10-8')
-    assert.strictEqual(subresourceRequests, 2)
+    assert.strictEqual(targetRequests, 2)
   })
 
   test(`5xx が続く場合は縮退せずにエラーになる`, async () => {
-    subresourceFailure.remaining = Number.MAX_SAFE_INTEGER
-    subresourceFailure.status = 503
+    failure.remaining = Number.MAX_SAFE_INTEGER
+    failure.status = 503
 
     await assert.rejects(
       () => normalize('渋谷区神南1-1-1'),
@@ -135,36 +140,36 @@ describe(`データ取得に失敗したときの挙動`, () => {
       },
     )
     // 初回の要求を含めて 3 回で打ち切る
-    assert.strictEqual(subresourceRequests, 3)
+    assert.strictEqual(targetRequests, 3)
   })
 
   test(`Cloudflare の 52x もリトライの対象になる`, async () => {
     // 配信元の Cloudflare は origin 側の不調に対して 520 から 527 を返す
-    subresourceFailure.remaining = 2
-    subresourceFailure.status = 520
+    failure.remaining = 2
+    failure.status = 520
 
     const res = await normalize('渋谷区恵比寿4-20-3')
 
     assert.strictEqual(res.level, 8)
     assert.strictEqual(res.addr, '20-3')
-    assert.strictEqual(subresourceRequests, 3)
+    assert.strictEqual(targetRequests, 3)
   })
 
   test(`200 でエラーページが返った場合もリトライして回復する`, async () => {
     // Range で要求した長さと本文のバイト長が食い違うことで検知する
-    subresourceFailure.remaining = 1
-    subresourceFailure.status = 200
+    failure.remaining = 1
+    failure.status = 200
 
     const res = await normalize('渋谷区宇田川町15-1')
 
     assert.strictEqual(res.level, 8)
     assert.strictEqual(res.addr, '15-1')
-    assert.strictEqual(subresourceRequests, 2)
+    assert.strictEqual(targetRequests, 2)
   })
 
   test(`200 のエラーページが続く場合は縮退せずにエラーになる`, async () => {
-    subresourceFailure.remaining = Number.MAX_SAFE_INTEGER
-    subresourceFailure.status = 200
+    failure.remaining = Number.MAX_SAFE_INTEGER
+    failure.status = 200
 
     await assert.rejects(
       () => normalize('渋谷区神宮前6-19-13'),
@@ -174,14 +179,27 @@ describe(`データ取得に失敗したときの挙動`, () => {
         return true
       },
     )
-    assert.strictEqual(subresourceRequests, 3)
+    assert.strictEqual(targetRequests, 3)
+  })
+
+  test(`町字データが 200 でエラーページを返した場合もリトライして回復する`, async () => {
+    // JSON として読めない本文は、5xx と同じ一過性の失敗として扱う
+    failure.target = '目黒区.json'
+    failure.remaining = 1
+    failure.status = 200
+
+    const res = await normalize('目黒区五本木1-33-16')
+
+    assert.strictEqual(res.level, 8)
+    assert.strictEqual(res.addr, '33-16')
+    assert.strictEqual(targetRequests, 2)
   })
 
   test(`404 はリトライせずにエラーになる`, async () => {
-    subresourceFailure.remaining = Number.MAX_SAFE_INTEGER
-    subresourceFailure.status = 404
+    failure.remaining = Number.MAX_SAFE_INTEGER
+    failure.status = 404
 
     await assert.rejects(() => normalize('渋谷区桜丘町13-3'))
-    assert.strictEqual(subresourceRequests, 1)
+    assert.strictEqual(targetRequests, 1)
   })
 })

@@ -84,6 +84,30 @@ normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
 })
 ```
 
+### エラー処理
+
+`normalize()` は住所データの取得に失敗した場合、例外を投げます。取得できなかった住所を低い `level` で返すことはしません。低い `level` が返るのは、入力された住所文字列をそこまでしか判別できなかった場合だけです。
+
+一過性の失敗と判断できるもの（HTTP 5xx、408、425、429、ネットワークエラー、200 で返されたエラーページ）は、指数バックオフで最大 3 回まで自動的に再試行します。それでも回復しない場合に例外となります。404 のように再試行しても解決しない失敗は、その場で例外になります。
+
+例外の `message` には、どのデータの取得に失敗したかと HTTP ステータスが含まれます。`config.japaneseAddressesApi` に `file://` を指定している場合は、`code` プロパティに `ENOENT` などの Node.js のエラーコードが入ります。
+
+大量の住所を一括で正規化する場合は、1 件の失敗で全体が止まらないように例外を捕捉してください。
+
+```javascript
+const { normalize } = require('@geolonia/normalize-japanese-addresses')
+
+for (const address of addresses) {
+  try {
+    const result = await normalize(address)
+    console.log(result)
+  } catch (error) {
+    // 住所データの取得に失敗した。時間を置いて再度実行する
+    console.error(address, error.message)
+  }
+}
+```
+
 ### グローバルオプション
 
 以下のパラメーターを変更することでライブラリの動作全体に関わる設定が変更できます。

@@ -77,6 +77,24 @@ const isRetryableError = (e: unknown) => {
  */
 class InvalidBodyError extends Error {}
 
+/**
+ * 本文の読み取りや解析の失敗を、再試行の対象として扱える形に変換する。
+ *
+ * @remarks
+ * `resp.json()` は 200 で返されたエラーページに対して構文エラーを投げ、
+ * `resp.text()` は本文の受信が途中で切れた場合に失敗する。どちらも 5xx と
+ * 同じ一過性の失敗なので {@link InvalidBodyError} に変換する。
+ * 再試行しても解決しない失敗は変換せずにそのまま伝播させる。
+ */
+const asInvalidBody = (e: unknown) => {
+  if (!isRetryableError(e)) {
+    return e
+  }
+  return new InvalidBodyError(e instanceof Error ? e.message : String(e), {
+    cause: e,
+  })
+}
+
 const decodeTarget = (input: string) => {
   try {
     // どのデータの取得に失敗したのかを読めるようにする
@@ -126,6 +144,7 @@ async function fetchWithRetry<T>(
   readBody: (resp: FetchResponseLike) => Promise<T>,
 ): Promise<T> {
   let lastDetail = ''
+  let lastCause: unknown
   for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
     let resp: FetchResponseLike
     try {
@@ -146,6 +165,7 @@ async function fetchWithRetry<T>(
           throw e
         }
         lastDetail = `: ${e.message}`
+        lastCause = e.cause ?? e
         if (attempt === MAX_FETCH_ATTEMPTS) {
           break
         }
@@ -162,7 +182,7 @@ async function fetchWithRetry<T>(
     await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
   }
 
-  throw fetchError(input, lastDetail)
+  throw fetchError(input, lastDetail, lastCause)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -195,7 +215,13 @@ export const getPrefectures = async () => {
   const data = await fetchWithRetry(
     '.json', // ja.json
     {},
-    async (resp) => (await resp.json()) as PrefectureApi,
+    async (resp) => {
+      try {
+        return (await resp.json()) as PrefectureApi
+      } catch (e) {
+        throw asInvalidBody(e)
+      }
+    },
   )
   return cachePrefectures(data)
 }
@@ -261,7 +287,13 @@ export const getTowns = async (
   const towns = await fetchWithRetry(
     ['', encodeURI(pref), encodeURI(city) + `.json?v=${apiVersion}`].join('/'),
     {},
-    async (resp) => (await resp.json()) as MachiAzaApi,
+    async (resp) => {
+      try {
+        return (await resp.json()) as MachiAzaApi
+      } catch (e) {
+        throw asInvalidBody(e)
+      }
+    },
   )
   return (cachedTowns[cacheKey] = towns)
 }
@@ -288,7 +320,12 @@ async function fetchSubresource(
       length: row.length,
     },
     async (resp) => {
-      const text = await resp.text()
+      let text: string
+      try {
+        text = await resp.text()
+      } catch (e) {
+        throw asInvalidBody(e)
+      }
       // Range で要求した長さは既知なので、バイト長を確認するだけで
       // 200 で返されたエラーページと、Range を無視して全文が返された応答を
       // どちらも捕まえられる。ブラウザ向けの bundle にも載るため Buffer は使わない。
