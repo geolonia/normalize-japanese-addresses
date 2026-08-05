@@ -145,26 +145,39 @@ async function normalizeAddrPart(
       rest: addr,
     }
   }
+  // 部屋番号などが街区符号・住居番号（地番）に続けてハイフンで連結されているケースに備え、
+  // マッチした数値グループを多い方から順に減らしながら候補を試す。
+  // 例: "4-25-101" -> ["4-25-101", "4-25", "4"]
+  const groups = [match[1], match[2], match[3]].filter(
+    (g): g is string => typeof g === 'string',
+  )
+  const candidates = groups.map((_, i) =>
+    groups.slice(0, groups.length - i).join('-'),
+  )
   // TODO: rsdtの場合はrsdtと地番を両方取得する
   if (town.rsdt) {
     const res = await getRsdt(pref, city, town, apiVersion)
-    for (const rsdt of res) {
-      const addrPart = rsdtToString(rsdt)
-      if (match[0] === addrPart) {
-        return {
-          rsdt,
-          rest: addr.substring(addrPart.length),
+    for (const candidate of candidates) {
+      for (const rsdt of res) {
+        const addrPart = rsdtToString(rsdt)
+        if (candidate === addrPart) {
+          return {
+            rsdt,
+            rest: addr.substring(addrPart.length),
+          }
         }
       }
     }
   } else {
     const res = await getChiban(pref, city, town, apiVersion)
-    for (const chiban of res) {
-      const addrPart = chibanToString(chiban)
-      if (match[0] === addrPart) {
-        return {
-          chiban,
-          rest: addr.substring(addrPart.length),
+    for (const candidate of candidates) {
+      for (const chiban of res) {
+        const addrPart = chibanToString(chiban)
+        if (candidate === addrPart) {
+          return {
+            chiban,
+            rest: addr.substring(addrPart.length),
+          }
         }
       }
     }
