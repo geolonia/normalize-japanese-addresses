@@ -102,7 +102,7 @@ const normalizeTownName = async (
   city: SingleCity,
   apiVersion: number,
 ) => {
-  input = input.trim().replace(/^大字/, '')
+  input = input.trim().replace(/^(大字|字)/, '')
   const townPatterns = await getTownRegexPatterns(pref, city, apiVersion)
 
   const regexPrefixes = ['^']
