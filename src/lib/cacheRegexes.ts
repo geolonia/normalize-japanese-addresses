@@ -1,5 +1,6 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
+import { zen2han } from './zen2han'
 import Papaparse from 'papaparse'
 import { LRUCache } from 'lru-cache'
 import { currentConfig, __internals } from '../config'
@@ -298,6 +299,14 @@ export const getTownRegexPatterns = async (
       const api = await getTowns(pref, city, apiVersion)
       const pre_towns = api.data
       const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
+      // 数字表記（漢数字・全角/半角アラビア数字）の揺れを正規化した集合。
+      // 「若水町３丁目」（koaza）のエイリアス「若水３丁目」と「若水三丁目」（chome）
+      // のように、数字の表記が違うだけで実質的に同じ文字列になるケースの
+      // コンフリクト検出に使う。
+      const canonicalizeNumerals = (name: string) => kan2num(zen2han(name))
+      const canonicalTownSet = new Set(
+        pre_towns.map((town) => canonicalizeNumerals(machiAzaName(town))),
+      )
       const towns: (
         | SingleMachiAza
         | (SingleMachiAza & { originalTown: SingleMachiAza })
@@ -319,6 +328,8 @@ export const getTownRegexPatterns = async (
           !isKyoto && // 京都は通り名削除の処理があるため、意図しないマッチになるケースがある。これを除く
           !townSet.has(townAbbr) &&
           !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
+          !canonicalTownSet.has(canonicalizeNumerals(townAbbr)) &&
+          !canonicalTownSet.has(canonicalizeNumerals(`大字${townAbbr}`)) &&
           !isKanjiNumberFollewedByCho(originalTown)
         ) {
           // エイリアスとして町なしのパターンを登録
