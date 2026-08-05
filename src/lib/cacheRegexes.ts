@@ -477,8 +477,7 @@ export const getTownRegexPatterns = async (
       const pre_towns = api.data
       const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
       const towns: (
-        | SingleMachiAza
-        | (SingleMachiAza & { originalTown: SingleMachiAza })
+        SingleMachiAza | (SingleMachiAza & { originalTown: SingleMachiAza })
       )[] = []
 
       const isKyoto = city.city === '京都市'
