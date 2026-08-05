@@ -13,12 +13,17 @@ async function downloadFile(file: string, destDir: string) {
   const resp = await fetch(
     `https://japanese-addresses-v2.geoloniamaps.com/api/${file}`,
   )
+  // 失敗した応答の本文を保存してしまうと、後でローカルサーバーがそれを 200 で
+  // 返し、セットアップの失敗が分かりにくいテストの失敗に化ける
+  if (!resp.ok) {
+    throw new Error(`Failed to download ${file}: HTTP ${resp.status}`)
+  }
+  if (!resp.body) {
+    throw new Error(`No body: ${file}`)
+  }
   const outputFile = path.join(destDir, file)
   await fs.promises.mkdir(path.dirname(outputFile), { recursive: true })
   const writer = fs.createWriteStream(outputFile)
-  if (!resp.body) {
-    throw new Error('No body')
-  }
   await pipeline(resp.body, writer)
 }
 
@@ -128,6 +133,20 @@ describe(`データ取得に失敗したときの挙動`, () => {
         return true
       },
     )
+    // 初回の要求を含めて 3 回で打ち切る
+    assert.strictEqual(subresourceRequests, 3)
+  })
+
+  test(`Cloudflare の 52x もリトライの対象になる`, async () => {
+    // 配信元の Cloudflare は origin 側の不調に対して 520 から 527 を返す
+    subresourceFailure.remaining = 2
+    subresourceFailure.status = 520
+
+    const res = await normalize('渋谷区恵比寿4-20-3')
+
+    assert.strictEqual(res.level, 8)
+    assert.strictEqual(res.addr, '20-3')
+    assert.strictEqual(subresourceRequests, 3)
   })
 
   test(`404 はリトライせずにエラーになる`, async () => {

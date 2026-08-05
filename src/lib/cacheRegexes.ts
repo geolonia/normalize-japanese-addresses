@@ -39,21 +39,51 @@ const cache = new LRUCache({
   max: currentConfig.cacheSize,
 })
 
+/** 初回の要求を含めた試行回数の上限 */
 const MAX_FETCH_ATTEMPTS = 3
 const FETCH_RETRY_BASE_DELAY_MS = 100
-/** 一過性の失敗とみなして再試行するステータスコード */
-const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504])
+/** サーバー側の一過性の不調とは限らないが、時間を置けば解決しうるもの */
+const RETRYABLE_CLIENT_STATUS = new Set([408, 425, 429])
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const isRetryableStatus = (status: number | undefined) =>
+const isRetryableStatus = (status: number | undefined) => {
   // ステータスコードを返さない実装では一過性かどうかを区別できないため、再試行する
-  typeof status === 'undefined' || RETRYABLE_STATUS.has(status)
+  if (typeof status === 'undefined') {
+    return true
+  }
+  // 5xx は全て再試行する。配信元の Cloudflare は origin 側の不調に対して
+  // 520 から 527 を返すため、代表的な 500 / 502 / 503 / 504 の列挙では取りこぼす。
+  return status >= 500 || RETRYABLE_CLIENT_STATUS.has(status)
+}
 
 const isRetryableError = (e: unknown) => {
   const code = (e as { code?: string } | null)?.code
   // ファイルが無いことは再試行しても解決しない
   return code !== 'ENOENT' && code !== 'ENOTDIR'
+}
+
+const decodeTarget = (input: string) => {
+  try {
+    // どのデータの取得に失敗したのかを読めるようにする
+    return decodeURI(input)
+  } catch {
+    // デコードできない場合は元のまま使う
+    return input
+  }
+}
+
+const fetchError = (input: string, detail: string, cause?: unknown) => {
+  const error: Error & { code?: string } = new Error(
+    `[normalize-japanese-addresses] 住所データの取得に失敗しました: ${decodeTarget(input)}${detail}`,
+    typeof cause === 'undefined' ? undefined : { cause },
+  )
+  const code = (cause as { code?: string } | null)?.code
+  if (typeof code === 'string') {
+    // 呼び出し側が e.code で分岐できる従来の挙動を保つ
+    error.code = code
+  }
+  return error
 }
 
 /**
@@ -79,7 +109,7 @@ async function fetchWithRetry(input: string, options?: FetchOptions) {
       resp = await __internals.fetch(input, options)
     } catch (e) {
       if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableError(e)) {
-        throw e
+        throw fetchError(input, e instanceof Error ? `: ${e.message}` : '', e)
       }
       await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
       continue
@@ -96,17 +126,9 @@ async function fetchWithRetry(input: string, options?: FetchOptions) {
     await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
   }
 
-  const status =
-    typeof lastStatus === 'undefined' ? '' : ` (HTTP ${lastStatus})`
-  let target = input
-  try {
-    // どのデータの取得に失敗したのかを読めるようにする
-    target = decodeURI(input)
-  } catch {
-    // デコードできない場合は元のまま使う
-  }
-  throw new Error(
-    `[normalize-japanese-addresses] 住所データの取得に失敗しました: ${target}${status}`,
+  throw fetchError(
+    input,
+    typeof lastStatus === 'undefined' ? '' : ` (HTTP ${lastStatus})`,
   )
 }
 
