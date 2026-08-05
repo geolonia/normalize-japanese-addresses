@@ -2,7 +2,7 @@ import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import Papaparse from 'papaparse'
 import { LRUCache } from 'lru-cache'
-import { currentConfig, __internals } from '../config'
+import { currentConfig, FetchOptions, __internals } from '../config'
 import { findKanjiNumbers, kanji2number } from '@geolonia/japanese-numeral'
 import {
   cityName,
@@ -39,6 +39,77 @@ const cache = new LRUCache({
   max: currentConfig.cacheSize,
 })
 
+const MAX_FETCH_ATTEMPTS = 3
+const FETCH_RETRY_BASE_DELAY_MS = 100
+/** 一過性の失敗とみなして再試行するステータスコード */
+const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504])
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const isRetryableStatus = (status: number | undefined) =>
+  // ステータスコードを返さない実装では一過性かどうかを区別できないため、再試行する
+  typeof status === 'undefined' || RETRYABLE_STATUS.has(status)
+
+const isRetryableError = (e: unknown) => {
+  const code = (e as { code?: string } | null)?.code
+  // ファイルが無いことは再試行しても解決しない
+  return code !== 'ENOENT' && code !== 'ENOTDIR'
+}
+
+/**
+ * 住所データを取得する。
+ *
+ * @remarks
+ * 応答が ok でない場合、一過性の失敗であれば数回まで再試行し、
+ * それでも回復しなければ例外を投げる。
+ *
+ * 以前は ok を確認せずに本文を解析していたため、CDN が一過性のエラーを返すと
+ * エラーページの中身を住所データとして読み、住所が黙って低い level に
+ * 縮退していた。呼び出し側からは正常な結果と区別が付かないため、
+ * ここで明示的に失敗させる。
+ *
+ * @param input - 取得するデータのパス
+ * @param options - Range リクエストの範囲
+ */
+async function fetchWithRetry(input: string, options?: FetchOptions) {
+  let lastStatus: number | undefined
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+    let resp
+    try {
+      resp = await __internals.fetch(input, options)
+    } catch (e) {
+      if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableError(e)) {
+        throw e
+      }
+      await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
+      continue
+    }
+
+    if (resp.ok) {
+      return resp
+    }
+
+    lastStatus = resp.status
+    if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableStatus(resp.status)) {
+      break
+    }
+    await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
+  }
+
+  const status =
+    typeof lastStatus === 'undefined' ? '' : ` (HTTP ${lastStatus})`
+  let target = input
+  try {
+    // どのデータの取得に失敗したのかを読めるようにする
+    target = decodeURI(input)
+  } catch {
+    // デコードできない場合は元のまま使う
+  }
+  throw new Error(
+    `[normalize-japanese-addresses] 住所データの取得に失敗しました: ${target}${status}`,
+  )
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 async function fetchFromCache<T extends {}>(
   key: string,
@@ -66,7 +137,7 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const prefsResp = await __internals.fetch('.json', {}) // ja.json
+  const prefsResp = await fetchWithRetry('.json', {}) // ja.json
   const data = (await prefsResp.json()) as PrefectureApi
   return cachePrefectures(data)
 }
@@ -129,7 +200,7 @@ export const getTowns = async (
     return cachedTown
   }
 
-  const townsResp = await __internals.fetch(
+  const townsResp = await fetchWithRetry(
     ['', encodeURI(pref), encodeURI(city) + `.json?v=${apiVersion}`].join('/'),
     {},
   )
@@ -148,7 +219,7 @@ async function fetchSubresource(
 ) {
   const prefN = prefectureName(pref)
   const cityN = cityName(city)
-  const resp = await __internals.fetch(
+  const resp = await fetchWithRetry(
     [
       '',
       encodeURI(prefN),
