@@ -336,10 +336,14 @@ export const getTownRegexPatterns = async (
         let aLen = machiAzaName(a).length
         let bLen = machiAzaName(b).length
 
-        // 大字で始まる場合、優先度を低く設定する。
-        // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
-        if (machiAzaName(a).startsWith('大字')) aLen -= 2
-        if (machiAzaName(b).startsWith('大字')) bLen -= 2
+        // 「大字」「字」を含む場合、優先度を低く設定する。
+        // 大字XX と XXYY、大字XX字YY と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい。
+        // 正規表現生成時（toRegexPattern手前の /大?字/g 置換）は出現する「大字」「字」すべてを
+        // 省略可能として扱うため、ここでも出現するすべての「大字」「字」の分だけ長さを差し引く。
+        const discount = (name: string) =>
+          (name.match(/大?字/g) || []).reduce((sum, m) => sum + m.length, 0)
+        aLen -= discount(machiAzaName(a))
+        bLen -= discount(machiAzaName(b))
 
         return bLen - aLen
       })
