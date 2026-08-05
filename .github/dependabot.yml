@@ -1,0 +1,23 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # バージョン更新の PR は作らず、セキュリティ更新の PR のみを受け取る。
+    # セキュリティ更新はこの上限の対象外なので、0 にしても引き続き作成される。
+    open-pull-requests-limit: 0
+    ignore:
+      # undici はランタイム依存であり、Node.js 18 対応のために入っている。
+      # 6.x が node >=18.17、7.x が node >=20.18.1、8.x が node >=22.19.0 を要求するため、
+      # package.json の engines が node >=18 である間はメジャー更新を追従できない。
+      - dependency-name: undici
+        update-types:
+          - version-update:semver-major
+      # puppeteer 25.x は node >=22.12.0 を要求する。
+      # 結合テストは Node.js 18.x のみスキップし 20.x では実行するため、
+      # メジャー更新を入れると 20.x のジョブが動かなくなる。
+      - dependency-name: puppeteer
+        update-types:
+          - version-update:semver-major
