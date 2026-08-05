@@ -306,6 +306,11 @@ export const normalize: Normalizer = async (
     if (town) {
       other = other
         .replace(/^-/, '')
+        // 丁目を持たない町丁目に対して「2丁目2番地」のように、本来の街区符号を
+        // 「丁目」で表記しているケースがある。この場合は「丁目」を区切りとして扱う。
+        .replace(/^([0-9]+)丁目/, (match, num) => {
+          return town.chome ? match : `${num}-`
+        })
         .replace(/([0-9]+)(丁目)/g, (match) => {
           return match.replace(/([0-9]+)/g, (num) => {
             return number2kanji(Number(num))
