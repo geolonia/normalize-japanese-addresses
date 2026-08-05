@@ -58,7 +58,8 @@ describe(`データ取得に失敗したときの挙動`, () => {
           res.writeHead(subresourceFailure.status, {
             'content-type': 'text/plain; charset=utf-8',
           })
-          // エラーページの本文を返す CDN を模す
+          // エラーページの本文を返す CDN を模す。status に 200 を指定すると
+          // 「ok だが本文がエラーページ」というケースになる
           res.end('<html><body>error</body></html>')
           return
         }
@@ -146,6 +147,33 @@ describe(`データ取得に失敗したときの挙動`, () => {
 
     assert.strictEqual(res.level, 8)
     assert.strictEqual(res.addr, '20-3')
+    assert.strictEqual(subresourceRequests, 3)
+  })
+
+  test(`200 でエラーページが返った場合もリトライして回復する`, async () => {
+    // Range で要求した長さと本文のバイト長が食い違うことで検知する
+    subresourceFailure.remaining = 1
+    subresourceFailure.status = 200
+
+    const res = await normalize('渋谷区宇田川町15-1')
+
+    assert.strictEqual(res.level, 8)
+    assert.strictEqual(res.addr, '15-1')
+    assert.strictEqual(subresourceRequests, 2)
+  })
+
+  test(`200 のエラーページが続く場合は縮退せずにエラーになる`, async () => {
+    subresourceFailure.remaining = Number.MAX_SAFE_INTEGER
+    subresourceFailure.status = 200
+
+    await assert.rejects(
+      () => normalize('渋谷区神宮前6-19-13'),
+      (e: Error) => {
+        assert.match(e.message, /住居表示/)
+        assert.match(e.message, /バイト/)
+        return true
+      },
+    )
     assert.strictEqual(subresourceRequests, 3)
   })
 

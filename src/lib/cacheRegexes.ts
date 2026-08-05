@@ -2,7 +2,12 @@ import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
 import Papaparse from 'papaparse'
 import { LRUCache } from 'lru-cache'
-import { currentConfig, FetchOptions, __internals } from '../config'
+import {
+  currentConfig,
+  FetchOptions,
+  FetchResponseLike,
+  __internals,
+} from '../config'
 import { findKanjiNumbers, kanji2number } from '@geolonia/japanese-numeral'
 import {
   cityName,
@@ -63,6 +68,15 @@ const isRetryableError = (e: unknown) => {
   return code !== 'ENOENT' && code !== 'ENOTDIR'
 }
 
+/**
+ * 応答は ok だが本文が期待どおりでないことを表す。
+ *
+ * @remarks
+ * CDN が 200 でエラーページやチャレンジページを返すことがあり、これは
+ * 5xx と同じく一過性の失敗なので再試行の対象として扱う。
+ */
+class InvalidBodyError extends Error {}
+
 const decodeTarget = (input: string) => {
   try {
     // どのデータの取得に失敗したのかを読めるようにする
@@ -98,13 +112,22 @@ const fetchError = (input: string, detail: string, cause?: unknown) => {
  * 縮退していた。呼び出し側からは正常な結果と区別が付かないため、
  * ここで明示的に失敗させる。
  *
+ * 本文の読み取りを呼び出し側から渡すのは、応答が ok でも本文が期待どおりで
+ * ない場合を再試行の対象にするためである。`readBody` が
+ * {@link InvalidBodyError} を投げた場合は 5xx と同じ扱いになる。
+ *
  * @param input - 取得するデータのパス
  * @param options - Range リクエストの範囲
+ * @param readBody - 応答から本文を読み取る関数
  */
-async function fetchWithRetry(input: string, options?: FetchOptions) {
-  let lastStatus: number | undefined
+async function fetchWithRetry<T>(
+  input: string,
+  options: FetchOptions | undefined,
+  readBody: (resp: FetchResponseLike) => Promise<T>,
+): Promise<T> {
+  let lastDetail = ''
   for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
-    let resp
+    let resp: FetchResponseLike
     try {
       resp = await __internals.fetch(input, options)
     } catch (e) {
@@ -116,20 +139,30 @@ async function fetchWithRetry(input: string, options?: FetchOptions) {
     }
 
     if (resp.ok) {
-      return resp
+      try {
+        return await readBody(resp)
+      } catch (e) {
+        if (!(e instanceof InvalidBodyError)) {
+          throw e
+        }
+        lastDetail = `: ${e.message}`
+        if (attempt === MAX_FETCH_ATTEMPTS) {
+          break
+        }
+        await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
+        continue
+      }
     }
 
-    lastStatus = resp.status
+    lastDetail =
+      typeof resp.status === 'undefined' ? '' : ` (HTTP ${resp.status})`
     if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableStatus(resp.status)) {
       break
     }
     await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
   }
 
-  throw fetchError(
-    input,
-    typeof lastStatus === 'undefined' ? '' : ` (HTTP ${lastStatus})`,
-  )
+  throw fetchError(input, lastDetail)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -159,8 +192,11 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const prefsResp = await fetchWithRetry('.json', {}) // ja.json
-  const data = (await prefsResp.json()) as PrefectureApi
+  const data = await fetchWithRetry(
+    '.json', // ja.json
+    {},
+    async (resp) => (await resp.json()) as PrefectureApi,
+  )
   return cachePrefectures(data)
 }
 
@@ -222,11 +258,11 @@ export const getTowns = async (
     return cachedTown
   }
 
-  const townsResp = await fetchWithRetry(
+  const towns = await fetchWithRetry(
     ['', encodeURI(pref), encodeURI(city) + `.json?v=${apiVersion}`].join('/'),
     {},
+    async (resp) => (await resp.json()) as MachiAzaApi,
   )
-  const towns = (await townsResp.json()) as MachiAzaApi
   return (cachedTowns[cacheKey] = towns)
 }
 
@@ -241,7 +277,7 @@ async function fetchSubresource(
 ) {
   const prefN = prefectureName(pref)
   const cityN = cityName(city)
-  const resp = await fetchWithRetry(
+  return fetchWithRetry(
     [
       '',
       encodeURI(prefN),
@@ -251,8 +287,20 @@ async function fetchSubresource(
       offset: row.start,
       length: row.length,
     },
+    async (resp) => {
+      const text = await resp.text()
+      // Range で要求した長さは既知なので、バイト長を確認するだけで
+      // 200 で返されたエラーページと、Range を無視して全文が返された応答を
+      // どちらも捕まえられる。ブラウザ向けの bundle にも載るため Buffer は使わない。
+      const actual = new TextEncoder().encode(text).length
+      if (actual !== row.length) {
+        throw new InvalidBodyError(
+          `期待 ${row.length} バイト、実際 ${actual} バイト`,
+        )
+      }
+      return text
+    },
   )
-  return resp.text()
 }
 
 type RsdtDataRow = {
