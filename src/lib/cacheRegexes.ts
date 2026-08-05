@@ -393,10 +393,28 @@ export const getTownRegexPatterns = async (
                     patterns.push(num.toString()) // 半角アラビア数字
                   }
 
-                  // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+                  // 数字の後に続く助数詞（丁目・番町・条など）は元の種類と同じもの
+                  // のみを許容する。異なる種類の助数詞をまとめて許容してしまうと、
+                  // 「三番町」の様な地名が「三条」など全く別の地名にもマッチしてしまう。
+                  const suffix = match.replace(
+                    /^([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)/,
+                    '',
+                  )
+                  let suffixAlternatives: string
+                  if (/^(丁|町)目?$/.test(suffix)) {
+                    suffixAlternatives = '(丁|町)目?'
+                  } else if (/^番(町|丁)$/.test(suffix)) {
+                    suffixAlternatives = '番(町|丁)'
+                  } else if (/^(の|ノ)町$/.test(suffix)) {
+                    suffixAlternatives = 'の町?'
+                  } else {
+                    // 条・軒・線・地割・号はそのまま（新字・旧字の揺れは toRegexPattern 側で吸収する）
+                    suffixAlternatives = suffix
+                  }
+
                   const _pattern = `(${patterns.join(
                     '|',
-                  )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+                  )})(${suffixAlternatives}|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
                   // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
                   //   console.log(_pattern)
                   // }
