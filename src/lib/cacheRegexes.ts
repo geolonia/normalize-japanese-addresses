@@ -361,6 +361,19 @@ export const getTownRegexPatterns = async (
 
       const patterns: [SingleMachiAza, string][] = []
 
+      // 住居表示・地番のデータを持たない町丁目（構造上の存在のみで、それ以上の
+      // 番地照合ができないもの）かどうか。例えば「大日町」（地番・住居表示あり）
+      // に対して「大日町一丁目」という小字だけの空エントリが別に存在するケースで、
+      // 後者は「丁目」の記載を省略したハイフン区切り等の緩い形式にはマッチさせない。
+      // マッチさせてしまうと本来番地まで正規化できるはずの「大日町」よりも先に
+      // マッチしてレベル8への到達を妨げてしまう。
+      const hasAddressData = (
+        t: SingleMachiAza | (SingleMachiAza & { originalTown: SingleMachiAza }),
+      ) => {
+        const realTown = 'originalTown' in t ? t.originalTown : t
+        return !!realTown.csv_ranges
+      }
+
       for (const town of towns) {
         {
           const pattern = toRegexPattern(
@@ -423,9 +436,14 @@ export const getTownRegexPatterns = async (
                     suffixAlternatives = suffix
                   }
 
+                  // 番地・住居表示のデータを持たない町丁目に対しては、「丁目」等の
+                  // 記載を省略したハイフン区切りの緩いマッチを許容しない。
+                  const hyphenFallback = hasAddressData(town)
+                    ? '|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]'
+                    : ''
                   const _pattern = `(${patterns.join(
                     '|',
-                  )})(${suffixAlternatives}|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+                  )})(${suffixAlternatives}${hyphenFallback})`
                   // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
                   //   console.log(_pattern)
                   // }
@@ -444,7 +462,9 @@ export const getTownRegexPatterns = async (
           const chomeMatch = machiAzaName(town).match(
             /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
           )
-          if (!chomeMatch) {
+          // 番地・住居表示のデータを持たない町丁目は、「丁目」の記載を省略した
+          // 緩いマッチの対象にしない（上の hyphenFallback と同じ理由）。
+          if (!chomeMatch || !hasAddressData(town)) {
             continue
           }
           const chomeNamePart = chomeMatch[1]
@@ -461,7 +481,7 @@ export const getTownRegexPatterns = async (
         const chomeMatch = machiAzaName(town).match(
           /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
         )
-        if (!chomeMatch) {
+        if (!chomeMatch || !hasAddressData(town)) {
           continue
         }
         const chomeNamePart = chomeMatch[1]
