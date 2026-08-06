@@ -190,7 +190,7 @@ $ node sample.js
 
 ## NodeJS バージョン対応方針について
 
-`normalize-japanese-addresses` は現在、 NodeJS 18.x, 20.x, 22.x を対象としてテストを実施し、動作を確認しております。ビルド時は「開発環境」の NodeJS バージョンを利用ください。
+`normalize-japanese-addresses` は現在、 NodeJS 18.x, 20.x, 22.x, 24.x を対象としてテストを実施し、動作を確認しております。ビルド時は「開発環境」の NodeJS バージョンを利用ください。
 
 NodeJS 以外のブラウザの環境は、最新ブラウザを前提とした対応となります。fetchが利用可能な環境であれば動く可能性が高い。テストは最新の Chrome を使って実施しております。
 
