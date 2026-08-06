@@ -371,7 +371,7 @@ export const getTownRegexPatterns = async (
               // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
               // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
               .replace(
-                /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
+                /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|番|条|軒|線|(の|ノ)町|地割|号)/g,
                 (match: string) => {
                   const patterns = []
 
@@ -379,7 +379,7 @@ export const getTownRegexPatterns = async (
                     match
                       .toString()
                       .replace(
-                        /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                        /(丁目?|番(町|丁)|番|条|軒|線|(の|ノ)町|地割|号)/,
                         '',
                       ),
                   ) // 漢数字
@@ -397,7 +397,7 @@ export const getTownRegexPatterns = async (
                         return kanji2number(match).toString()
                       })
                       .replace(
-                        /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                        /(丁目?|番(町|丁)|番|条|軒|線|(の|ノ)町|地割|号)/,
                         '',
                       )
 
