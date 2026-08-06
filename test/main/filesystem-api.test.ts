@@ -54,10 +54,13 @@ describe(`API stored in filesystem`, () => {
   })
 
   test(`用意されていないエリアはエラーになる`, async () => {
-    try {
-      await normalize('東京都千代田区')
-    } catch (e) {
-      assert.strictEqual(e.code, 'ENOENT')
-    }
+    // try / catch で書くと、例外が投げられなくても素通りで pass してしまう
+    await assert.rejects(
+      () => normalize('東京都千代田区'),
+      (e: Error & { code?: string }) => {
+        assert.strictEqual(e.code, 'ENOENT')
+        return true
+      },
+    )
   })
 })
