@@ -134,6 +134,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           # Node.js 24.x が同梱する npm は、OIDC 公開に必要な 11.5.1 以降を満たす
+          # setup-node は v7 で dummy の NODE_AUTH_TOKEN を export しなくなった。
+          # これが OIDC 公開の前提なので、v6 以下に戻さないこと
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
           scope: '@geolonia'
