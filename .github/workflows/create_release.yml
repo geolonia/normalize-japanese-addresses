@@ -17,9 +17,23 @@ jobs:
         with:
           persist-credentials: false
 
+      # build.yml の publish ジョブと同じ判定。ワークフローをまたいで output は
+      # 共有できないため、同じロジックをここにも置く。
+      - name: prerelease かどうかを判定する
+        id: meta
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          # ${TAG%%+*} でビルドメタデータを落とす。その中のハイフンは prerelease ではない。
+          case "${TAG%%+*}" in
+            *-*) PRERELEASE=true ;;
+            *)   PRERELEASE=false ;;
+          esac
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
         with:
-          name: ${{ github.event.inputs.tag }}
-          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
           generate_release_notes: true
+          prerelease: ${{ steps.meta.outputs.prerelease }}
