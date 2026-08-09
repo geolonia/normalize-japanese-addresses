@@ -28,7 +28,6 @@ jobs:
         with:
           node-version: '22.x'
           cache: 'npm'
-      - run: npm install -g npm@11.17.x
       - run: npm ci
       - run: npm run lint
       - run: npm run build
@@ -69,7 +68,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [18.x, 20.x, 22.x, 24.x]
+        node-version: [18.x, 20.x, 22.x, 24.x, 26.x]
 
     steps:
       - uses: actions/checkout@v7
@@ -110,7 +109,6 @@ jobs:
         with:
           node-version: '22.x'
           cache: 'npm'
-      - run: npm install -g npm@11.17.x
       - run: npm ci
       - run: npm run build
       - run: npm run test:addresses
@@ -131,11 +129,11 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v7
         with:
-          node-version: '22.x'
+          # Node.js 24.x が同梱する npm は、OIDC 公開に必要な 11.5.1 以降を満たす
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
           scope: '@geolonia'
           package-manager-cache: false
-      - run: npm install -g npm@11.17.x
       - run: npm ci
       - run: npm run build
       - run: npm publish --access=public

@@ -34,6 +34,10 @@
   "engines": {
     "node": ">=18"
   },
+  "allowScripts": {
+    "puppeteer": true,
+    "esbuild": true
+  },
   "author": "Geolonia, Inc.",
   "license": "MIT",
   "devDependencies": {
