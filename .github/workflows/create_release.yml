@@ -12,12 +12,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 下のタグ検証で package.json を読むため checkout が必要
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # build.yml の publish ジョブと同じ検証・判定。ワークフローをまたいで output は
+      # 共有できないため、同じロジックをここにも置く。
+      # このワークフローは needs を持たず build/test の完了を待たないため、ここで弾かないと
+      # ミスタグのときに npm 公開だけが落ちて GitHub Release が先に作られて残ってしまう。
+      - name: タグを検証して prerelease かどうかを判定する
+        id: meta
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::タグ $TAG が package.json の version $PKG と一致しません"
+            exit 1
+          fi
+          # ${TAG%%+*} でビルドメタデータを落とす。その中のハイフンは prerelease ではない。
+          case "${TAG%%+*}" in
+            *-*) PRERELEASE=true ;;
+            *)   PRERELEASE=false ;;
+          esac
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
-          name: ${{ github.event.inputs.tag }}
-          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
           generate_release_notes: true
+          prerelease: ${{ steps.meta.outputs.prerelease }}
