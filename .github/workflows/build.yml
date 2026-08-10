@@ -172,8 +172,15 @@ jobs:
           case "${TAG%%+*}" in *-*) PRERELEASE=1 ;; *) PRERELEASE=0 ;; esac
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
 
-      - run: npm ci
-      - run: npm run build
+      # dist は build ジョブの成果物をそのまま使う。このジョブは id-token: write を持つため、
+      # ここで npm ci を実行すると依存の install スクリプト（puppeteer / esbuild）が
+      # OIDC トークンを取得できる環境で動いてしまう。依存のコードを一切動かさない。
+      # package.json に prepare / prepack / prepublishOnly が無いため、npm publish は
+      # node_modules を必要としない。
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
 
       # prerelease は next dist-tag に公開し、npm install の既定や ^/~ の範囲に入れない
       - name: 公開 (latest)
