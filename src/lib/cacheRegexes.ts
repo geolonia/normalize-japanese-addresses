@@ -405,7 +405,9 @@ export const getTownRegexPatterns = async (
               // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
               .replace(
                 /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|番|条|軒|線|(の|ノ)町|地割|号)/g,
-                (match: string) => {
+                (match: string, ...rest: unknown[]) => {
+                  const offset = rest[rest.length - 2] as number
+                  const fullString = rest[rest.length - 1] as string
                   const patterns = []
 
                   patterns.push(
@@ -461,9 +463,19 @@ export const getTownRegexPatterns = async (
                   const hyphenFallback = hasAddressData(town)
                     ? '|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]'
                     : ''
+                  // 小字名の末尾に「北」「南」などの方角が続く町丁目に対して、
+                  // 「本通14北5-15」のように「丁目」もハイフンも挟まず数字の
+                  // 直後に方角が続く表記があるため、区切り文字なしでの接続も
+                  // 許容する。方角などの後続文字列自体はこの後もリテラルとして
+                  // 要求され続けるため、方角違いの町丁目と誤ってマッチすること
+                  // にはならない。
+                  const hasTrailingText =
+                    offset + match.length < fullString.length
+                  const noSeparatorFallback =
+                    hasAddressData(town) && hasTrailingText ? '|' : ''
                   const _pattern = `(${patterns.join(
                     '|',
-                  )})(${suffixAlternatives}${hyphenFallback})`
+                  )})(${suffixAlternatives}${hyphenFallback}${noSeparatorFallback})`
                   // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
                   //   console.log(_pattern)
                   // }
