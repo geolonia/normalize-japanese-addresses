@@ -137,9 +137,25 @@ jobs:
           # setup-node は v7 で dummy の NODE_AUTH_TOKEN を export しなくなった。
           # これが OIDC 公開の前提なので、v6 以下に戻さないこと
           node-version: '24.x'
+          # 既定ではランナーのツールキャッシュにある 24.x が優先されるため、同梱される npm の
+          # バージョンがキャッシュの内容に左右される。要件を満たす版を確実に取るため最新を取る
+          check-latest: true
           registry-url: 'https://registry.npmjs.org'
           scope: '@geolonia'
           package-manager-cache: false
+
+      # npm 11.5.1 未満では OIDC 公開ができない。NODE_AUTH_TOKEN も渡していないため、
+      # そのまま進むと原因の分かりにくい認証エラーになる。理由が分かる形で先に落とす。
+      - name: npm が OIDC 公開の要件を満たすか確認する
+        run: |
+          NPM_VERSION="$(npm --version)"
+          REQUIRED=11.5.1
+          # 文字列比較では 11.16.0 < 11.5.1 と誤判定するため sort -V で比較する
+          if [ "$(printf '%s\n%s\n' "$REQUIRED" "$NPM_VERSION" | sort -V | head -n1)" != "$REQUIRED" ]; then
+            echo "::error::npm $NPM_VERSION は OIDC 公開に必要な $REQUIRED 未満です"
+            exit 1
+          fi
+          echo "npm $NPM_VERSION (>= $REQUIRED)"
 
       # 公開されるバージョンは package.json 由来、dist-tag の判定はタグ名由来のため、
       # 両者がずれていると意図しない dist-tag で公開される。公開前に落とす。
