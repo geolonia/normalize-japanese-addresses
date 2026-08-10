@@ -374,6 +374,26 @@ export const getTownRegexPatterns = async (
         return !!realTown.csv_ranges
       }
 
+      // 「丁目」を省略した数字だけの緩いマッチ（下記2箇所）は、同じ「町名＋丁目数字」
+      // を持つ町丁目が1つしかない場合にのみ安全に使える。例えば札幌市白石区の
+      // 「本郷通八丁目北」「本郷通八丁目南」のように、丁目数字までは同じで末尾の
+      // 方角（北・南）だけが異なる町丁目が複数存在する場合、緩いマッチは方角を
+      // 区別できないため、配列内で先に出現した側（多くの場合たまたま北側）に
+      // 常に決め打ちでマッチしてしまう。この場合は緩いマッチを諦め、末尾の方角
+      // 文字列まで正しく要求する厳密なパターン（メインループ内の1つ目のパターン）
+      // にマッチを委ねる。
+      const chomeKeyCounts = new Map<string, number>()
+      for (const town of towns) {
+        const chomeMatch = machiAzaName(town).match(
+          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
+        )
+        if (!chomeMatch) continue
+        const key = `${chomeMatch[1]} ${chomeMatch[2]}`
+        chomeKeyCounts.set(key, (chomeKeyCounts.get(key) || 0) + 1)
+      }
+      const isUnambiguousChome = (chomeNamePart: string, chomeNum: string) =>
+        chomeKeyCounts.get(`${chomeNamePart} ${chomeNum}`) === 1
+
       for (const town of towns) {
         {
           const pattern = toRegexPattern(
@@ -464,7 +484,13 @@ export const getTownRegexPatterns = async (
           )
           // 番地・住居表示のデータを持たない町丁目は、「丁目」の記載を省略した
           // 緩いマッチの対象にしない（上の hyphenFallback と同じ理由）。
-          if (!chomeMatch || !hasAddressData(town)) {
+          // 同じ「町名＋丁目数字」を持つ町丁目が複数ある場合も、緩いマッチでは
+          // どちらか区別できないため対象にしない（上の isUnambiguousChome 参照）。
+          if (
+            !chomeMatch ||
+            !hasAddressData(town) ||
+            !isUnambiguousChome(chomeMatch[1], chomeMatch[2])
+          ) {
             continue
           }
           const chomeNamePart = chomeMatch[1]
@@ -481,7 +507,11 @@ export const getTownRegexPatterns = async (
         const chomeMatch = machiAzaName(town).match(
           /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
         )
-        if (!chomeMatch || !hasAddressData(town)) {
+        if (
+          !chomeMatch ||
+          !hasAddressData(town) ||
+          !isUnambiguousChome(chomeMatch[1], chomeMatch[2])
+        ) {
           continue
         }
         const chomeNamePart = chomeMatch[1]
