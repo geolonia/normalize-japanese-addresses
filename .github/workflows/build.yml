@@ -138,6 +138,29 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@geolonia'
           package-manager-cache: false
+
+      # 公開されるバージョンは package.json 由来、dist-tag の判定はタグ名由来のため、
+      # 両者がずれていると意図しない dist-tag で公開される。公開前に落とす。
+      - name: タグを検証して公開メタデータを決める
+        id: meta
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::タグ $TAG が package.json の version $PKG と一致しません"
+            exit 1
+          fi
+          # ${TAG%%+*} でビルドメタデータを落とす。その中のハイフンは prerelease ではない。
+          case "${TAG%%+*}" in *-*) PRERELEASE=1 ;; *) PRERELEASE=0 ;; esac
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
       - run: npm ci
       - run: npm run build
-      - run: npm publish --access=public
+
+      # prerelease は next dist-tag に公開し、npm install の既定や ^/~ の範囲に入れない
+      - name: 公開 (latest)
+        if: steps.meta.outputs.prerelease == '0'
+        run: npm publish --access=public --provenance
+      - name: 公開 (next)
+        if: steps.meta.outputs.prerelease == '1'
+        run: npm publish --access=public --provenance --tag=next
