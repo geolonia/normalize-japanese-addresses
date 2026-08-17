@@ -3,7 +3,12 @@ import { kan2num } from './kan2num'
 import { zen2han } from './zen2han'
 import Papaparse from 'papaparse'
 import { LRUCache } from 'lru-cache'
-import { currentConfig, __internals } from '../config'
+import {
+  currentConfig,
+  FetchOptions,
+  FetchResponseLike,
+  __internals,
+} from '../config'
 import { findKanjiNumbers, kanji2number } from '@geolonia/japanese-numeral'
 import {
   cityName,
@@ -40,6 +45,147 @@ const cache = new LRUCache({
   max: currentConfig.cacheSize,
 })
 
+/** 初回の要求を含めた試行回数の上限 */
+const MAX_FETCH_ATTEMPTS = 3
+const FETCH_RETRY_BASE_DELAY_MS = 100
+/** サーバー側の一過性の不調とは限らないが、時間を置けば解決しうるもの */
+const RETRYABLE_CLIENT_STATUS = new Set([408, 425, 429])
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const isRetryableStatus = (status: number | undefined) => {
+  // ステータスコードを返さない実装では一過性かどうかを区別できないため、再試行する
+  if (typeof status === 'undefined') {
+    return true
+  }
+  // 5xx は全て再試行する。配信元の Cloudflare は origin 側の不調に対して
+  // 520 から 527 を返すため、代表的な 500 / 502 / 503 / 504 の列挙では取りこぼす。
+  return status >= 500 || RETRYABLE_CLIENT_STATUS.has(status)
+}
+
+const isRetryableError = (e: unknown) => {
+  const code = (e as { code?: string } | null)?.code
+  // ファイルが無いことは再試行しても解決しない
+  return code !== 'ENOENT' && code !== 'ENOTDIR'
+}
+
+/**
+ * 応答は ok だが本文が期待どおりでないことを表す。
+ *
+ * @remarks
+ * CDN が 200 でエラーページやチャレンジページを返すことがあり、これは
+ * 5xx と同じく一過性の失敗なので再試行の対象として扱う。
+ */
+class InvalidBodyError extends Error {}
+
+/**
+ * 本文の読み取りや解析の失敗を、再試行の対象として扱える形に変換する。
+ *
+ * @remarks
+ * `resp.json()` は 200 で返されたエラーページに対して構文エラーを投げ、
+ * `resp.text()` は本文の受信が途中で切れた場合に失敗する。どちらも 5xx と
+ * 同じ一過性の失敗なので {@link InvalidBodyError} に変換する。
+ * 再試行しても解決しない失敗は変換せずにそのまま伝播させる。
+ */
+const asInvalidBody = (e: unknown) => {
+  if (!isRetryableError(e)) {
+    return e
+  }
+  return new InvalidBodyError(e instanceof Error ? e.message : String(e), {
+    cause: e,
+  })
+}
+
+const decodeTarget = (input: string) => {
+  try {
+    // どのデータの取得に失敗したのかを読めるようにする
+    return decodeURI(input)
+  } catch {
+    // デコードできない場合は元のまま使う
+    return input
+  }
+}
+
+const fetchError = (input: string, detail: string, cause?: unknown) => {
+  const error: Error & { code?: string } = new Error(
+    `[normalize-japanese-addresses] 住所データの取得に失敗しました: ${decodeTarget(input)}${detail}`,
+    typeof cause === 'undefined' ? undefined : { cause },
+  )
+  const code = (cause as { code?: string } | null)?.code
+  if (typeof code === 'string') {
+    // 呼び出し側が e.code で分岐できる従来の挙動を保つ
+    error.code = code
+  }
+  return error
+}
+
+/**
+ * 住所データを取得する。
+ *
+ * @remarks
+ * 応答が ok でない場合、一過性の失敗であれば数回まで再試行し、
+ * それでも回復しなければ例外を投げる。
+ *
+ * 以前は ok を確認せずに本文を解析していたため、CDN が一過性のエラーを返すと
+ * エラーページの中身を住所データとして読み、住所が黙って低い level に
+ * 縮退していた。呼び出し側からは正常な結果と区別が付かないため、
+ * ここで明示的に失敗させる。
+ *
+ * 本文の読み取りを呼び出し側から渡すのは、応答が ok でも本文が期待どおりで
+ * ない場合を再試行の対象にするためである。`readBody` が
+ * {@link InvalidBodyError} を投げた場合は 5xx と同じ扱いになる。
+ *
+ * @param input - 取得するデータのパス
+ * @param options - Range リクエストの範囲
+ * @param readBody - 応答から本文を読み取る関数
+ */
+async function fetchWithRetry<T>(
+  input: string,
+  options: FetchOptions | undefined,
+  readBody: (resp: FetchResponseLike) => Promise<T>,
+): Promise<T> {
+  let lastDetail = ''
+  let lastCause: unknown
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+    let resp: FetchResponseLike
+    try {
+      resp = await __internals.fetch(input, options)
+    } catch (e) {
+      if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableError(e)) {
+        throw fetchError(input, e instanceof Error ? `: ${e.message}` : '', e)
+      }
+      await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
+      continue
+    }
+
+    if (resp.ok) {
+      try {
+        return await readBody(resp)
+      } catch (e) {
+        if (!(e instanceof InvalidBodyError)) {
+          throw e
+        }
+        lastDetail = `: ${e.message}`
+        lastCause = e.cause ?? e
+        if (attempt === MAX_FETCH_ATTEMPTS) {
+          break
+        }
+        await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
+        continue
+      }
+    }
+
+    lastDetail =
+      typeof resp.status === 'undefined' ? '' : ` (HTTP ${resp.status})`
+    if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableStatus(resp.status)) {
+      break
+    }
+    await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
+  }
+
+  throw fetchError(input, lastDetail, lastCause)
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 async function fetchFromCache<T extends {}>(
   key: string,
@@ -67,8 +213,17 @@ export const getPrefectures = async () => {
     return cachedPrefectures
   }
 
-  const prefsResp = await __internals.fetch('.json', {}) // ja.json
-  const data = (await prefsResp.json()) as PrefectureApi
+  const data = await fetchWithRetry(
+    '.json', // ja.json
+    {},
+    async (resp) => {
+      try {
+        return (await resp.json()) as PrefectureApi
+      } catch (e) {
+        throw asInvalidBody(e)
+      }
+    },
+  )
   return cachePrefectures(data)
 }
 
@@ -130,11 +285,17 @@ export const getTowns = async (
     return cachedTown
   }
 
-  const townsResp = await __internals.fetch(
+  const towns = await fetchWithRetry(
     ['', encodeURI(pref), encodeURI(city) + `.json?v=${apiVersion}`].join('/'),
     {},
+    async (resp) => {
+      try {
+        return (await resp.json()) as MachiAzaApi
+      } catch (e) {
+        throw asInvalidBody(e)
+      }
+    },
   )
-  const towns = (await townsResp.json()) as MachiAzaApi
   return (cachedTowns[cacheKey] = towns)
 }
 
@@ -149,7 +310,7 @@ async function fetchSubresource(
 ) {
   const prefN = prefectureName(pref)
   const cityN = cityName(city)
-  const resp = await __internals.fetch(
+  return fetchWithRetry(
     [
       '',
       encodeURI(prefN),
@@ -159,8 +320,25 @@ async function fetchSubresource(
       offset: row.start,
       length: row.length,
     },
+    async (resp) => {
+      let text: string
+      try {
+        text = await resp.text()
+      } catch (e) {
+        throw asInvalidBody(e)
+      }
+      // Range で要求した長さは既知なので、バイト長を確認するだけで
+      // 200 で返されたエラーページと、Range を無視して全文が返された応答を
+      // どちらも捕まえられる。ブラウザ向けの bundle にも載るため Buffer は使わない。
+      const actual = new TextEncoder().encode(text).length
+      if (actual !== row.length) {
+        throw new InvalidBodyError(
+          `期待 ${row.length} バイト、実際 ${actual} バイト`,
+        )
+      }
+      return text
+    },
   )
-  return resp.text()
 }
 
 type RsdtDataRow = {

@@ -84,6 +84,32 @@ normalize('北海道札幌市西区24-2-2-3-3', { level: 1 }).then(result => {
 })
 ```
 
+### エラー処理
+
+`normalize()` は住所データの取得に失敗した場合、例外を投げます。取得できなかった住所を低い `level` で返すことはしません。低い `level` が返るのは、入力された住所文字列をそこまでしか判別できなかった場合だけです。
+
+一過性の失敗と判断できるもの（HTTP 5xx、408、425、429、ネットワークエラー、200 で返されたエラーページ）は、指数バックオフで自動的に再試行します。試行回数は初回の要求を含めて最大 3 回、つまり再試行は最大 2 回です。それでも回復しない場合に例外となります。404 のように再試行しても解決しない失敗は、その場で例外になります。
+
+例外の `message` には、どのデータの取得に失敗したかと失敗の原因が含まれます。原因は、HTTP エラーの場合はステータスコード、本文が期待どおりでない場合は期待したバイト長と実際のバイト長、ネットワークエラーの場合は元のエラーメッセージです。`config.japaneseAddressesApi` に `file://` を指定している場合は、`code` プロパティに `ENOENT` などの Node.js のエラーコードが入ります。
+
+大量の住所を一括で正規化する場合は、1 件の失敗で全体が止まらないように例外を捕捉してください。
+
+```javascript
+const { normalize } = require('@geolonia/normalize-japanese-addresses')
+
+async function normalizeAll(addresses) {
+  for (const address of addresses) {
+    try {
+      const result = await normalize(address)
+      console.log(result)
+    } catch (error) {
+      // 住所データの取得に失敗した。時間を置いて再度実行する
+      console.error(address, error.message)
+    }
+  }
+}
+```
+
 ### グローバルオプション
 
 以下のパラメーターを変更することでライブラリの動作全体に関わる設定が変更できます。
@@ -164,7 +190,7 @@ $ node sample.js
 
 ## NodeJS バージョン対応方針について
 
-`normalize-japanese-addresses` は現在、 NodeJS 18.x, 20.x, 22.x を対象としてテストを実施し、動作を確認しております。ビルド時は「開発環境」の NodeJS バージョンを利用ください。
+`normalize-japanese-addresses` は現在、 NodeJS 18.x, 20.x, 22.x, 24.x, 26.x を対象としてテストを実施し、動作を確認しております。26.x は 2026 年 10 月に Active LTS となる予定のため、先行してテスト対象に含めています。なお 26.x では、テストに使用している puppeteer が Node.js 26 に未対応のため、ブラウザを起動する結合テストのみ実施していません。ビルド時は「開発環境」の NodeJS バージョンを利用ください。
 
 NodeJS 以外のブラウザの環境は、最新ブラウザを前提とした対応となります。fetchが利用可能な環境であれば動く可能性が高い。テストは最新の Chrome を使って実施しております。
 

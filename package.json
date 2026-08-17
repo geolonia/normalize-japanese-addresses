@@ -2,6 +2,10 @@
   "name": "@geolonia/normalize-japanese-addresses",
   "version": "3.1.3",
   "description": "日本の住所を正規化するライブラリ",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geolonia/normalize-japanese-addresses.git"
+  },
   "type": "module",
   "main": "./dist/main-node-cjs.cjs",
   "types": "./dist/main-node.d.ts",
@@ -30,13 +34,17 @@
   "engines": {
     "node": ">=18"
   },
+  "allowScripts": {
+    "puppeteer": true,
+    "esbuild": true
+  },
   "author": "Geolonia, Inc.",
   "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-replace": "^6.0.1",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.1.1",
     "@types/node": "^22",
     "@types/papaparse": "^5.3.14",
@@ -46,7 +54,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-tsdoc": "^0.3.0",
-    "glob": "^11.0.0",
+    "glob": "^12.0.0",
     "jest-matcher-deep-close-to": "^3.0.2",
     "prettier": "^3.3.3",
     "puppeteer": "^23.6.0",

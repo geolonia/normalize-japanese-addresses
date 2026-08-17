@@ -18,6 +18,12 @@ export type FetchResponseLike = {
   json: () => Promise<unknown>
   text: () => Promise<string>
   ok: boolean
+  /**
+   * HTTP のステータスコード。
+   * 再試行するべき失敗かどうかの判定に使う。ファイルシステムから読む場合など、
+   * ステータスコードの概念が無い実装では省略できる。
+   */
+  status?: number
 }
 
 export type FetchLike = (

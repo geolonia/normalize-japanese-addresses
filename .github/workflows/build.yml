@@ -12,14 +12,19 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: "ビルド・リント"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22.x'
           cache: 'npm'
@@ -27,12 +32,12 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         if: github.ref == 'refs/heads/master'
         with:
           path: demo
@@ -50,7 +55,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     if: github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: deployment
 
   test:
@@ -63,17 +68,19 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [18.x, 20.x, 22.x, 24.x, 26.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist
@@ -83,8 +90,12 @@ jobs:
 
       # 結合テストはビルドされたものが必要
       # また、Node.js 18.x では結合テストをスキップする
+      # Node.js 26.x もスキップする。puppeteer 23.6.0 が使う extract-zip@2.0.1 が
+      # Node.js 26 で zip 展開を無音で中断し Chrome が用意されないため
+      # （puppeteer#14957）。修正済みの puppeteer 25.x は node >=22.12.0 を要求し
+      # 20.x の結合テストが回せなくなるため、この PR では追従しない
       - name: 結合テスト
-        if: matrix.node-version != '18.x'
+        if: matrix.node-version != '18.x' && matrix.node-version != '26.x'
         run: npm run test:integration
 
   # アドレステストは時間かかるし、環境依存が無いので、matrixにいれる必要無い
@@ -94,9 +105,11 @@ jobs:
       - build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22.x'
           cache: 'npm'
@@ -110,17 +123,69 @@ jobs:
     needs:
       - test
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
         with:
-          node-version: '22.x'
+          persist-credentials: false
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v7
+        with:
+          # Node.js 24.x が同梱する npm は、OIDC 公開に必要な 11.5.1 以降を満たす
+          # setup-node は v7 で dummy の NODE_AUTH_TOKEN を export しなくなった。
+          # これが OIDC 公開の前提なので、v6 以下に戻さないこと
+          node-version: '24.x'
+          # 既定ではランナーのツールキャッシュにある 24.x が優先されるため、同梱される npm の
+          # バージョンがキャッシュの内容に左右される。要件を満たす版を確実に取るため最新を取る
+          check-latest: true
           registry-url: 'https://registry.npmjs.org'
           scope: '@geolonia'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-      - run: npm publish --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          package-manager-cache: false
+
+      # npm 11.5.1 未満では OIDC 公開ができない。NODE_AUTH_TOKEN も渡していないため、
+      # そのまま進むと原因の分かりにくい認証エラーになる。理由が分かる形で先に落とす。
+      - name: npm が OIDC 公開の要件を満たすか確認する
+        run: |
+          NPM_VERSION="$(npm --version)"
+          REQUIRED=11.5.1
+          # 文字列比較では 11.16.0 < 11.5.1 と誤判定するため sort -V で比較する
+          if [ "$(printf '%s\n%s\n' "$REQUIRED" "$NPM_VERSION" | sort -V | head -n1)" != "$REQUIRED" ]; then
+            echo "::error::npm $NPM_VERSION は OIDC 公開に必要な $REQUIRED 未満です"
+            exit 1
+          fi
+          echo "npm $NPM_VERSION (>= $REQUIRED)"
+
+      # 公開されるバージョンは package.json 由来、dist-tag の判定はタグ名由来のため、
+      # 両者がずれていると意図しない dist-tag で公開される。公開前に落とす。
+      - name: タグを検証して公開メタデータを決める
+        id: meta
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::タグ $TAG が package.json の version $PKG と一致しません"
+            exit 1
+          fi
+          # ${TAG%%+*} でビルドメタデータを落とす。その中のハイフンは prerelease ではない。
+          case "${TAG%%+*}" in *-*) PRERELEASE=1 ;; *) PRERELEASE=0 ;; esac
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+      # dist は build ジョブの成果物をそのまま使う。このジョブは id-token: write を持つため、
+      # ここで npm ci を実行すると依存の install スクリプト（puppeteer / esbuild）が
+      # OIDC トークンを取得できる環境で動いてしまう。依存のコードを一切動かさない。
+      # package.json に prepare / prepack / prepublishOnly が無いため、npm publish は
+      # node_modules を必要としない。
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+
+      # prerelease は next dist-tag に公開し、npm install の既定や ^/~ の範囲に入れない
+      - name: 公開 (latest)
+        if: steps.meta.outputs.prerelease == '0'
+        run: npm publish --access=public --provenance
+      - name: 公開 (next)
+        if: steps.meta.outputs.prerelease == '1'
+        run: npm publish --access=public --provenance --tag=next
