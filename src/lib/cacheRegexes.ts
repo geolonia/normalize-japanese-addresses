@@ -560,17 +560,25 @@ export const getTownRegexPatterns = async (
       // 常に決め打ちでマッチしてしまう。この場合は緩いマッチを諦め、末尾の方角
       // 文字列まで正しく要求する厳密なパターン（メインループ内の1つ目のパターン）
       // にマッチを委ねる。
+      // 丁目番号は漢数字・全角数字・半角数字のいずれでも表記されうる。
+      // 表記が違うだけで実質同じ「町名＋丁目番号」を異なるキーとして数えてしまうと、
+      // 本来は複数存在する組み合わせを1件だけだと誤認し isUnambiguousChome が
+      // 誤って true を返してしまう。そのためキー生成時の数字部分は
+      // canonicalizeNumerals で正規化する（パターン生成に使う元の数字表記は
+      // 個別のマッチ箇所でそのまま使うため、ここでは変更しない）。
+      const chomeMatchPattern =
+        /([^一二三四五六七八九十0-9０-９]+)([一二三四五六七八九十0-9０-９]+)(丁目?)/
       const chomeKeyCounts = new Map<string, number>()
       for (const town of towns) {
-        const chomeMatch = machiAzaName(town).match(
-          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-        )
+        const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
         if (!chomeMatch) continue
-        const key = `${chomeMatch[1]} ${chomeMatch[2]}`
+        const key = `${chomeMatch[1]} ${canonicalizeNumerals(chomeMatch[2])}`
         chomeKeyCounts.set(key, (chomeKeyCounts.get(key) || 0) + 1)
       }
       const isUnambiguousChome = (chomeNamePart: string, chomeNum: string) =>
-        chomeKeyCounts.get(`${chomeNamePart} ${chomeNum}`) === 1
+        chomeKeyCounts.get(
+          `${chomeNamePart} ${canonicalizeNumerals(chomeNum)}`,
+        ) === 1
 
       for (const town of towns) {
         {
@@ -669,9 +677,7 @@ export const getTownRegexPatterns = async (
 
         // X丁目の丁目なしの数字だけの場合で、数字以外が続いたり終端が現れる場合は確度が高いので、先にマッチさせる
         {
-          const chomeMatch = machiAzaName(town).match(
-            /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-          )
+          const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
           // 番地・住居表示のデータを持たない町丁目は、「丁目」の記載を省略した
           // 緩いマッチの対象にしない（上の hyphenFallback と同じ理由）。
           // 同じ「町名＋丁目数字」を持つ町丁目が複数ある場合も、緩いマッチでは
@@ -694,9 +700,7 @@ export const getTownRegexPatterns = async (
 
       // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
       for (const town of towns) {
-        const chomeMatch = machiAzaName(town).match(
-          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-        )
+        const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
         if (
           !chomeMatch ||
           !hasAddressData(town) ||
