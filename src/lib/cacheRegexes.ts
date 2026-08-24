@@ -53,12 +53,12 @@ async function fetchFromCache<T extends {}>(
   return data
 }
 
-let cachedPrefecturePatterns: [SinglePrefecture, string][] | undefined =
+let cachedPrefecturePatterns: [SinglePrefecture, RegExp][] | undefined =
   undefined
-const cachedCityPatterns: Map<number, [SingleCity, string][]> = new Map()
+const cachedCityPatterns: Map<number, [SingleCity, RegExp][]> = new Map()
 let cachedPrefectures: PrefectureList | undefined = undefined
 const cachedTowns: { [key: string]: TownList } = {}
-let cachedSameNamedPrefectureCityRegexPatterns: [string, string][] | undefined =
+let cachedSameNamedPrefectureCityRegexPatterns: [string, RegExp][] | undefined =
   undefined
 
 export const getPrefectures = async () => {
@@ -81,10 +81,9 @@ export const getPrefectureRegexPatterns = (api: PrefectureApi) => {
   }
 
   const data = api.data
-  cachedPrefecturePatterns = data.map<[SinglePrefecture, string]>((pref) => {
+  cachedPrefecturePatterns = data.map<[SinglePrefecture, RegExp]>((pref) => {
     const _pref = pref.pref.replace(/(都|道|府|県)$/, '') // `東京` の様に末尾の `都府県` が抜けた住所に対応
-    const pattern = `^${_pref}(都|道|府|県)?`
-    return [pref, pattern]
+    return [pref, new RegExp(`^${_pref}(都|道|府|県)?`)]
   })
 
   return cachedPrefecturePatterns
@@ -102,13 +101,13 @@ export const getCityRegexPatterns = (pref: SinglePrefecture) => {
     return cityName(a).length - cityName(b).length
   })
 
-  const patterns = cities.map<[SingleCity, string]>((city) => {
+  const patterns = cities.map<[SingleCity, RegExp]>((city) => {
     const name = cityName(city)
-    let pattern = `^${toRegexPattern(name)}`
+    let patternStr = `^${toRegexPattern(name)}`
     if (name.match(/(町|村)$/)) {
-      pattern = `^${toRegexPattern(name).replace(/(.+?)郡/, '($1郡)?')}` // 郡が省略されてるかも
+      patternStr = `^${toRegexPattern(name).replace(/(.+?)郡/, '($1郡)?')}` // 郡が省略されてるかも
     }
-    return [city, pattern]
+    return [city, new RegExp(patternStr)]
   })
 
   cachedCityPatterns.set(pref.code, patterns)
@@ -345,7 +344,7 @@ export const getTownRegexPatterns = async (
       })
 
       const patterns = towns.map<[SingleMachiAza, string]>((town) => {
-        const pattern = toRegexPattern(
+        const patternStr = toRegexPattern(
           machiAzaName(town)
             // 横棒を含む場合（流通センター、など）に対応
             .replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]')
@@ -394,7 +393,7 @@ export const getTownRegexPatterns = async (
               },
             ),
         )
-        return ['originalTown' in town ? town.originalTown : town, pattern]
+        return ['originalTown' in town ? town.originalTown : town, patternStr]
       })
 
       // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
@@ -407,10 +406,10 @@ export const getTownRegexPatterns = async (
         }
         const chomeNamePart = chomeMatch[1]
         const chomeNum = chomeMatch[2]
-        const pattern = toRegexPattern(
+        const chomePatternStr = toRegexPattern(
           `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
         )
-        patterns.push([town, pattern])
+        patterns.push([town, chomePatternStr])
       }
 
       return patterns
@@ -439,7 +438,7 @@ export const getSameNamedPrefectureCityRegexPatterns = (
         if (cityN.indexOf(_prefs[j]) === 0) {
           cachedSameNamedPrefectureCityRegexPatterns.push([
             `${pref.pref}${cityN}`,
-            `^${cityN}`,
+            new RegExp(`^${cityN}`),
           ])
         }
       }

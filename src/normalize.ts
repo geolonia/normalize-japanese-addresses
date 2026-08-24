@@ -1,4 +1,5 @@
 import { number2kanji } from '@geolonia/japanese-numeral'
+import { dictionary } from './lib/dictionaries/dictionary'
 import { currentConfig } from './config'
 import { kan2num } from './lib/kan2num'
 import { zen2han } from './lib/zen2han'
@@ -96,6 +97,141 @@ const defaultOption = {
   level: 8,
 }
 
+// ---- Trie-based fast path for town matching ----
+
+// Character normalization map: maps variant characters to a single canonical form
+// so both town names and input addresses normalize identically.
+const _nm = new Map<string, string>()
+
+// Old↔new kanji pairs from the dictionary (e.g. 亞→亜)
+for (const e of dictionary) {
+  _nm.set(e.src, e.dst)
+}
+
+// Variant character groups from toRegexPattern
+for (const grp of [
+  ['の', '之', 'ノ'],
+  ['ヶ', 'ケ', 'が'],
+  ['ヵ', 'カ', 'か', '力'],
+  ['ッ', 'ツ', 'っ', 'つ'],
+  ['え', 'エ', 'ヱ'],
+  ['釜', '竈'],
+  ['条', '條'],
+  ['狛', '拍'],
+  ['薮', '藪'],
+  ['淵', '渕'],
+  ['曽', '曾'],
+  ['船', '舟'],
+  ['菟', '莵'],
+  ['崎', '﨑'],
+  ['宜', '冝'],
+]) {
+  const canonical = grp[0]
+  for (let i = 1; i < grp.length; i++) {
+    _nm.set(grp[i], canonical)
+  }
+}
+
+// Full-width digits → half-width
+for (let i = 0; i <= 9; i++) {
+  _nm.set(String.fromCharCode(0xff10 + i), String(i))
+}
+
+// Kanji single digits → arabic (一→1, etc.)
+// Also map ニ(katakana) and ハ(katakana) to match their kanji numeral equivalents
+for (const [k, a] of [
+  ['〇', '0'], ['一', '1'], ['二', '2'], ['三', '3'], ['四', '4'],
+  ['五', '5'], ['六', '6'], ['七', '7'], ['八', '8'], ['九', '9'],
+  ['ニ', '2'], ['ハ', '8'],
+]) {
+  _nm.set(k, a)
+}
+
+// Hyphen variants → '-'
+for (const h of '－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━') {
+  _nm.set(h, '-')
+}
+
+function _nc(ch: string): string {
+  return _nm.get(ch) ?? ch
+}
+
+function _ns(s: string): string {
+  let r = ''
+  for (const ch of s) r += _nc(ch)
+  return r
+}
+
+// Trie node
+interface _TN { c: Map<string, _TN>; t?: SingleMachiAza }
+
+const _trieCache = new Map<string, _TN>()
+
+function _trieInsert(root: _TN, key: string, town: SingleMachiAza) {
+  let node = root
+  for (const ch of key) {
+    let child = node.c.get(ch)
+    if (!child) { child = { c: new Map() }; node.c.set(ch, child) }
+    node = child
+  }
+  if (!node.t) node.t = town
+}
+
+function _trieLookup(root: _TN, input: string): { town: SingleMachiAza; len: number } | null {
+  let node = root
+  let best: { town: SingleMachiAza; len: number } | null = null
+  let i = 0
+  for (const ch of input) {
+    const next = node.c.get(_nc(ch))
+    if (!next) break
+    node = next
+    i++
+    if (node.t) best = { town: node.t, len: i }
+  }
+  return best
+}
+
+// Special alternation mappings from toRegexPattern: input form → canonical form
+// e.g. "三栄町" in an address is actually "四谷三栄町"
+const _altMap: [RegExp, string][] = [
+  [/^三栄町/, '四谷三栄町'],
+  [/^くじ野川/, '鬮野川'],
+  [/^くじの川/, '鬮野川'],
+  [/^柿さき町/, '柿碕町'],
+  [/^とおり/, '通り'],
+  [/^ふ頭/, '埠頭'],
+  [/^番丁/, '番町'],
+  [/^さい/, '穝'],
+  [/^えぶり/, '杁'],
+  [/^ひえ/, '薭'],
+  [/^ヒエ/, '薭'],
+]
+
+function _buildTrie(townPatterns: [SingleMachiAza, string][]): _TN {
+  const root: _TN = { c: new Map() }
+  for (const [town] of townPatterns) {
+    const name = machiAzaName(town)
+    _trieInsert(root, _ns(name), town)
+    // Handle optional 大字/字 prefix
+    if (name.startsWith('大字')) _trieInsert(root, _ns(name.slice(2)), town)
+    if (name.startsWith('字')) _trieInsert(root, _ns(name.slice(1)), town)
+    // Handle special alternation forms (e.g. 四谷三栄町 also matches as 三栄町)
+    for (const [re, canonical] of _altMap) {
+      if (re.test(name)) {
+        const altName = name.replace(re, canonical)
+        _trieInsert(root, _ns(altName), town)
+      }
+      // Also check if this town IS the canonical, add alt form
+      if (name.startsWith(canonical)) {
+        const altForm = re.source.replace(/^\^/, '')
+        const altName = name.replace(canonical, altForm)
+        _trieInsert(root, _ns(altName), town)
+      }
+    }
+  }
+  return root
+}
+
 const normalizeTownName = async (
   input: string,
   pref: SinglePrefecture,
@@ -105,21 +241,29 @@ const normalizeTownName = async (
   input = input.trim().replace(/^大字/, '')
   const townPatterns = await getTownRegexPatterns(pref, city, apiVersion)
 
-  const regexPrefixes = ['^']
-  if (city.city === '京都市') {
-    // 京都は通り名削除のために後方一致を使う
-    regexPrefixes.push('.*')
+  // Fast path: trie lookup
+  const trieKey = `${pref.code}-${city.code}`
+  let trie = _trieCache.get(trieKey)
+  if (!trie) {
+    trie = _buildTrie(townPatterns)
+    _trieCache.set(trieKey, trie)
+  }
+  const trieResult = _trieLookup(trie, input)
+  if (trieResult) {
+    return { town: trieResult.town, other: input.substring(trieResult.len) }
   }
 
+  // Slow path: regex fallback (京都 .*-prefix, complex suffix patterns, etc.)
+  const regexPrefixes = ['^']
+  if (city.city === '京都市') {
+    regexPrefixes.push('.*')
+  }
   for (const regexPrefix of regexPrefixes) {
     for (const [town, pattern] of townPatterns) {
       const regex = new RegExp(`${regexPrefix}${pattern}`)
       const match = input.match(regex)
       if (match) {
-        return {
-          town,
-          other: input.substring(match[0].length),
-        }
+        return { town, other: input.substring(match[0].length) }
       }
     }
   }
@@ -205,7 +349,7 @@ export const normalize: Normalizer = async (
   for (const [prefectureCity, reg] of sameNamedPrefectureCityRegexPatterns) {
     const match = other.match(reg)
     if (match) {
-      other = other.replace(new RegExp(reg), prefectureCity)
+      other = other.replace(reg, prefectureCity)
       break
     }
   }

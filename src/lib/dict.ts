@@ -1,6 +1,10 @@
 import { convert } from './dictionaries/convert'
 
+const toRegexPatternCache = new Map<string, string>()
+
 export const toRegexPattern = (string: string) => {
+  const cached = toRegexPatternCache.get(string)
+  if (cached) return cached
   let _str = string
 
   // 以下なるべく文字数が多いものほど上にすること
@@ -36,5 +40,6 @@ export const toRegexPattern = (string: string) => {
 
   _str = convert(_str)
 
+  toRegexPatternCache.set(string, _str)
   return _str
 }
