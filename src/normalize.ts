@@ -102,7 +102,7 @@ const normalizeTownName = async (
   city: SingleCity,
   apiVersion: number,
 ) => {
-  input = input.trim().replace(/^大字/, '')
+  input = input.trim().replace(/^(大字|字)/, '')
   const townPatterns = await getTownRegexPatterns(pref, city, apiVersion)
 
   const regexPrefixes = ['^']
@@ -145,26 +145,39 @@ async function normalizeAddrPart(
       rest: addr,
     }
   }
+  // 部屋番号などが街区符号・住居番号（地番）に続けてハイフンで連結されているケースに備え、
+  // マッチした数値グループを多い方から順に減らしながら候補を試す。
+  // 例: "4-25-101" -> ["4-25-101", "4-25", "4"]
+  const groups = [match[1], match[2], match[3]].filter(
+    (g): g is string => typeof g === 'string',
+  )
+  const candidates = groups.map((_, i) =>
+    groups.slice(0, groups.length - i).join('-'),
+  )
   // TODO: rsdtの場合はrsdtと地番を両方取得する
   if (town.rsdt) {
     const res = await getRsdt(pref, city, town, apiVersion)
-    for (const rsdt of res) {
-      const addrPart = rsdtToString(rsdt)
-      if (match[0] === addrPart) {
-        return {
-          rsdt,
-          rest: addr.substring(addrPart.length),
+    for (const candidate of candidates) {
+      for (const rsdt of res) {
+        const addrPart = rsdtToString(rsdt)
+        if (candidate === addrPart) {
+          return {
+            rsdt,
+            rest: addr.substring(addrPart.length),
+          }
         }
       }
     }
   } else {
     const res = await getChiban(pref, city, town, apiVersion)
-    for (const chiban of res) {
-      const addrPart = chibanToString(chiban)
-      if (match[0] === addrPart) {
-        return {
-          chiban,
-          rest: addr.substring(addrPart.length),
+    for (const candidate of candidates) {
+      for (const chiban of res) {
+        const addrPart = chibanToString(chiban)
+        if (candidate === addrPart) {
+          return {
+            chiban,
+            rest: addr.substring(addrPart.length),
+          }
         }
       }
     }
@@ -293,17 +306,22 @@ export const normalize: Normalizer = async (
     if (town) {
       other = other
         .replace(/^-/, '')
+        // 丁目を持たない町丁目に対して「2丁目2番地」のように、本来の街区符号を
+        // 「丁目」で表記しているケースがある。この場合は「丁目」を区切りとして扱う。
+        .replace(/^([0-9]+)丁目/, (match, num) => {
+          return town.chome ? match : `${num}-`
+        })
         .replace(/([0-9]+)(丁目)/g, (match) => {
           return match.replace(/([0-9]+)/g, (num) => {
             return number2kanji(Number(num))
           })
         })
         .replace(
-          /(([0-9]+|[〇一二三四五六七八九十百千]+)(番地?)([0-9]+|[〇一二三四五六七八九十百千]+)号)\s*(.+)/,
+          /(([0-9]+|[〇一二三四五六七八九十百千]+)(番地?)[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]?([0-9]+|[〇一二三四五六七八九十百千]+)号)\s*(.+)/,
           '$1 $5',
         )
         .replace(
-          /([0-9]+|[〇一二三四五六七八九十百千]+)\s*(番地?)\s*([0-9]+|[〇一二三四五六七八九十百千]+)\s*号?/,
+          /([0-9]+|[〇一二三四五六七八九十百千]+)\s*(番地?)\s*[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]?\s*([0-9]+|[〇一二三四五六七八九十百千]+)\s*号?/,
           '$1-$3',
         )
         .replace(/([0-9]+|[〇一二三四五六七八九十百千]+)番(地|$)/, '$1')
