@@ -1,5 +1,6 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
+import { zen2han } from './zen2han'
 import Papaparse from 'papaparse'
 import { LRUCache } from 'lru-cache'
 import {
@@ -476,6 +477,14 @@ export const getTownRegexPatterns = async (
       const api = await getTowns(pref, city, apiVersion)
       const pre_towns = api.data
       const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
+      // 数字表記（漢数字・全角/半角アラビア数字）の揺れを正規化した集合。
+      // 「若水町３丁目」（koaza）のエイリアス「若水３丁目」と「若水三丁目」（chome）
+      // のように、数字の表記が違うだけで実質的に同じ文字列になるケースの
+      // コンフリクト検出に使う。
+      const canonicalizeNumerals = (name: string) => kan2num(zen2han(name))
+      const canonicalTownSet = new Set(
+        pre_towns.map((town) => canonicalizeNumerals(machiAzaName(town))),
+      )
       const towns: (
         | SingleMachiAza
         | (SingleMachiAza & { originalTown: SingleMachiAza })
@@ -497,6 +506,8 @@ export const getTownRegexPatterns = async (
           !isKyoto && // 京都は通り名削除の処理があるため、意図しないマッチになるケースがある。これを除く
           !townSet.has(townAbbr) &&
           !townSet.has(`大字${townAbbr}`) && // 大字は省略されるため、大字〇〇と〇〇町がコンフリクトする。このケースを除外
+          !canonicalTownSet.has(canonicalizeNumerals(townAbbr)) &&
+          !canonicalTownSet.has(canonicalizeNumerals(`大字${townAbbr}`)) &&
           !isKanjiNumberFollewedByCho(originalTown)
         ) {
           // エイリアスとして町なしのパターンを登録
@@ -514,15 +525,60 @@ export const getTownRegexPatterns = async (
         let aLen = machiAzaName(a).length
         let bLen = machiAzaName(b).length
 
-        // 大字で始まる場合、優先度を低く設定する。
-        // 大字XX と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい
-        if (machiAzaName(a).startsWith('大字')) aLen -= 2
-        if (machiAzaName(b).startsWith('大字')) bLen -= 2
+        // 「大字」「字」を含む場合、優先度を低く設定する。
+        // 大字XX と XXYY、大字XX字YY と XXYY が存在するケースもあるので、 XXYY を先にマッチしたい。
+        // 正規表現生成時（toRegexPattern手前の /大?字/g 置換）は出現する「大字」「字」すべてを
+        // 省略可能として扱うため、ここでも出現するすべての「大字」「字」の分だけ長さを差し引く。
+        const discount = (name: string) =>
+          (name.match(/大?字/g) || []).reduce((sum, m) => sum + m.length, 0)
+        aLen -= discount(machiAzaName(a))
+        bLen -= discount(machiAzaName(b))
 
         return bLen - aLen
       })
 
       const patterns: [SingleMachiAza, string][] = []
+
+      // 住居表示・地番のデータを持たない町丁目（構造上の存在のみで、それ以上の
+      // 番地照合ができないもの）かどうか。例えば「大日町」（地番・住居表示あり）
+      // に対して「大日町一丁目」という小字だけの空エントリが別に存在するケースで、
+      // 後者は「丁目」の記載を省略したハイフン区切り等の緩い形式にはマッチさせない。
+      // マッチさせてしまうと本来番地まで正規化できるはずの「大日町」よりも先に
+      // マッチしてレベル8への到達を妨げてしまう。
+      const hasAddressData = (
+        t: SingleMachiAza | (SingleMachiAza & { originalTown: SingleMachiAza }),
+      ) => {
+        const realTown = 'originalTown' in t ? t.originalTown : t
+        return !!realTown.csv_ranges
+      }
+
+      // 「丁目」を省略した数字だけの緩いマッチ（下記2箇所）は、同じ「町名＋丁目数字」
+      // を持つ町丁目が1つしかない場合にのみ安全に使える。例えば札幌市白石区の
+      // 「本郷通八丁目北」「本郷通八丁目南」のように、丁目数字までは同じで末尾の
+      // 方角（北・南）だけが異なる町丁目が複数存在する場合、緩いマッチは方角を
+      // 区別できないため、配列内で先に出現した側（多くの場合たまたま北側）に
+      // 常に決め打ちでマッチしてしまう。この場合は緩いマッチを諦め、末尾の方角
+      // 文字列まで正しく要求する厳密なパターン（メインループ内の1つ目のパターン）
+      // にマッチを委ねる。
+      // 丁目番号は漢数字・全角数字・半角数字のいずれでも表記されうる。
+      // 表記が違うだけで実質同じ「町名＋丁目番号」を異なるキーとして数えてしまうと、
+      // 本来は複数存在する組み合わせを1件だけだと誤認し isUnambiguousChome が
+      // 誤って true を返してしまう。そのためキー生成時の数字部分は
+      // canonicalizeNumerals で正規化する（パターン生成に使う元の数字表記は
+      // 個別のマッチ箇所でそのまま使うため、ここでは変更しない）。
+      const chomeMatchPattern =
+        /([^一二三四五六七八九十0-9０-９]+)([一二三四五六七八九十0-9０-９]+)(丁目?)/
+      const chomeKeyCounts = new Map<string, number>()
+      for (const town of towns) {
+        const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
+        if (!chomeMatch) continue
+        const key = `${chomeMatch[1]} ${canonicalizeNumerals(chomeMatch[2])}`
+        chomeKeyCounts.set(key, (chomeKeyCounts.get(key) || 0) + 1)
+      }
+      const isUnambiguousChome = (chomeNamePart: string, chomeNum: string) =>
+        chomeKeyCounts.get(
+          `${chomeNamePart} ${canonicalizeNumerals(chomeNum)}`,
+        ) === 1
 
       for (const town of towns) {
         {
@@ -534,15 +590,17 @@ export const getTownRegexPatterns = async (
               // 以下住所マスターの町丁目に含まれる数字を正規表現に変換する
               // ABRデータには大文字の数字が含まれている（第１地割、など）ので、数字も一致するようにする
               .replace(
-                /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/g,
-                (match: string) => {
+                /([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)(丁目?|番(町|丁)|番|条|軒|線|(の|ノ)町|地割|号)/g,
+                (match: string, ...rest: unknown[]) => {
+                  const offset = rest[rest.length - 2] as number
+                  const fullString = rest[rest.length - 1] as string
                   const patterns = []
 
                   patterns.push(
                     match
                       .toString()
                       .replace(
-                        /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                        /(丁目?|番(町|丁)|番|条|軒|線|(の|ノ)町|地割|号)/,
                         '',
                       ),
                   ) // 漢数字
@@ -560,17 +618,50 @@ export const getTownRegexPatterns = async (
                         return kanji2number(match).toString()
                       })
                       .replace(
-                        /(丁目?|番(町|丁)|条|軒|線|(の|ノ)町|地割|号)/,
+                        /(丁目?|番(町|丁)|番|条|軒|線|(の|ノ)町|地割|号)/,
                         '',
                       )
 
                     patterns.push(num.toString()) // 半角アラビア数字
                   }
 
-                  // 以下の正規表現は、上のよく似た正規表現とは違うことに注意！
+                  // 数字の後に続く助数詞（丁目・番町・条など）は元の種類と同じもの
+                  // のみを許容する。異なる種類の助数詞をまとめて許容してしまうと、
+                  // 「三番町」の様な地名が「三条」など全く別の地名にもマッチしてしまう。
+                  const suffix = match.replace(
+                    /^([壱一二三四五六七八九十]+|[１２３４５６７８９０]+)/,
+                    '',
+                  )
+                  let suffixAlternatives: string
+                  if (/^(丁|町)目?$/.test(suffix)) {
+                    suffixAlternatives = '(丁|町)目?'
+                  } else if (/^番(町|丁)$/.test(suffix)) {
+                    suffixAlternatives = '番(町|丁)'
+                  } else if (/^(の|ノ)町$/.test(suffix)) {
+                    suffixAlternatives = 'の町?'
+                  } else {
+                    // 条・軒・線・地割・号はそのまま（新字・旧字の揺れは toRegexPattern 側で吸収する）
+                    suffixAlternatives = suffix
+                  }
+
+                  // 番地・住居表示のデータを持たない町丁目に対しては、「丁目」等の
+                  // 記載を省略したハイフン区切りの緩いマッチを許容しない。
+                  const hyphenFallback = hasAddressData(town)
+                    ? '|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]'
+                    : ''
+                  // 小字名の末尾に「北」「南」などの方角が続く町丁目に対して、
+                  // 「本通14北5-15」のように「丁目」もハイフンも挟まず数字の
+                  // 直後に方角が続く表記があるため、区切り文字なしでの接続も
+                  // 許容する。方角などの後続文字列自体はこの後もリテラルとして
+                  // 要求され続けるため、方角違いの町丁目と誤ってマッチすること
+                  // にはならない。
+                  const hasTrailingText =
+                    offset + match.length < fullString.length
+                  const noSeparatorFallback =
+                    hasAddressData(town) && hasTrailingText ? '|' : ''
                   const _pattern = `(${patterns.join(
                     '|',
-                  )})((丁|町)目?|番(町|丁)|条|軒|線|の町?|地割|号|[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━])`
+                  )})(${suffixAlternatives}${hyphenFallback}${noSeparatorFallback})`
                   // if (city === '下閉伊郡普代村' && town.machiaza_id === '0022000') {
                   //   console.log(_pattern)
                   // }
@@ -586,10 +677,16 @@ export const getTownRegexPatterns = async (
 
         // X丁目の丁目なしの数字だけの場合で、数字以外が続いたり終端が現れる場合は確度が高いので、先にマッチさせる
         {
-          const chomeMatch = machiAzaName(town).match(
-            /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-          )
-          if (!chomeMatch) {
+          const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
+          // 番地・住居表示のデータを持たない町丁目は、「丁目」の記載を省略した
+          // 緩いマッチの対象にしない（上の hyphenFallback と同じ理由）。
+          // 同じ「町名＋丁目数字」を持つ町丁目が複数ある場合も、緩いマッチでは
+          // どちらか区別できないため対象にしない（上の isUnambiguousChome 参照）。
+          if (
+            !chomeMatch ||
+            !hasAddressData(town) ||
+            !isUnambiguousChome(chomeMatch[1], chomeMatch[2])
+          ) {
             continue
           }
           const chomeNamePart = chomeMatch[1]
@@ -603,10 +700,12 @@ export const getTownRegexPatterns = async (
 
       // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
       for (const town of towns) {
-        const chomeMatch = machiAzaName(town).match(
-          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-        )
-        if (!chomeMatch) {
+        const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
+        if (
+          !chomeMatch ||
+          !hasAddressData(town) ||
+          !isUnambiguousChome(chomeMatch[1], chomeMatch[2])
+        ) {
           continue
         }
         const chomeNamePart = chomeMatch[1]
