@@ -24,6 +24,12 @@ export type FetchResponseLike = {
    * ステータスコードの概念が無い実装では省略できる。
    */
   status?: number
+  /**
+   * 失敗が再試行で回復しうるかどうか。
+   * 省略時は status から判定する。ファイルシステムからの読み取りのように
+   * 失敗が決定的な実装では false を指定する。
+   */
+  retryable?: boolean
 }
 
 export type FetchLike = (

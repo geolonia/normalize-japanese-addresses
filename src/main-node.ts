@@ -25,12 +25,22 @@ export const requestHandlers = {
     await f.close()
     return {
       json: async () => {
-        return JSON.parse(contents.toString('utf-8'))
+        try {
+          return JSON.parse(contents.toString('utf-8'))
+        } catch (e) {
+          // ローカルファイルの解析失敗は決定的なので、再試行の対象にしない
+          if (e instanceof Error) {
+            ;(e as Error & { retryable?: boolean }).retryable = false
+          }
+          throw e
+        }
       },
       text: async () => {
         return contents.toString('utf-8')
       },
       ok,
+      // ファイルからの読み取りは再試行しても解決しない
+      retryable: false,
     }
   },
   http: (fileURL: URL, options?: FetchOptions) => {
