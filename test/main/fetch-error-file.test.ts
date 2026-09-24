@@ -89,7 +89,12 @@ describe(`file:// の決定的な失敗はリトライされない`, () => {
       () => normalize('東京都渋谷区'),
       /住所データの取得に失敗しました/,
     )
-    const opened = openCounts[path.join(dir, 'ja.json')] ?? 0
+    // Windows ではパスの区切り文字が異なるため、正規化してから比較する
+    const expected = path.join(dir, 'ja.json').replace(/\\/g, '/')
+    const key = Object.keys(openCounts).find(
+      (p) => p.replace(/\\/g, '/') === expected,
+    )
+    const opened = key ? openCounts[key] : 0
     assert.strictEqual(
       opened,
       1,
