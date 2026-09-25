@@ -191,6 +191,12 @@ export const normalize: Normalizer = async (
   let point: NormalizeResultPoint | undefined
   let addr: string | undefined
   let level = 0
+  let prefMatchWithoutSuffix:
+    | {
+        pref: SinglePrefecture
+        other: string
+      }
+    | undefined
 
   // 都道府県名の正規化
 
@@ -213,6 +219,16 @@ export const normalize: Normalizer = async (
   for (const [_pref, pattern] of prefPatterns) {
     const match = other.match(pattern)
     if (match) {
+      // A prefecture suffix is optional to support inputs such as `東京`.
+      // Defer that match until after trying city-name inference so that a
+      // city such as `福島町` is not mistaken for `福島県`.
+      if (!match[1]) {
+        prefMatchWithoutSuffix = {
+          pref: _pref,
+          other: other.substring(match[0].length),
+        }
+        continue
+      }
       pref = _pref
       other = other.substring(match[0].length) // 都道府県名以降の住所
       point = prefectureToResultPoint(pref)
@@ -262,6 +278,12 @@ export const normalize: Normalizer = async (
           point = upgradePoint(point, machiAzaToResultPoint(town))
         }
       }
+    }
+
+    if (!pref && prefMatchWithoutSuffix) {
+      pref = prefMatchWithoutSuffix.pref
+      other = prefMatchWithoutSuffix.other
+      point = prefectureToResultPoint(pref)
     }
   }
 
