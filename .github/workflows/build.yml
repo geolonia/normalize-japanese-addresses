@@ -88,14 +88,25 @@ jobs:
       - run: npm ci
       - run: npm test
 
+      # Node.js 26.x では puppeteer 23.6.0 が使う extract-zip@2.0.1 が zip 展開を
+      # 無音で中断し、Chrome が用意されない（puppeteer#14957）。修正済みの
+      # puppeteer 25.x は node >=22.12.0 を要求し 20.x の結合テストが回せなくなるため、
+      # puppeteer 本体は据え置き、Chrome だけを修正済みの @puppeteer/browsers 3.x で
+      # 入れ直す。途中まで展開されたディレクトリが残っているとインストールに失敗するため、
+      # 先に削除する。
+      - name: Chrome を入れ直す（Node.js 26.x）
+        if: matrix.node-version == '26.x'
+        shell: bash
+        run: |
+          CHROME_BUILD_ID=$(node -p "require('puppeteer-core/internal/revisions.js').PUPPETEER_REVISIONS.chrome")
+          CACHE_DIR=$(node -p "require('node:path').join(require('node:os').homedir(), '.cache', 'puppeteer')")
+          node -e "require('node:fs').rmSync(require('node:path').join(process.argv[1], 'chrome'), { recursive: true, force: true })" "$CACHE_DIR"
+          npx -y @puppeteer/browsers@3.2.5 install "chrome@${CHROME_BUILD_ID}" --path "$CACHE_DIR"
+
       # 結合テストはビルドされたものが必要
       # また、Node.js 18.x では結合テストをスキップする
-      # Node.js 26.x もスキップする。puppeteer 23.6.0 が使う extract-zip@2.0.1 が
-      # Node.js 26 で zip 展開を無音で中断し Chrome が用意されないため
-      # （puppeteer#14957）。修正済みの puppeteer 25.x は node >=22.12.0 を要求し
-      # 20.x の結合テストが回せなくなるため、この PR では追従しない
       - name: 結合テスト
-        if: matrix.node-version != '18.x' && matrix.node-version != '26.x'
+        if: matrix.node-version != '18.x'
         run: npm run test:integration
 
   # アドレステストは時間かかるし、環境依存が無いので、matrixにいれる必要無い
