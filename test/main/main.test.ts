@@ -270,4 +270,55 @@ describe(`basic tests`, () => {
       })
     })
   })
+
+  describe('東京都の島嶼部で島名が付記されるケース (#194)', () => {
+    test('東京都八丈島八丈町三根９９９９９', async () => {
+      const res = await normalize('東京都八丈島八丈町三根９９９９９')
+      assertMatchCloseTo(res, {
+        pref: '東京都',
+        city: '八丈町',
+        town: '三根',
+        other: '99999',
+        level: 3,
+      })
+    })
+
+    test('都道府県名なし: 八丈島八丈町三根', async () => {
+      const res = await normalize('八丈島八丈町三根')
+      assertMatchCloseTo(res, {
+        pref: '東京都',
+        city: '八丈町',
+        town: '三根',
+        level: 3,
+      })
+    })
+
+    test('東京都三宅島三宅村阿古１', async () => {
+      const res = await normalize('東京都三宅島三宅村阿古１')
+      assertMatchCloseTo(res, {
+        pref: '東京都',
+        city: '三宅村',
+        town: '阿古',
+        level: 3,
+      })
+    })
+
+    test('島名なしの既存の動作は変わらない: 東京都大島町元町１', async () => {
+      const res = await normalize('東京都大島町元町１')
+      assertMatchCloseTo(res, {
+        pref: '東京都',
+        city: '大島町',
+        town: '元町一丁目',
+        level: 3,
+      })
+    })
+
+    test('島名の後に市区町村名が無い場合は従来通り: 東京都八丈島三根', async () => {
+      const res = await normalize('東京都八丈島三根')
+      assertMatchCloseTo(res, {
+        pref: '東京都',
+        level: 1,
+      })
+    })
+  })
 })
