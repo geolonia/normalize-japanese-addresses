@@ -89,11 +89,7 @@ jobs:
       - run: npm test
 
       # 結合テストはビルドされたものが必要
-      # Node.js 26.x はスキップする。puppeteer 23.6.0 が使う extract-zip@2.0.1 が
-      # Node.js 26 で zip 展開を無音で中断し Chrome が用意されないため
-      # （puppeteer#14957）
       - name: 結合テスト
-        if: matrix.node-version != '26.x'
         run: npm run test:integration
 
   # アドレステストは時間かかるし、環境依存が無いので、matrixにいれる必要無い
