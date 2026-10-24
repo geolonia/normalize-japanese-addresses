@@ -70,8 +70,8 @@
   },
   "dependencies": {
     "@geolonia/japanese-addresses-v2": "0.0.5",
-    "@geolonia/japanese-numeral": "^1.0.2",
-    "lru-cache": "^11.0.1",
-    "papaparse": "^5.4.1"
+    "@geolonia/japanese-numeral": "^1.1.0",
+    "lru-cache": "^11.5.3",
+    "papaparse": "^5.7.0"
   }
 }
