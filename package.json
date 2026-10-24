@@ -32,7 +32,7 @@
     "clean": "shx rm -rf dist"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "allowScripts": {
     "puppeteer": true,
