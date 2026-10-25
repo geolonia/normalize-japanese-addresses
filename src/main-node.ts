@@ -14,15 +14,21 @@ export const requestHandlers = {
     let contents: Buffer, ok: boolean
     try {
       const f = await fs.open(filePath, 'r')
-      if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
-        contents = Buffer.alloc(o.length)
-        const resp = await f.read(contents, 0, o.length, o.offset)
-        ok = resp.bytesRead === o.length
-      } else {
-        contents = await f.readFile()
-        ok = true
+      try {
+        if (
+          typeof o.length !== 'undefined' &&
+          typeof o.offset !== 'undefined'
+        ) {
+          contents = Buffer.alloc(o.length)
+          const resp = await f.read(contents, 0, o.length, o.offset)
+          ok = resp.bytesRead === o.length
+        } else {
+          contents = await f.readFile()
+          ok = true
+        }
+      } finally {
+        await f.close()
       }
-      await f.close()
     } catch (e) {
       // ローカルファイルの I/O 失敗 (EISDIR / EACCES など) は決定的なので、
       // 再試行の対象にしない

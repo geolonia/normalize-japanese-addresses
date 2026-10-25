@@ -13,11 +13,15 @@ const realOpen = fs.promises.open
 let openCounts: Record<string, number> = {}
 let shortReadTarget: string | undefined
 let failOpenTarget: string | undefined
+let closeCounts: Record<string, number> = {}
+let failReadTarget: string | undefined
 
 function installOpenCounter() {
   openCounts = {}
   shortReadTarget = undefined
   failOpenTarget = undefined
+  closeCounts = {}
+  failReadTarget = undefined
   mock.method(
     fs.promises,
     'open',
@@ -40,6 +44,23 @@ function installOpenCounter() {
           read: async () => ({ bytesRead: 0, buffer: Buffer.alloc(0) }),
           readFile: handle.readFile.bind(handle),
           close: handle.close.bind(handle),
+        } as unknown as fs.promises.FileHandle
+      }
+      if (failReadTarget && p.endsWith(failReadTarget)) {
+        // 開いた後の読み取りで I/O エラーになり、閉じた回数を数える FileHandle を模す
+        const readError = () =>
+          Object.assign(new Error('EIO: i/o error, read'), { code: 'EIO' })
+        return {
+          read: async () => {
+            throw readError()
+          },
+          readFile: async () => {
+            throw readError()
+          },
+          close: async () => {
+            closeCounts[p] = (closeCounts[p] ?? 0) + 1
+            await handle.close()
+          },
         } as unknown as fs.promises.FileHandle
       }
       return handle
@@ -145,6 +166,31 @@ describe(`file:// の決定的な失敗はリトライされない`, () => {
       opened,
       1,
       `京都市左京区.json は 1 回だけ開かれるべき (実際: ${opened} 回)`,
+    )
+  })
+
+  test(`読み取りの I/O エラーでもファイルは閉じられる`, async () => {
+    const dir = path.join(tmpdir, 'read-error')
+    // 町字データだけが開いた後の読み取りで I/O エラーになる状況を作る
+    await downloadFile('ja.json', dir)
+    const townFile = path.join(dir, 'ja', '京都府', '京都市北区.json')
+    await fs.promises.mkdir(path.dirname(townFile), { recursive: true })
+    await fs.promises.writeFile(townFile, '{}')
+    config.japaneseAddressesApi = `file://${dir}/ja`
+    failReadTarget = '京都市北区.json'
+
+    await assert.rejects(
+      () => normalize('京都府京都市北区紫野'),
+      /住所データの取得に失敗しました/,
+    )
+    const key = Object.keys(closeCounts).find((p) =>
+      p.endsWith('京都市北区.json'),
+    )
+    const closed = key ? closeCounts[key] : 0
+    assert.strictEqual(
+      closed,
+      1,
+      `京都市北区.json は 1 回閉じられるべき (実際: ${closed} 回)`,
     )
   })
 })
