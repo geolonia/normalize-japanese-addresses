@@ -30,8 +30,9 @@ export const requestHandlers = {
         await f.close()
       }
     } catch (e) {
-      // ローカルファイルの I/O 失敗 (EISDIR / EACCES など) は決定的なので、
-      // 再試行の対象にしない
+      // ローカルファイルの I/O 失敗は再試行の対象にしない。EISDIR / EACCES などの
+      // 決定的な失敗に加え、EMFILE などの一時的な失敗も 1 回で失敗させ、
+      // 再試行の仕組みが入る前と同じ試行回数・待ち時間に揃えている
       if (e instanceof Error) {
         ;(e as Error & { retryable?: boolean }).retryable = false
       }
