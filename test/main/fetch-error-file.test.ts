@@ -4,7 +4,6 @@ import path from 'node:path'
 import os from 'node:os'
 import fs from 'node:fs'
 import { pipeline } from 'node:stream/promises'
-import { fetch } from 'undici'
 import { normalize, config } from '../../src/main-node'
 
 // file:// の読み取り失敗は決定的なのでリトライされないことの確認 (#279)
