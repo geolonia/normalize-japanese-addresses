@@ -27,7 +27,13 @@ async function downloadFile(file: string, destDir: string) {
 }
 
 /** パスの末尾が target に一致する要求に対して、あと何回どのステータスを返すか */
-const failure = { target: '-住居表示.txt', remaining: 0, status: 503 }
+const failure = {
+  target: '-住居表示.txt',
+  remaining: 0,
+  status: 503,
+  /** page: エラーページ本文 / full: Range を無視して全文 / short: 206 だが途中切れ / long: 206 だが要求より長い */
+  mode: 'page' as 'page' | 'full' | 'short' | 'long',
+}
 /** target に一致した要求の回数 */
 let targetRequests = 0
 
@@ -58,6 +64,37 @@ describe(`データ取得に失敗したときの挙動`, () => {
         targetRequests += 1
         if (failure.remaining > 0) {
           failure.remaining -= 1
+          if (failure.mode !== 'page') {
+            // Range 無視・途中切れ・要求超過を、実際のファイル本文から作る
+            let full: Buffer
+            try {
+              full = fs.readFileSync(path.join(tmpdir, urlPath))
+            } catch {
+              res.writeHead(404)
+              res.end('not found')
+              return
+            }
+            const range = /^bytes=(\d+)-(\d+)$/.exec(req.headers.range ?? '')
+            if (failure.mode === 'full' || !range) {
+              // Range を処理しないサーバーは要求の有無にかかわらず全文を返す
+              res.writeHead(200, { 'content-length': String(full.length) })
+              res.end(full)
+              return
+            }
+            const start = Number(range[1])
+            const end = Number(range[2])
+            const slice = full.subarray(start, end + 1)
+            const body =
+              failure.mode === 'short'
+                ? slice.subarray(0, Math.max(1, Math.floor(slice.length / 2)))
+                : Buffer.concat([slice, Buffer.from('0123456789')])
+            res.writeHead(206, {
+              'content-length': String(body.length),
+              'content-range': `bytes ${start}-${end}/${full.length}`,
+            })
+            res.end(body)
+            return
+          }
           res.writeHead(failure.status, {
             'content-type': 'text/plain; charset=utf-8',
           })
@@ -110,6 +147,7 @@ describe(`データ取得に失敗したときの挙動`, () => {
     failure.target = '-住居表示.txt'
     failure.remaining = 0
     failure.status = 503
+    failure.mode = 'page'
     targetRequests = 0
   })
 
@@ -179,6 +217,66 @@ describe(`データ取得に失敗したときの挙動`, () => {
       },
     )
     assert.strictEqual(targetRequests, 3)
+  })
+
+  test(`Range が無視された場合はその旨がエラーメッセージに入る`, async () => {
+    failure.mode = 'full'
+    failure.remaining = Number.MAX_SAFE_INTEGER
+
+    await assert.rejects(
+      () => normalize('渋谷区広尾1-1-39'),
+      (e: Error) => {
+        assert.match(e.message, /住居表示/)
+        assert.match(e.message, /バイト/)
+        assert.match(e.message, /Range リクエストを処理しませんでした/)
+        return true
+      },
+    )
+    assert.strictEqual(targetRequests, 3)
+  })
+
+  test(`本文が途中で切れた場合はその旨がエラーメッセージに入る`, async () => {
+    failure.mode = 'short'
+    failure.remaining = Number.MAX_SAFE_INTEGER
+
+    await assert.rejects(
+      () => normalize('渋谷区千駄ヶ谷1-13-11'),
+      (e: Error) => {
+        assert.match(e.message, /住居表示/)
+        assert.match(e.message, /バイト/)
+        assert.match(e.message, /途中で切れています/)
+        return true
+      },
+    )
+    assert.strictEqual(targetRequests, 3)
+  })
+
+  test(`要求より長い本文の場合はその旨がエラーメッセージに入る`, async () => {
+    failure.mode = 'long'
+    failure.remaining = Number.MAX_SAFE_INTEGER
+
+    await assert.rejects(
+      () => normalize('渋谷区神山町10-8'),
+      (e: Error) => {
+        assert.match(e.message, /住居表示/)
+        assert.match(e.message, /バイト/)
+        assert.match(e.message, /要求した範囲より長い本文/)
+        return true
+      },
+    )
+    assert.strictEqual(targetRequests, 3)
+  })
+
+  test(`一過性の短い読み取りはリトライして回復する`, async () => {
+    failure.mode = 'short'
+    failure.remaining = 1
+
+    const res = await normalize('渋谷区代々木2-1-1')
+
+    assert.strictEqual(res.level, 8)
+    // 代々木2丁目1番1号として解決される
+    assert.strictEqual(res.addr, '1-1')
+    assert.strictEqual(targetRequests, 2)
   })
 
   test(`町字データが 200 でエラーページを返した場合もリトライして回復する`, async () => {
