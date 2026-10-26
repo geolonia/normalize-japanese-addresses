@@ -520,6 +520,10 @@ export const getTownRegexPatterns = async (
         }
       }
 
+      // 町なしのエイリアスも含めた町字名 (確度の高い丁目のパターンで、X丁目 の町字があるかを調べるため)
+      // townSet は元の町字だけなので、エイリアス (稲荷元三丁目字一番沼割 など) を判定できるよう別に作る
+      const townNames = new Set(towns.map((town) => machiAzaName(town)))
+
       // 少ない文字数の地名に対してミスマッチしないように文字の長さ順にソート
       towns.sort((a, b) => {
         let aLen = machiAzaName(a).length
@@ -611,7 +615,7 @@ export const getTownRegexPatterns = async (
             0,
             (chomeMatch.index ?? 0) + chomeMatch[0].length,
           )
-          if (chomeName !== name && townSet.has(chomeName)) {
+          if (chomeName !== name && townNames.has(chomeName)) {
             continue
           }
           const chomeNamePart = chomeMatch[1]
@@ -619,7 +623,10 @@ export const getTownRegexPatterns = async (
           const pattern = toRegexPattern(
             `^${chomeNamePart}${kan2num(chomeNum)}([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]|(?![0-9])|$)`,
           )
-          patterns.push([town, pattern])
+          patterns.push([
+            'originalTown' in town ? town.originalTown : town,
+            pattern,
+          ])
         }
       }
 
