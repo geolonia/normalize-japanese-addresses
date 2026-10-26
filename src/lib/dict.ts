@@ -33,6 +33,7 @@ export const toRegexPattern = (string: string) => {
     .replace(/莵|菟/g, '(莵|菟)')
     .replace(/市|巿/g, '(市|巿)')
     .replace(/崎|﨑/g, '(崎|﨑)')
+    .replace(/[州洲]/g, '[州洲]')
 
   _str = convert(_str)
 
