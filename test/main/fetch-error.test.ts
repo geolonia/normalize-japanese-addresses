@@ -6,7 +6,6 @@ import os from 'node:os'
 import fs from 'node:fs'
 import { AddressInfo } from 'node:net'
 import { pipeline } from 'node:stream/promises'
-import { fetch } from 'undici'
 import { normalize, config } from '../../src/main-node'
 
 async function downloadFile(file: string, destDir: string) {
