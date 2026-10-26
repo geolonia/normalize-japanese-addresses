@@ -596,13 +596,22 @@ export const getTownRegexPatterns = async (
         }
 
         // X丁目の丁目なしの数字だけの場合で、数字以外が続いたり終端が現れる場合は確度が高いので、先にマッチさせる
-        // X丁目の後ろに字などが続く町字 (稲荷元町三丁目字一番沼割 など) は対象外とする。
-        // 名前の長い順に並んでいるため、対象にすると X丁目 そのものの町字より先に一致してしまう
+        // ただし X丁目 の後ろに字などが続く町字 (稲荷元町三丁目字一番沼割 など) は、X丁目 そのものの町字が
+        // 別にある場合は対象外とする。名前の長い順に並んでいるため、対象にすると X丁目 の町字より先に一致してしまう。
+        // X丁目 の町字がない場合 (南郷通十丁目北 など) は、このパターンが X丁目 の数字だけの入力を受ける唯一の手段なので残す
         {
-          const chomeMatch = machiAzaName(town).match(
-            /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)$/,
+          const name = machiAzaName(town)
+          const chomeMatch = name.match(
+            /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
           )
           if (!chomeMatch) {
+            continue
+          }
+          const chomeName = name.slice(
+            0,
+            (chomeMatch.index ?? 0) + chomeMatch[0].length,
+          )
+          if (chomeName !== name && townSet.has(chomeName)) {
             continue
           }
           const chomeNamePart = chomeMatch[1]
