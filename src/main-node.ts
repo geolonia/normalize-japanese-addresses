@@ -1,7 +1,6 @@
 import * as Normalize from './normalize'
 import { __internals, FetchOptions, FetchResponseLike } from './config'
 import { promises as fs } from 'node:fs'
-import { fetch } from 'undici'
 
 export type { NormalizeResult } from './types'
 
