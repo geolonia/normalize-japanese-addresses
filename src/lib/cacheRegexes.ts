@@ -65,7 +65,12 @@ const isRetryableStatus = (status: number | undefined) => {
 const isRetryableError = (e: unknown) => {
   const code = (e as { code?: string } | null)?.code
   // ファイルが無いことは再試行しても解決しない
-  return code !== 'ENOENT' && code !== 'ENOTDIR'
+  if (code === 'ENOENT' || code === 'ENOTDIR') {
+    return false
+  }
+  // 実装側で再試行不可と印を付けられた失敗は再試行しない
+  // (例: ローカルファイルの解析失敗)
+  return (e as { retryable?: boolean } | null)?.retryable !== false
 }
 
 /**
@@ -150,8 +155,10 @@ async function fetchWithRetry<T>(
     try {
       resp = await __internals.fetch(input, options)
     } catch (e) {
+      lastDetail = e instanceof Error ? `: ${e.message}` : ''
+      lastCause = e
       if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableError(e)) {
-        throw fetchError(input, e instanceof Error ? `: ${e.message}` : '', e)
+        throw fetchError(input, lastDetail, e)
       }
       await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
       continue
@@ -162,7 +169,8 @@ async function fetchWithRetry<T>(
         return await readBody(resp)
       } catch (e) {
         if (!(e instanceof InvalidBodyError)) {
-          throw e
+          // この経路だけ fetchError を通さないと例外に対象の URI が入らない
+          throw fetchError(input, e instanceof Error ? `: ${e.message}` : '', e)
         }
         lastDetail = `: ${e.message}`
         lastCause = e.cause ?? e
@@ -174,9 +182,13 @@ async function fetchWithRetry<T>(
       }
     }
 
-    lastDetail =
-      typeof resp.status === 'undefined' ? '' : ` (HTTP ${resp.status})`
-    if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableStatus(resp.status)) {
+    if (typeof resp.status !== 'undefined') {
+      lastDetail = ` (HTTP ${resp.status})`
+      lastCause = undefined
+    }
+    // status 未定義の場合は直前の試行の理由 (lastDetail / lastCause) を残す
+    const retryable = resp.retryable ?? isRetryableStatus(resp.status)
+    if (attempt === MAX_FETCH_ATTEMPTS || !retryable) {
       break
     }
     await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))

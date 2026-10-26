@@ -11,25 +11,51 @@ export const requestHandlers = {
       process.platform === 'win32'
         ? decodeURI(fileURL.pathname).substring(1)
         : decodeURI(fileURL.pathname)
-    const f = await fs.open(filePath, 'r')
     let contents: Buffer, ok: boolean
-    if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
-      contents = Buffer.alloc(o.length)
-      const resp = await f.read(contents, 0, o.length, o.offset)
-      ok = resp.bytesRead === o.length
-    } else {
-      contents = await f.readFile()
-      ok = true
+    try {
+      const f = await fs.open(filePath, 'r')
+      try {
+        if (
+          typeof o.length !== 'undefined' &&
+          typeof o.offset !== 'undefined'
+        ) {
+          contents = Buffer.alloc(o.length)
+          const resp = await f.read(contents, 0, o.length, o.offset)
+          ok = resp.bytesRead === o.length
+        } else {
+          contents = await f.readFile()
+          ok = true
+        }
+      } finally {
+        await f.close()
+      }
+    } catch (e) {
+      // ローカルファイルの I/O 失敗は再試行の対象にしない。EISDIR / EACCES などの
+      // 決定的な失敗に加え、EMFILE などの一時的な失敗も 1 回で失敗させ、
+      // 再試行の仕組みが入る前と同じ試行回数・待ち時間に揃えている
+      if (e instanceof Error) {
+        ;(e as Error & { retryable?: boolean }).retryable = false
+      }
+      throw e
     }
-    await f.close()
     return {
       json: async () => {
-        return JSON.parse(contents.toString('utf-8'))
+        try {
+          return JSON.parse(contents.toString('utf-8'))
+        } catch (e) {
+          // ローカルファイルの解析失敗は決定的なので、再試行の対象にしない
+          if (e instanceof Error) {
+            ;(e as Error & { retryable?: boolean }).retryable = false
+          }
+          throw e
+        }
       },
       text: async () => {
         return contents.toString('utf-8')
       },
       ok,
+      // ファイルからの読み取りは再試行しても解決しない
+      retryable: false,
     }
   },
   http: (fileURL: URL, options?: FetchOptions) => {
