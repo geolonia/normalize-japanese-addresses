@@ -270,4 +270,30 @@ describe(`basic tests`, () => {
       })
     })
   })
+
+  describe('栃木県宇都宮市一番町3-17 のケース(#259)', () => {
+    test('栃木県宇都宮市一番町3-17', async () => {
+      const address = '栃木県宇都宮市一番町3-17'
+      const res = await normalize(address)
+      assertMatchCloseTo(res, {
+        pref: '栃木県',
+        city: '宇都宮市',
+        town: '一番町',
+        other: '3-17',
+        level: 8,
+      })
+    })
+
+    test('栃木県宇都宮市一条三丁目17', async () => {
+      const address = '栃木県宇都宮市一条三丁目17'
+      const res = await normalize(address)
+      assertMatchCloseTo(res, {
+        pref: '栃木県',
+        city: '宇都宮市',
+        town: '一条三丁目',
+        other: '17',
+        level: 3,
+      })
+    })
+  })
 })
