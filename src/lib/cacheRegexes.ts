@@ -1,5 +1,6 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
+import { zen2han } from './zen2han'
 import Papaparse from 'papaparse'
 import { LRUCache } from 'lru-cache'
 import {
@@ -535,6 +536,26 @@ export const getTownRegexPatterns = async (
 
       const patterns: [SingleMachiAza, string][] = []
 
+      // 丁目の数字だけの入力 (稲荷元町3 など) で、どの町字か一つに決まるかを調べる
+      // 「若水町３丁目」と「若水三丁目」のように数字の表記だけが違う町字も同じものとして数える
+      const canonicalizeNumerals = (name: string) => kan2num(zen2han(name))
+      const chomeMatchPattern =
+        /([^一二三四五六七八九十0-9０-９]+)([一二三四五六七八九十0-9０-９]+)(丁目?)/
+      const chomeKeyCounts = new Map<string, number>()
+      for (const town of towns) {
+        const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
+        if (!chomeMatch) continue
+        const key = `${chomeMatch[1]} ${canonicalizeNumerals(chomeMatch[2])}`
+        chomeKeyCounts.set(key, (chomeKeyCounts.get(key) || 0) + 1)
+      }
+      // 同じ X丁目 を持つ町字が複数ある場合 (南郷通十丁目北 と 南郷通十丁目南、
+      // 稲荷元町三丁目 と 稲荷元町三丁目字一番沼割 など) は、数字だけの入力からは決められない。
+      // ただし名前が X丁目 そのものの町字 (稲荷元町三丁目 など) は、数字だけの入力の受け先として残す。
+      const isUnambiguousChome = (name: string, chomeMatch: RegExpMatchArray) =>
+        chomeKeyCounts.get(
+          `${chomeMatch[1]} ${canonicalizeNumerals(chomeMatch[2])}`,
+        ) === 1 || name === chomeMatch[0]
+
       for (const town of towns) {
         {
           const pattern = toRegexPattern(
@@ -596,11 +617,13 @@ export const getTownRegexPatterns = async (
         }
 
         // X丁目の丁目なしの数字だけの場合で、数字以外が続いたり終端が現れる場合は確度が高いので、先にマッチさせる
+        // ただし数字だけでは町字が一つに決まらない場合は対象外とする。名前の長い順に並んでいるため、
+        // 対象にすると 稲荷元町三丁目字一番沼割 が 稲荷元町三丁目 より先に、南郷通十丁目北 が
+        // 南郷通10丁目南 の入力に一致してしまう。
         {
-          const chomeMatch = machiAzaName(town).match(
-            /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-          )
-          if (!chomeMatch) {
+          const name = machiAzaName(town)
+          const chomeMatch = name.match(chomeMatchPattern)
+          if (!chomeMatch || !isUnambiguousChome(name, chomeMatch)) {
             continue
           }
           const chomeNamePart = chomeMatch[1]
@@ -608,16 +631,18 @@ export const getTownRegexPatterns = async (
           const pattern = toRegexPattern(
             `^${chomeNamePart}${kan2num(chomeNum)}([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]|(?![0-9])|$)`,
           )
-          patterns.push([town, pattern])
+          patterns.push([
+            'originalTown' in town ? town.originalTown : town,
+            pattern,
+          ])
         }
       }
 
       // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
       for (const town of towns) {
-        const chomeMatch = machiAzaName(town).match(
-          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-        )
-        if (!chomeMatch) {
+        const name = machiAzaName(town)
+        const chomeMatch = name.match(chomeMatchPattern)
+        if (!chomeMatch || !isUnambiguousChome(name, chomeMatch)) {
           continue
         }
         const chomeNamePart = chomeMatch[1]
