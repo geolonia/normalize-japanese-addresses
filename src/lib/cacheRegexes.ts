@@ -628,8 +628,9 @@ export const getTownRegexPatterns = async (
           }
           const chomeNamePart = chomeMatch[1]
           const chomeNum = chomeMatch[2]
+          // 入力の数字は半角に揃えられているため、全角の丁目 (阿寒町徹別市街地本通２丁目 など) も半角にする
           const pattern = toRegexPattern(
-            `^${chomeNamePart}${kan2num(chomeNum)}([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]|(?![0-9])|$)`,
+            `^${chomeNamePart}${canonicalizeNumerals(chomeNum)}([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]|(?![0-9])|$)`,
           )
           patterns.push([
             'originalTown' in town ? town.originalTown : town,
@@ -648,7 +649,7 @@ export const getTownRegexPatterns = async (
         const chomeNamePart = chomeMatch[1]
         const chomeNum = chomeMatch[2]
         const pattern = toRegexPattern(
-          `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
+          `^${chomeNamePart}(${chomeNum}|${canonicalizeNumerals(chomeNum)})`,
         )
         patterns.push([town, pattern])
       }
