@@ -648,8 +648,9 @@ export const getTownRegexPatterns = async (
         }
         const chomeNamePart = chomeMatch[1]
         const chomeNum = chomeMatch[2]
+        // 数字が続く場合 (宮川筋34-15 など) は、先頭の数字だけを丁目として切り出さない
         const pattern = toRegexPattern(
-          `^${chomeNamePart}(${chomeNum}|${canonicalizeNumerals(chomeNum)})`,
+          `^${chomeNamePart}(${chomeNum}|${canonicalizeNumerals(chomeNum)})(?![0-9])`,
         )
         patterns.push([town, pattern])
       }
