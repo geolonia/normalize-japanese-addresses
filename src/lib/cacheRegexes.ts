@@ -648,11 +648,16 @@ export const getTownRegexPatterns = async (
         }
         const chomeNamePart = chomeMatch[1]
         const chomeNum = chomeMatch[2]
-        // 数字が続く場合 (宮川筋34-15 など) は、先頭の数字だけを丁目として切り出さない
-        const pattern = toRegexPattern(
-          `^${chomeNamePart}(${chomeNum}|${canonicalizeNumerals(chomeNum)})(?![0-9])`,
-        )
-        patterns.push([town, pattern])
+        // 数字が続く場合 (宮川筋34-15、宮川筋三四-15 など) は、先頭の数字だけを丁目として切り出さない。
+        // toRegexPattern は漢数字を書き換える (二 → [ニ二] など) ため、漢数字を含む先読みは変換後に付ける
+        const pattern =
+          toRegexPattern(
+            `^${chomeNamePart}(${chomeNum}|${canonicalizeNumerals(chomeNum)})`,
+          ) + '(?![0-9〇一二三四五六七八九十百千])'
+        patterns.push([
+          'originalTown' in town ? town.originalTown : town,
+          pattern,
+        ])
       }
 
       return patterns
