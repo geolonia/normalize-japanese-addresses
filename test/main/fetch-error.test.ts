@@ -235,7 +235,7 @@ describe(`データ取得に失敗したときの挙動`, () => {
     assert.strictEqual(targetRequests, 3)
   })
 
-  test(`本文が途中で切れた場合はその旨がエラーメッセージに入る`, async () => {
+  test(`要求より短い本文が返された場合はその旨がエラーメッセージに入る`, async () => {
     failure.mode = 'short'
     failure.remaining = Number.MAX_SAFE_INTEGER
 
@@ -244,7 +244,7 @@ describe(`データ取得に失敗したときの挙動`, () => {
       (e: Error) => {
         assert.match(e.message, /住居表示/)
         assert.match(e.message, /バイト/)
-        assert.match(e.message, /途中で切れています/)
+        assert.match(e.message, /要求より短い本文が返されました/)
         return true
       },
     )
