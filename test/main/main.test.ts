@@ -67,6 +67,17 @@ describe(`basic tests`, () => {
     })
   })
 
+  test('It should infer 北海道 from `福島町` without mistaking it for 福島県', async () => {
+    const res = await normalize('福島町字三岳４５番地の１３')
+    assertMatchCloseTo(res, {
+      pref: '北海道',
+      city: '松前郡福島町',
+      town: '字三岳',
+      addr: '45-13',
+      level: 8,
+    })
+  })
+
   test('It should get the level `2` with `東京都港区あいうえお`', async () => {
     const res = await normalize('東京都港区あいうえお')
     assertMatchCloseTo(res, {
