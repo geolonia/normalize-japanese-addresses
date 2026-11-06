@@ -101,6 +101,34 @@ const asInvalidBody = (e: unknown) => {
   })
 }
 
+/**
+ * Range で要求したバイト列と実際の本文の長さが食い違う理由を説明する。
+ *
+ * @remarks
+ * 短い読み取りの原因は応答を見ないと区別できない。ステータスと長さの
+ * 組み合わせから、Range の無視・要求より短い本文・別物の本文 (エラーページ
+ * など) のどれに当たるかをメッセージに残す。
+ */
+const rangeMismatchReason = (
+  resp: FetchResponseLike,
+  expected: number,
+  actual: number,
+) => {
+  const counts = `期待 ${expected} バイト、実際 ${actual} バイト`
+  if (resp.status === 200) {
+    // 206 でないので Range は処理されていない。本文は対象ファイルの全文か、
+    // CDN のエラーページのどちらか
+    return `${counts}: サーバーが Range リクエストを処理しませんでした (HTTP 200)`
+  }
+  if (actual < expected) {
+    // 要求より短い。本文の途中切れのほか、ファイル末尾を超える範囲の要求
+    // (メタデータとファイルの不一致) でも正常な 206 は短くなる
+    return `${counts}: 要求より短い本文が返されました (本文の途中切れ、またはファイル末尾を超える範囲の要求の可能性があります)`
+  }
+  // 要求より長い本文は、別の内容 (エラーページなど) の可能性が高い
+  return `${counts}: 要求した範囲より長い本文が返されました`
+}
+
 const decodeTarget = (input: string) => {
   try {
     // どのデータの取得に失敗したのかを読めるようにする
@@ -345,7 +373,7 @@ async function fetchSubresource(
       const actual = new TextEncoder().encode(text).length
       if (actual !== row.length) {
         throw new InvalidBodyError(
-          `期待 ${row.length} バイト、実際 ${actual} バイト`,
+          rangeMismatchReason(resp, row.length, actual),
         )
       }
       return text
