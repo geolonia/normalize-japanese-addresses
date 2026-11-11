@@ -4,7 +4,6 @@ import os from 'node:os'
 import fs from 'node:fs'
 import assert from 'node:assert'
 import { pipeline } from 'node:stream/promises'
-import { fetch } from 'undici'
 import { normalize, config } from '../../src/main-node'
 import { assertMatchCloseTo } from '../helpers'
 

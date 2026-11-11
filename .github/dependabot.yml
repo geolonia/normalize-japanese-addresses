@@ -1,0 +1,10 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # バージョン更新の PR は作らず、セキュリティ更新の PR のみを受け取る。
+    # セキュリティ更新はこの上限の対象外なので、0 にしても引き続き作成される。
+    open-pull-requests-limit: 0

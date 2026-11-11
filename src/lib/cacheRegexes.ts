@@ -1,5 +1,6 @@
 import { toRegexPattern } from './dict'
 import { kan2num } from './kan2num'
+import { zen2han } from './zen2han'
 import Papaparse from 'papaparse'
 import { LRUCache } from 'lru-cache'
 import {
@@ -65,7 +66,12 @@ const isRetryableStatus = (status: number | undefined) => {
 const isRetryableError = (e: unknown) => {
   const code = (e as { code?: string } | null)?.code
   // ファイルが無いことは再試行しても解決しない
-  return code !== 'ENOENT' && code !== 'ENOTDIR'
+  if (code === 'ENOENT' || code === 'ENOTDIR') {
+    return false
+  }
+  // 実装側で再試行不可と印を付けられた失敗は再試行しない
+  // (例: ローカルファイルの解析失敗)
+  return (e as { retryable?: boolean } | null)?.retryable !== false
 }
 
 /**
@@ -93,6 +99,34 @@ const asInvalidBody = (e: unknown) => {
   return new InvalidBodyError(e instanceof Error ? e.message : String(e), {
     cause: e,
   })
+}
+
+/**
+ * Range で要求したバイト列と実際の本文の長さが食い違う理由を説明する。
+ *
+ * @remarks
+ * 短い読み取りの原因は応答を見ないと区別できない。ステータスと長さの
+ * 組み合わせから、Range の無視・要求より短い本文・別物の本文 (エラーページ
+ * など) のどれに当たるかをメッセージに残す。
+ */
+const rangeMismatchReason = (
+  resp: FetchResponseLike,
+  expected: number,
+  actual: number,
+) => {
+  const counts = `期待 ${expected} バイト、実際 ${actual} バイト`
+  if (resp.status === 200) {
+    // 206 でないので Range は処理されていない。本文は対象ファイルの全文か、
+    // CDN のエラーページのどちらか
+    return `${counts}: サーバーが Range リクエストを処理しませんでした (HTTP 200)`
+  }
+  if (actual < expected) {
+    // 要求より短い。本文の途中切れのほか、ファイル末尾を超える範囲の要求
+    // (メタデータとファイルの不一致) でも正常な 206 は短くなる
+    return `${counts}: 要求より短い本文が返されました (本文の途中切れ、またはファイル末尾を超える範囲の要求の可能性があります)`
+  }
+  // 要求より長い本文は、別の内容 (エラーページなど) の可能性が高い
+  return `${counts}: 要求した範囲より長い本文が返されました`
 }
 
 const decodeTarget = (input: string) => {
@@ -150,8 +184,10 @@ async function fetchWithRetry<T>(
     try {
       resp = await __internals.fetch(input, options)
     } catch (e) {
+      lastDetail = e instanceof Error ? `: ${e.message}` : ''
+      lastCause = e
       if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableError(e)) {
-        throw fetchError(input, e instanceof Error ? `: ${e.message}` : '', e)
+        throw fetchError(input, lastDetail, e)
       }
       await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
       continue
@@ -162,7 +198,8 @@ async function fetchWithRetry<T>(
         return await readBody(resp)
       } catch (e) {
         if (!(e instanceof InvalidBodyError)) {
-          throw e
+          // この経路だけ fetchError を通さないと例外に対象の URI が入らない
+          throw fetchError(input, e instanceof Error ? `: ${e.message}` : '', e)
         }
         lastDetail = `: ${e.message}`
         lastCause = e.cause ?? e
@@ -174,9 +211,13 @@ async function fetchWithRetry<T>(
       }
     }
 
-    lastDetail =
-      typeof resp.status === 'undefined' ? '' : ` (HTTP ${resp.status})`
-    if (attempt === MAX_FETCH_ATTEMPTS || !isRetryableStatus(resp.status)) {
+    if (typeof resp.status !== 'undefined') {
+      lastDetail = ` (HTTP ${resp.status})`
+      lastCause = undefined
+    }
+    // status 未定義の場合は直前の試行の理由 (lastDetail / lastCause) を残す
+    const retryable = resp.retryable ?? isRetryableStatus(resp.status)
+    if (attempt === MAX_FETCH_ATTEMPTS || !retryable) {
       break
     }
     await sleep(FETCH_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1))
@@ -332,7 +373,7 @@ async function fetchSubresource(
       const actual = new TextEncoder().encode(text).length
       if (actual !== row.length) {
         throw new InvalidBodyError(
-          `期待 ${row.length} バイト、実際 ${actual} バイト`,
+          rangeMismatchReason(resp, row.length, actual),
         )
       }
       return text
@@ -477,8 +518,7 @@ export const getTownRegexPatterns = async (
       const pre_towns = api.data
       const townSet = new Set(pre_towns.map((town) => machiAzaName(town)))
       const towns: (
-        | SingleMachiAza
-        | (SingleMachiAza & { originalTown: SingleMachiAza })
+        SingleMachiAza | (SingleMachiAza & { originalTown: SingleMachiAza })
       )[] = []
 
       const isKyoto = city.city === '京都市'
@@ -523,6 +563,26 @@ export const getTownRegexPatterns = async (
       })
 
       const patterns: [SingleMachiAza, string][] = []
+
+      // 丁目の数字だけの入力 (稲荷元町3 など) で、どの町字か一つに決まるかを調べる
+      // 「若水町３丁目」と「若水三丁目」のように数字の表記だけが違う町字も同じものとして数える
+      const canonicalizeNumerals = (name: string) => kan2num(zen2han(name))
+      const chomeMatchPattern =
+        /([^一二三四五六七八九十0-9０-９]+)([一二三四五六七八九十0-9０-９]+)(丁目?)/
+      const chomeKeyCounts = new Map<string, number>()
+      for (const town of towns) {
+        const chomeMatch = machiAzaName(town).match(chomeMatchPattern)
+        if (!chomeMatch) continue
+        const key = `${chomeMatch[1]} ${canonicalizeNumerals(chomeMatch[2])}`
+        chomeKeyCounts.set(key, (chomeKeyCounts.get(key) || 0) + 1)
+      }
+      // 同じ X丁目 を持つ町字が複数ある場合 (南郷通十丁目北 と 南郷通十丁目南、
+      // 稲荷元町三丁目 と 稲荷元町三丁目字一番沼割 など) は、数字だけの入力からは決められない。
+      // ただし名前が X丁目 そのものの町字 (稲荷元町三丁目 など) は、数字だけの入力の受け先として残す。
+      const isUnambiguousChome = (name: string, chomeMatch: RegExpMatchArray) =>
+        chomeKeyCounts.get(
+          `${chomeMatch[1]} ${canonicalizeNumerals(chomeMatch[2])}`,
+        ) === 1 || name === chomeMatch[0]
 
       for (const town of towns) {
         {
@@ -585,36 +645,47 @@ export const getTownRegexPatterns = async (
         }
 
         // X丁目の丁目なしの数字だけの場合で、数字以外が続いたり終端が現れる場合は確度が高いので、先にマッチさせる
+        // ただし数字だけでは町字が一つに決まらない場合は対象外とする。名前の長い順に並んでいるため、
+        // 対象にすると 稲荷元町三丁目字一番沼割 が 稲荷元町三丁目 より先に、南郷通十丁目北 が
+        // 南郷通10丁目南 の入力に一致してしまう。
         {
-          const chomeMatch = machiAzaName(town).match(
-            /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-          )
-          if (!chomeMatch) {
+          const name = machiAzaName(town)
+          const chomeMatch = name.match(chomeMatchPattern)
+          if (!chomeMatch || !isUnambiguousChome(name, chomeMatch)) {
             continue
           }
           const chomeNamePart = chomeMatch[1]
           const chomeNum = chomeMatch[2]
+          // 入力の数字は半角に揃えられているため、全角の丁目 (阿寒町徹別市街地本通２丁目 など) も半角にする
           const pattern = toRegexPattern(
-            `^${chomeNamePart}${kan2num(chomeNum)}([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]|(?![0-9])|$)`,
+            `^${chomeNamePart}${canonicalizeNumerals(chomeNum)}([-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]|(?![0-9])|$)`,
           )
-          patterns.push([town, pattern])
+          patterns.push([
+            'originalTown' in town ? town.originalTown : town,
+            pattern,
+          ])
         }
       }
 
       // X丁目の丁目なしの数字だけ許容するため、最後に数字だけ追加していく
       for (const town of towns) {
-        const chomeMatch = machiAzaName(town).match(
-          /([^一二三四五六七八九十]+)([一二三四五六七八九十]+)(丁目?)/,
-        )
-        if (!chomeMatch) {
+        const name = machiAzaName(town)
+        const chomeMatch = name.match(chomeMatchPattern)
+        if (!chomeMatch || !isUnambiguousChome(name, chomeMatch)) {
           continue
         }
         const chomeNamePart = chomeMatch[1]
         const chomeNum = chomeMatch[2]
-        const pattern = toRegexPattern(
-          `^${chomeNamePart}(${chomeNum}|${kan2num(chomeNum)})`,
-        )
-        patterns.push([town, pattern])
+        // 数字が続く場合 (宮川筋34-15、宮川筋三四-15 など) は、先頭の数字だけを丁目として切り出さない。
+        // toRegexPattern は漢数字を書き換える (二 → [ニ二] など) ため、漢数字を含む先読みは変換後に付ける
+        const pattern =
+          toRegexPattern(
+            `^${chomeNamePart}(${chomeNum}|${canonicalizeNumerals(chomeNum)})`,
+          ) + '(?![0-9〇一二三四五六七八九十百千])'
+        patterns.push([
+          'originalTown' in town ? town.originalTown : town,
+          pattern,
+        ])
       }
 
       return patterns
