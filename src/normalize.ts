@@ -3,6 +3,7 @@ import { currentConfig } from './config'
 import { kan2num } from './lib/kan2num'
 import { zen2han } from './lib/zen2han'
 import { patchAddr } from './lib/patchAddr'
+import { toRegexPattern } from './lib/dict'
 import {
   getPrefectures,
   getPrefectureRegexPatterns,
@@ -44,6 +45,56 @@ export type TransformRequestQuery = {
   pref?: string
   city?: string
   town?: string
+}
+
+// 東京都の島嶼部では、住所の市区町村名の前に島名が付記されることがある
+// (例: 「東京都八丈島八丈町三根」の「八丈島」)。島名は市区町村名ではないため、
+// そのままでは市区町村にマッチしない。直接マッチしない場合に限り、
+// 島名を取り除いて再試行する。(#194)
+const tokyoIslandNames = [
+  '小笠原諸島',
+  '八丈島',
+  '三宅島',
+  '神津島',
+  '式根島',
+  '新島',
+  '御蔵島',
+  '青ヶ島',
+  '利島',
+  '父島',
+  '母島',
+  '大島',
+]
+
+const matchCity = (
+  pref: SinglePrefecture,
+  other: string,
+): { city: SingleCity; other: string } | undefined => {
+  const cityPatterns = getCityRegexPatterns(pref)
+  for (const [_city, pattern] of cityPatterns) {
+    const match = other.match(pattern)
+    if (match) {
+      return { city: _city, other: other.substring(match[0].length) }
+    }
+  }
+  if (prefectureName(pref) === '東京都') {
+    for (const islandName of tokyoIslandNames) {
+      const islandMatch = other.match(
+        new RegExp(`^${toRegexPattern(islandName)}`),
+      )
+      if (islandMatch) {
+        const rest = other.substring(islandMatch[0].length).trim()
+        for (const [_city, pattern] of cityPatterns) {
+          const match = rest.match(pattern)
+          if (match) {
+            return { city: _city, other: rest.substring(match[0].length) }
+          }
+        }
+        break
+      }
+    }
+  }
+  return undefined
 }
 
 const __VERSION__: string = 'dev'
@@ -228,18 +279,14 @@ export const normalize: Normalizer = async (
       other: string
     }[] = []
     for (const _pref of prefectures.data) {
-      const cityPatterns = getCityRegexPatterns(_pref)
-
       other = other.trim()
-      for (const [_city, pattern] of cityPatterns) {
-        const match = other.match(pattern)
-        if (match) {
-          matched.push({
-            pref: _pref,
-            city: _city,
-            other: other.substring(match[0].length),
-          })
-        }
+      const cityMatch = matchCity(_pref, other)
+      if (cityMatch) {
+        matched.push({
+          pref: _pref,
+          city: cityMatch.city,
+          other: cityMatch.other,
+        })
       }
     }
 
@@ -266,17 +313,12 @@ export const normalize: Normalizer = async (
   }
 
   if (pref && option.level >= 2) {
-    const cityPatterns = getCityRegexPatterns(pref)
-
     other = other.trim()
-    for (const [_city, pattern] of cityPatterns) {
-      const match = other.match(pattern)
-      if (match) {
-        city = _city
-        point = upgradePoint(point, cityToResultPoint(city))
-        other = other.substring(match[0].length) // 市区町村名以降の住所
-        break
-      }
+    const cityMatch = matchCity(pref, other)
+    if (cityMatch) {
+      city = cityMatch.city
+      point = upgradePoint(point, cityToResultPoint(city))
+      other = cityMatch.other // 市区町村名以降の住所
     }
   }
 
