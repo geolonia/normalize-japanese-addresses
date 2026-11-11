@@ -303,6 +303,24 @@ describe(`basic tests`, () => {
       })
     })
 
+    test('島名の表記ゆれ: 東京都青ケ島青ケ島村', async () => {
+      const res = await normalize('東京都青ケ島青ケ島村')
+      assertMatchCloseTo(res, {
+        pref: '東京都',
+        city: '青ヶ島村',
+      })
+    })
+
+    test('島名の後の空白: 東京都八丈島 八丈町三根1', async () => {
+      const res = await normalize('東京都八丈島 八丈町三根1')
+      assertMatchCloseTo(res, {
+        pref: '東京都',
+        city: '八丈町',
+        town: '三根',
+        level: 3,
+      })
+    })
+
     test('島名なしの既存の動作は変わらない: 東京都大島町元町１', async () => {
       const res = await normalize('東京都大島町元町１')
       assertMatchCloseTo(res, {
