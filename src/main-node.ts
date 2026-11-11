@@ -1,16 +1,14 @@
 import * as Normalize from './normalize'
 import { __internals, FetchOptions, FetchResponseLike } from './config'
 import { promises as fs } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 export type { NormalizeResult } from './types'
 
 export const requestHandlers = {
   file: async (fileURL: URL, options?: FetchOptions) => {
     const o = options || {}
-    const filePath =
-      process.platform === 'win32'
-        ? decodeURI(fileURL.pathname).substring(1)
-        : decodeURI(fileURL.pathname)
+    const filePath = fileURLToPath(fileURL)
     let contents: Buffer, ok: boolean
     try {
       const f = await fs.open(filePath, 'r')
