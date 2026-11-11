@@ -3,6 +3,7 @@ import { currentConfig } from './config'
 import { kan2num } from './lib/kan2num'
 import { zen2han } from './lib/zen2han'
 import { patchAddr } from './lib/patchAddr'
+import { toRegexPattern } from './lib/dict'
 import {
   getPrefectures,
   getPrefectureRegexPatterns,
@@ -78,8 +79,11 @@ const matchCity = (
   }
   if (prefectureName(pref) === '東京都') {
     for (const islandName of tokyoIslandNames) {
-      if (other.startsWith(islandName)) {
-        const rest = other.substring(islandName.length)
+      const islandMatch = other.match(
+        new RegExp(`^${toRegexPattern(islandName)}`),
+      )
+      if (islandMatch) {
+        const rest = other.substring(islandMatch[0].length).trim()
         for (const [_city, pattern] of cityPatterns) {
           const match = rest.match(pattern)
           if (match) {
