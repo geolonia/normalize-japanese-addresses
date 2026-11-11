@@ -44,11 +44,9 @@ export const __internals: { fetch: FetchLike } = {
   // default fetch
   fetch: (input: string, options) => {
     const o = options || {}
-    let url = new URL(
-      `${currentConfig.japaneseAddressesApi}${input}`,
-    ).toString()
+    const url = new URL(`${currentConfig.japaneseAddressesApi}${input}`)
     if (currentConfig.geoloniaApiKey) {
-      url += `?geolonia-api-key=${currentConfig.geoloniaApiKey}`
+      url.searchParams.set('geolonia-api-key', currentConfig.geoloniaApiKey)
     }
     const headers: HeadersInit = {}
     if (typeof o.length !== 'undefined' && typeof o.offset !== 'undefined') {
@@ -62,7 +60,7 @@ export const __internals: { fetch: FetchLike } = {
     } else {
       throw new Error('fetch is not available in this environment')
     }
-    return globalFetch(url, {
+    return globalFetch(url.toString(), {
       headers,
     })
   },
