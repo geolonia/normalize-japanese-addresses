@@ -61,7 +61,10 @@ export const requestHandlers = {
   http: (fileURL: URL, options?: FetchOptions) => {
     const o = options || {}
     if (Normalize.config.geoloniaApiKey) {
-      fileURL.search = `?geolonia-api-key=${Normalize.config.geoloniaApiKey}`
+      fileURL.searchParams.set(
+        'geolonia-api-key',
+        Normalize.config.geoloniaApiKey,
+      )
     }
     const headers: HeadersInit = {
       'User-Agent':
